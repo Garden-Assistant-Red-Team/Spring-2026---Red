@@ -1,0 +1,83 @@
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ccc;
+  background: white;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.navLink {
+  text-decoration: none;
+  color: black;
+  font-weight: 600;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings {
+  cursor: pointer;
+}
+
+.dropdown {
+  position: relative;
+}
+
+/* Button that looks like a link */
+.dropBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: black;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.dropBtn:hover {
+  text-decoration: underline;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-width: 200px;
+  z-index: 9999;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.dropdownItem {
+  display: block;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: black;
+  font-weight: 600;
+}
+
+.dropdownItem:hover {
+  background: #f0f0f0;
+}

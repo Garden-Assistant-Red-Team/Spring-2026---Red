@@ -1,0 +1,150 @@
+/* Page wrapper */
+.toolPage {
+  padding: 28px 18px;
+}
+
+/* Big centered title */
+.toolTitle {
+  text-align: center;
+  margin: 10px 0 22px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* Green background area holding the 3 columns */
+.toolGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 18px;
+  background: #dfead6; /* light green */
+  padding: 18px;
+  border-radius: 10px;
+}
+
+/* Each panel */
+.panel {
+  background: #cfe5c5;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  padding: 14px;
+  border-radius: 10px;
+  min-height: 360px;
+}
+
+/* Panel headings */
+.panelTitle {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Form fields */
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.field span {
+  font-weight: 600;
+}
+
+.field input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* Buttons */
+.primaryBtn {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: #78a95a;
+  color: white;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.primaryBtn:hover {
+  filter: brightness(0.95);
+}
+
+/* Lists */
+.listBox {
+  display: grid;
+  gap: 10px;
+}
+
+.listItem {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #78a95a;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 700;
+}
+
+.listItem.active {
+  outline: 3px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Image placeholder */
+.imageBox {
+  height: 150px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  display: grid;
+  place-items: center;
+  margin: 10px 0;
+  background: #78a95a;
+  color: white;
+  font-weight: 700;
+}
+
+/* Symptom chips list rows */
+.pillRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pill {
+  flex: 1;
+  background: #78a95a;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.xBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.25);
+  cursor: pointer;
+  background: white;
+  font-weight: 800;
+}
+
+/* Advice issue blocks */
+.issueBox {
+  background: rgba(255,255,255,0.25);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.18);
+  margin-bottom: 12px;
+}
+
+.issueBox h3 {
+  margin: 0 0 6px;
+}
+
+/* Small gray text */
+.muted {
+  margin: 6px 0;
+  opacity: 0.85;
+}
