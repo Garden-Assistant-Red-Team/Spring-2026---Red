@@ -1,83 +1,100 @@
 .nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  border-bottom: 1px solid #ccc;
-  background: white;
+  justify-content: space-between;
+
+  padding: 14px 22px;
+
+  background: linear-gradient(90deg, var(--leaf-dark), var(--leaf));
+  color: white;
 }
 
 .navLeft {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 18px;
 }
 
 .brand {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .navLink {
-  text-decoration: none;
-  color: black;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 550;
+  white-space: nowrap;
 }
 
 .navLink:hover {
-  text-decoration: underline;
+  color: white;
 }
 
 .navRight {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 550;
+  white-space: nowrap;
 }
 
 .settings {
   cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 12px;
 }
 
-.dropdown {
-  position: relative;
+.settings:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Button that looks like a link */
+/* Dropdown */
+.dropdown { position: relative; }
+
 .dropBtn {
   background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
-  color: black;
-  font-weight: 600;
+
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 550;
   font-size: 16px;
+  white-space: nowrap;
 }
 
-.dropBtn:hover {
-  text-decoration: underline;
-}
+.dropBtn:hover { color: white; }
 
 .dropdownMenu {
   position: absolute;
-  top: 34px;
+  top: 46px;
   left: 0;
+
+  min-width: 220px;
   background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  min-width: 200px;
-  z-index: 9999;
+  color: var(--text);
+
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.18);
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
 .dropdownItem {
   display: block;
-  padding: 10px 12px;
-  text-decoration: none;
-  color: black;
-  font-weight: 600;
+  padding: 12px 12px;
+  font-weight: 550;
+  color: var(--text);
 }
 
 .dropdownItem:hover {
-  background: #f0f0f0;
+  background: rgba(90, 139, 98, 0.12);
 }

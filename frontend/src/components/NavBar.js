@@ -28,6 +28,8 @@ export default function NavBar() {
           About
         </Link>
 
+        <Link to="/garden" className="navLink">My Garden</Link>
+
         {/* Tools Dropdown */}
         <div className="dropdown" ref={toolsRef}>
           <button
@@ -38,11 +40,19 @@ export default function NavBar() {
             }}
             type="button"
           >
-            Tools ▼
+            Tools
           </button>
 
           {toolsOpen && (
             <div className="dropdownMenu">
+
+              <Link
+                to="/tools/reminders"
+                className="dropdownItem"
+                onClick={() => setToolsOpen(false)}
+              >
+                Reminders
+              </Link>
               <Link
                 to="/tools/recommendations"
                 className="dropdownItem"
@@ -72,7 +82,7 @@ export default function NavBar() {
             }}
             type="button"
           >
-            Resources ▼
+            Resources
           </button>
 
           {resourcesOpen && (

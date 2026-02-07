@@ -6,8 +6,10 @@ export default function SymptomAssessmentPage() {
   const [symptoms, setSymptoms] = useState(["Plant Symptom #1", "Plant Symptom #2"]);
 
   const addSymptom = () => {
-    if (!symptomText.trim()) return;
-    setSymptoms((prev) => [...prev, symptomText.trim()]);
+    const cleaned = symptomText.trim();
+    if (!cleaned) return;
+
+    setSymptoms((prev) => [...prev, cleaned]);
     setSymptomText("");
   };
 
@@ -17,64 +19,81 @@ export default function SymptomAssessmentPage() {
 
   return (
     <div className="toolPage">
+      {/* Hero band */}
       <h1 className="toolTitle">Plant Symptom Assessment</h1>
 
-      <div className="toolGrid">
-        {/* LEFT */}
-        <section className="panel">
-          <h2 className="panelTitle">Enter symptoms</h2>
+      <div className="container">
+        <div className="toolGrid">
+          {/* LEFT */}
+          <section className="panel">
+            <h2 className="panelTitle">Enter symptoms</h2>
 
-          <label className="field">
-            <span>Symptoms</span>
-            <input
-              value={symptomText}
-              onChange={(e) => setSymptomText(e.target.value)}
-              placeholder="Enter symptoms..."
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addSymptom();
-              }}
-            />
-          </label>
+            {/* Input + button on same row */}
+            <div style={{ display: "flex", gap: 10, alignItems: "end" }}>
+              <label className="field" style={{ flex: 1, marginBottom: 0 }}>
+                <span>Symptoms</span>
+                <input
+                  value={symptomText}
+                  onChange={(e) => setSymptomText(e.target.value)}
+                  placeholder="Enter symptoms..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addSymptom();
+                  }}
+                />
+              </label>
 
-          <button className="primaryBtn" onClick={addSymptom}>
-            Add symptom
-          </button>
+              <button
+                className="primaryBtn"
+                onClick={addSymptom}
+                type="button"
+                style={{ height: 44, whiteSpace: "nowrap" }}
+              >
+                Add symptom
+              </button>
+            </div>
 
-          <div className="listBox">
-            {symptoms.map((s, idx) => (
-              <div key={idx} className="pillRow">
-                <span className="pill">{s}</span>
-                <button className="xBtn" onClick={() => removeSymptom(idx)}>
-                  x
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+            {/* Symptom pills */}
+            <div className="pills">
+              {symptoms.map((s, idx) => (
+                <div key={s + idx} className="pill">
+                  <span>{s}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeSymptom(idx)}
+                    aria-label="Remove symptom"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        {/* CENTER */}
-        <section className="panel">
-          <h2 className="panelTitle">Symptom Information</h2>
-          <div className="imageBox">Image of Symptom</div>
-          <p className="muted">Detailed information about symptoms.</p>
-        </section>
+          {/* CENTER */}
+          <section className="panel">
+            <h2 className="panelTitle">Symptom Information</h2>
+            <div className="imageBox">Image of Symptom</div>
+            <p className="muted">Detailed information about symptoms.</p>
+          </section>
 
-        {/* RIGHT */}
-        <section className="panel">
-          <h2 className="panelTitle">Plantcare Advice</h2>
+          {/* RIGHT */}
+          <section className="panel">
+            <h2 className="panelTitle">Plantcare Advice</h2>
 
-          <div className="issueBox">
-            <h3>Estimated Issue #1</h3>
-            <p className="muted">Reasoning of connecting symptoms to issue.</p>
-            <p className="muted">Description of treatment for issue.</p>
-          </div>
+            <div className="issueBox">
+              <h3>Estimated Issue #1</h3>
+              <p className="muted">Reasoning of connecting symptoms to issue.</p>
+              <p className="muted">Description of treatment for issue.</p>
+            </div>
 
-          <div className="issueBox">
-            <h3>Estimated Issue #2</h3>
-            <p className="muted">Reasoning of connecting symptoms to issue.</p>
-            <p className="muted">Description of treatment for issue.</p>
-          </div>
-        </section>
+            <div className="issueBox">
+              <h3>Estimated Issue #2</h3>
+              <p className="muted">Reasoning of connecting symptoms to issue.</p>
+              <p className="muted">Description of treatment for issue.</p>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
