@@ -22,7 +22,14 @@ export default function NavBar() {
   return (
     <nav className="nav">
       <div className="navLeft">
-        <strong className="brand">Garden Assistant</strong>
+        <Link to="/" className="brand">
+  Garden Assistant
+</Link>
+
+<Link to="/" className="navLink">
+  Home
+</Link>
+
 
         <Link to="/about" className="navLink">
           About
@@ -99,9 +106,17 @@ export default function NavBar() {
       </div>
 
       <div className="navRight">
-        <span>Username</span>
-        <span className="settings">⚙</span>
-      </div>
+
+  <Link to="/login" className="navLink">
+    Login
+  </Link>
+
+  <Link to="/signup" className="navLink">
+    Sign Up
+  </Link>
+
+</div>
+
     </nav>
   );
 }
