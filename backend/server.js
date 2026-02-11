@@ -11,29 +11,19 @@ const db = admin.firestore();
 const app = express();
 const PORT = 3000;
 
-// Middleware to parse JSON
 app.use(express.json());
 
-// Test route
-app.get('/', (req, res) => {
-  res.send('Garden Assistant API is running!');
-});
+const plantsRouter = require('./routes/plants');
+const usersRouter = require('./routes/users');
+const alertsRouter = require('./routes/alerts');
+const climateRouter = require('./routes/climate');
 
-// Example: Get all plants
-app.get('/api/plants', async (req, res) => {
-  try {
-    const plantsSnapshot = await db.collection('plants').get();
-    const plants = [];
-    plantsSnapshot.forEach(doc => {
-      plants.push({ id: doc.id, ...doc.data() });
-    });
-    res.json(plants);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Use routes
+app.use('/api/plants', plantsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/alerts', alertsRouter);
+app.use('/api/climate', climateRouter);
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
