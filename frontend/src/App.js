@@ -11,6 +11,7 @@ import SymptomAssessmentPage from "./pages/SymptomAssessmentPage";
 import MyGardenPage from "./pages/MyGardenPage";
 import RemindersPage from "./pages/RemindersPage";
 import Home from "./pages/Home";
+import WeatherPage from "./pages/WeatherPage";
 
 
 
@@ -29,6 +30,9 @@ export default function App() {
   <Route path="/tools/symptoms" element={<SymptomAssessmentPage />} />
   <Route path="/garden" element={<MyGardenPage />} />
   <Route path="/tools/reminders" element={<RemindersPage />} />
+  <Route path="/weather" element={<WeatherPage />} />
+  <Route path="/tools/weather" element={<WeatherPage />} />
+
 
   <Route path="/about" element={<h1 style={{ padding: 18 }}>About</h1>} />
   <Route path="/resources" element={<h1 style={{ padding: 18 }}>Resources</h1>} />

@@ -75,6 +75,16 @@ export default function NavBar() {
               >
                 Symptom Assessment
               </Link>
+              
+              <Link
+  to="/tools/weather"
+  className="dropdownItem"
+  onClick={() => setToolsOpen(false)}
+>
+  Weather
+</Link>
+
+
             </div>
           )}
         </div>
