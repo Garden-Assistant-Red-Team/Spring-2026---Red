@@ -1,0 +1,13 @@
+.site-footer {
+  margin-top: 70px;
+  padding: 28px 0;
+  text-align: center;
+  color: rgba(31, 42, 31, 0.6);
+  font-size: 13px;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
