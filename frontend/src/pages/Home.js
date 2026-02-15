@@ -4,6 +4,18 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Home.css";
 
+// Team Photos
+import kenyta from "../images/kenyta.jpg";
+import michael from "../images/michael.jpg";
+//import augustine from "../images/augustine.jpg";
+import mariem from "../images/mariem.jpg";
+import ryan from "../images/ryan.jpg";
+import fred from "../images/fred.jpg";
+import ibrahima from "../images/ibrahima.jpeg";
+import placeholder from "../images/placeholder.jpg";
+// Background
+import heroBg from "../images/hero.jpg";
+
 export default function Home() {
   const location = useLocation();
 
@@ -16,13 +28,13 @@ export default function Home() {
   }, [location.hash]);
 
   const team = [
-    "Kenyta Blount",
-    "Michael Hollingsworth",
-    "Augustine Kpewa",
-    "Mariem Mohamed",
-    "Ryan Siebert-Ngo",
-    "Fred Terling",
-    "Ibrahim Wann",
+    { name: "Kenyta Blount", img: kenyta },
+    { name: "Michael Hollingsworth", img: michael },
+    { name: "Augustine Kpewa", img: placeholder },
+    { name: "Mariem Mohamed", img: mariem },
+    { name: "Ryan Siebert-Ngo", img: ryan },
+    { name: "Fred Terling", img: fred },
+    { name: "Ibrahima Wann", img: ibrahima },
   ];
 
   return (
@@ -31,20 +43,25 @@ export default function Home() {
 
       <main className="home-container">
         {/* HERO */}
-        <section className="hero">
-          <h1>Welcome to Garden Assistant</h1>
-          <p>
-            Track your plants, get reminders, and keep notes and checklists all in
-            one place.
-          </p>
+        <section
+          className="hero"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        >
+          <div className="hero-content">
+            <h1>Welcome to Garden Assistant</h1>
+            <p>
+              Track your plants, get reminders, and keep notes and checklists all
+              in one place.
+            </p>
 
-          <div className="cta-buttons">
-            <Link to="/login" className="primary-btn">
-              Log In
-            </Link>
-            <Link to="/signup" className="secondary-btn">
-              Sign Up
-            </Link>
+            <div className="cta-buttons">
+              <Link to="/login" className="primary-btn">
+                Log In
+              </Link>
+              <Link to="/signup" className="secondary-btn">
+                Sign Up
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -66,13 +83,19 @@ export default function Home() {
         {/* TEAM */}
         <section id="team" className="section">
           <h2>Meet the Team</h2>
-          <p className="muted">We’re a team of 7 developers building Garden Assistant.</p>
+          <p className="muted">
+            We’re a team of 7 developers building Garden Assistant.
+          </p>
 
           <div className="team-grid">
-            {team.map((name) => (
-              <div key={name} className="team-card">
-                <div className="avatar" aria-hidden="true" />
-                <h3>{name}</h3>
+            {team.map((member) => (
+              <div key={member.name} className="team-card">
+                <img
+                  src={member.img}
+                  alt={member.name}
+                  className="team-photo"
+                />
+                <h3>{member.name}</h3>
                 <p>Developer</p>
               </div>
             ))}
@@ -122,7 +145,6 @@ export default function Home() {
                 gardenassistant@odu.edu
               </a>
 
-              {/* Optional: clearer "team contacts" block */}
               <div className="contact-note">
                 <div className="contact-note-title">Additional contact</div>
                 <a className="email-link" href="mailto:iwann001@odu.edu">

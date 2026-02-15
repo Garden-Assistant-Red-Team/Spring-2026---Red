@@ -1,14 +1,17 @@
+/* ===== Top Public Header ===== */
+
 .public-header {
-  position: sticky;
+  position: sticky;        /* keeps header visible while scrolling */
   top: 0;
-  z-index: 50;
-  background: #3f6f52;
+  z-index: 50;             /* ensures it stays above hero section */
+  background: #3f6f52;     /* main brand color */
   color: white;
   height: 64px;
   display: flex;
   align-items: center;
 }
 
+/* Inner container to center content */
 .public-header-inner {
   width: 100%;
   max-width: 1100px;
@@ -18,68 +21,67 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
 }
 
+/* App name / logo */
 .public-brand {
   color: white;
   text-decoration: none;
-  font-weight: 900;
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: 0.2px;
-  white-space: nowrap;
 }
 
+/* Middle navigation buttons */
 .public-tabs {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   align-items: center;
-  flex-wrap: wrap;
 }
 
+/* Navigation buttons */
 .tab {
-  background: transparent;
-  border: 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 800;
+  background: none;
+  border: none;
+  color: white;
+  font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 6px 8px;
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.12);
+  text-decoration: underline;   /* simple hover effect */
 }
 
+/* Right-side login / signup */
 .public-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  white-space: nowrap;
+  gap: 14px;
 }
 
 .public-login {
   color: white;
   text-decoration: none;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .public-signup {
   color: white;
   text-decoration: none;
-  font-weight: 900;
-  padding: 9px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
+/* Slight hover feedback */
 .public-signup:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Mobile friendliness */
+/* Hide middle tabs on small screens */
 @media (max-width: 760px) {
   .public-tabs {
     display: none;
