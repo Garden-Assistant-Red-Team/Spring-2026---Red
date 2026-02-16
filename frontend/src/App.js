@@ -50,6 +50,8 @@ import NavBar from "./components/NavBar";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ProfilePage from "./pages/ProfilePage";
+
 
 import PlantRecommendationPage from "./pages/PlantRecommendationPage";
 import SymptomAssessmentPage from "./pages/SymptomAssessmentPage";
@@ -100,6 +102,14 @@ export default function App() {
             </WithNav>
           }
         />
+        <Route
+  path="/profile"
+  element={
+    <WithNav>
+      <ProfilePage />
+    </WithNav>
+  }
+/>
         <Route
           path="/tools/reminders"
           element={

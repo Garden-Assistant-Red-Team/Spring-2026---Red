@@ -98,3 +98,17 @@
 .dropdownItem:hover {
   background: rgba(90, 139, 98, 0.12);
 }
+
+.dropdownMenuRight {
+  left: auto;
+  right: 0;
+}
+
+.dropdownMenu {
+  top: 52px;          
+  padding: 8px 0;     
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+}

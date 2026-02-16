@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ToolLayout.css";
+import GardenCalendar from "../components/GardenCalendar";
 
 export default function MyGardenPage() {
   const [plants] = useState([
@@ -81,7 +82,13 @@ export default function MyGardenPage() {
               Add checklist item
             </button>
           </section>
+               </div>
+
+        {/* 🌱 Garden Calendar */}
+        <div style={{ marginTop: 24 }}>
+          <GardenCalendar />
         </div>
+
       </div>
     </div>
   );
