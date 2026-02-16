@@ -51,6 +51,7 @@ import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 
 
 import PlantRecommendationPage from "./pages/PlantRecommendationPage";
@@ -107,6 +108,14 @@ export default function App() {
   element={
     <WithNav>
       <ProfilePage />
+    </WithNav>
+  }
+/>
+<Route
+  path="/profile/settings"
+  element={
+    <WithNav>
+      <SettingsPage />
     </WithNav>
   }
 />

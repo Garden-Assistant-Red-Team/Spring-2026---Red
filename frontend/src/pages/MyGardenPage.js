@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ToolLayout.css";
+
 import GardenCalendar from "../components/GardenCalendar";
+
+// Notifications
+import { requestNotificationPermission } from "../firebase-messaging";
+import { doc, updateDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 export default function MyGardenPage() {
   const [plants] = useState([
@@ -10,6 +16,22 @@ export default function MyGardenPage() {
   ]);
 
   const [notes, setNotes] = useState("");
+
+  // 🔔 Ask for notification permission after user hits My Garden
+  useEffect(() => {
+    async function setupNotifications() {
+      if (!auth.currentUser) return;
+
+      const token = await requestNotificationPermission();
+      if (!token) return;
+
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        fcmToken: token,
+      });
+    }
+
+    setupNotifications();
+  }, []);
 
   return (
     <div className="toolPage">
@@ -66,7 +88,7 @@ export default function MyGardenPage() {
             </div>
           </section>
 
-          {/* RIGHT: Checklist (placeholder) */}
+          {/* RIGHT: Checklist */}
           <section className="panel">
             <h2 className="panelTitle">Checklist</h2>
             <p className="muted">“Notes and custom checklists” placeholder.</p>
@@ -82,13 +104,12 @@ export default function MyGardenPage() {
               Add checklist item
             </button>
           </section>
-               </div>
+        </div>
 
         {/* 🌱 Garden Calendar */}
         <div style={{ marginTop: 24 }}>
           <GardenCalendar />
         </div>
-
       </div>
     </div>
   );

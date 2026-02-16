@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [gardenZone, setGardenZone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function SignupPage() {
         fullName,
         zipCode,
         gardenZone,
+        phoneNumber,
         createdAt: serverTimestamp(),
       });
 
@@ -71,7 +73,13 @@ export default function SignupPage() {
           value={gardenZone}
           onChange={(e) => setGardenZone(e.target.value)}
         />
-
+        <input
+          style={{ width: "100%", padding: 10, marginBottom: 10 }}
+          type="tel"
+          placeholder="Phone number (for watering reminders)"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+        />
         {/* Existing fields */}
         <input
           style={{ width: "100%", padding: 10, marginBottom: 10 }}
