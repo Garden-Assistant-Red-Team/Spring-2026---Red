@@ -98,15 +98,16 @@ export default function NavBar() {
           </button>
 
           {resourcesOpen && (
-            <div className="dropdownMenu">
-              <Link to="/resources" className="dropdownItem" onClick={() => setResourcesOpen(false)}>
-                Guides
-              </Link>
-              <Link to="/resources" className="dropdownItem" onClick={() => setResourcesOpen(false)}>
-                Glossary
-              </Link>
-            </div>
-          )}
+  <div className="dropdownMenu">
+    <Link
+      to="/resources"
+      className="dropdownItem"
+      onClick={() => setResourcesOpen(false)}
+    >
+      Plant Dictionary
+    </Link>
+  </div>
+)}
         </div>
       </div>
 
