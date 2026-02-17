@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updatePassword } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase"; // adjust path if needed
 
@@ -15,6 +15,9 @@ export default function ProfilePage() {
 
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordMsg, setPasswordMsg] = useState("");
 
   const loadProfile = async (uid) => {
     const ref = doc(db, "users", uid);
@@ -88,6 +91,18 @@ export default function ProfilePage() {
     setGardenZone(profile?.gardenZone || "Unknown");
     setEditMode(false);
     setMsg("");
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!user) return;
+
+    try {
+      await updatePassword(user, newPassword);
+      setPasswordMsg("Password updated!");
+      setNewPassword("");
+    } catch (err) {
+      setPasswordMsg(` ${err.message}`);
+    }
   };
 
   if (!user) {
@@ -178,6 +193,29 @@ export default function ProfilePage() {
             </div>
           </>
         )}
+      </div>
+    
+
+  <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
+        <h3>Update Password</h3>
+
+        <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
+          <input
+            type="password"
+            placeholder="New Password"
+            style={{ width: "100%", padding: 10 }}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button onClick={handlePasswordUpdate}>
+            Update Password
+          </button>
+        </div>
+
+        {passwordMsg && <p style={{ marginTop: 12 }}>{passwordMsg}</p>}
       </div>
     </div>
   );
