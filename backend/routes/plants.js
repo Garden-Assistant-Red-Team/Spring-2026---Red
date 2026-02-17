@@ -18,6 +18,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get a specific plant
+router.get('/:id', async (req, res) => {
+  try {
+    const doc = await db.collection('plants').doc(req.params.id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+
+    res.json({ id: doc.id, ...doc.data() });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Add a new plant
 router.post('/', async (req, res) => {
   try {
@@ -37,7 +53,64 @@ router.post('/', async (req, res) => {
     };
 
     const docRef = await db.collection('plants').add(newPlant);
-    res.status(201).json({ message: 'Plant added!', id: docRef.id, plant: newPlant });
+    res.status(201).json({ 
+      message: 'Plant added!', 
+      id: docRef.id, 
+      plant: newPlant 
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a plant
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, species, wateringFrequency, sunlight, notes } = req.body;
+
+    // Make sure there's something to update
+    if (!name && !species && !wateringFrequency && !sunlight && !notes) {
+      return res.status(400).json({ error: 'Please provide at least one field to update' });
+    }
+
+    // Build update object with only provided fields
+    const updates = {};
+    if (name) updates.name = name;
+    if (species) updates.species = species;
+    if (wateringFrequency) updates.wateringFrequency = wateringFrequency;
+    if (sunlight) updates.sunlight = sunlight;
+    if (notes) updates.notes = notes;
+    updates.updatedAt = new Date().toISOString();
+
+    // Check plant exists first
+    const doc = await db.collection('plants').doc(req.params.id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+
+    await db.collection('plants').doc(req.params.id).update(updates);
+
+    res.json({ message: 'Plant updated successfully!', updates });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a plant
+router.delete('/:id', async (req, res) => {
+  try {
+    // Check plant exists first
+    const doc = await db.collection('plants').doc(req.params.id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+
+    await db.collection('plants').doc(req.params.id).delete();
+
+    res.json({ message: 'Plant deleted successfully!' });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

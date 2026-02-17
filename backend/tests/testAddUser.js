@@ -1,17 +1,15 @@
 const http = require('http');
 
 const data = JSON.stringify({
-  name: 'Tomato Plant',
-  species: 'Solanum lycopersicum',
-  wateringFrequency: 'Daily',
-  sunlight: 'Full sun',
-  notes: 'Planted in backyard'
+  name: 'Test User',
+  email: 'testuser@test.com',
+  password: 'password123'
 });
 
 const options = {
   hostname: 'localhost',
-  port: 3000,
-  path: '/api/plants',
+  port: 5000,
+  path: '/api/users/register',
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
