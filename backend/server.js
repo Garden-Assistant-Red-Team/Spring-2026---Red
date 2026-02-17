@@ -1,24 +1,20 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
-require ("dotenv").config();
+require("dotenv").config();
+
 const serviceAccount = require('./config/serviceAccountKey.json');
 
-//this prevents double-init if reloads happen 
-if(!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert (serviceAccount)
-  });
-}
+//Initialize Firebase Admin ONLY ONCE
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
-
 const app = express();
-//create env port later
+
+// Use PORT from env if set, otherwise 5000
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -33,7 +29,6 @@ const weatherRouter = require('./routes/weather');
 const recommendationsRouter = require('./routes/recommendations');
 const symptomsRouter = require('./routes/symptoms');
 
-
 // Use routes
 app.use('/api/users', usersRouter);
 app.use('/api/plants', plantsRouter);
@@ -42,14 +37,21 @@ app.use('/api/weather', weatherRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/symptoms', symptomsRouter);
 
-// Test route
+// CATALOG ROUTE (Plant Dictionary)
+const catalogRouter = require('./routes/catalog');
+app.use('/api/catalog', catalogRouter);
+console.log("✅ mounted /api/catalog");
+
+// Test routes
 app.get('/', (req, res) => {
   res.send('Garden Assistant API is running!');
 });
+
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
