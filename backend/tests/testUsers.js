@@ -26,13 +26,13 @@ async function runTests() {
   // Test 1: Register a new user
   console.log('Test 1: Register a new user...');
   const registerData = JSON.stringify({
-    name: 'Jane Doe',
-    email: 'janedoe@test.com',
-    password: 'password123'
+    name: 'Mariem Mohamed',
+    email: 'mmoha024@odu.edu',
+    password: 'Marioma98767.'
   });
   const newUser = await makeRequest({
     hostname: 'localhost',
-    port: 3000,
+    port: 5000,
     path: '/api/users/register',
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Content-Length': registerData.length }
@@ -51,7 +51,7 @@ async function runTests() {
   console.log('Test 2: Get user info...');
   const userInfo = await makeRequest({
     hostname: 'localhost',
-    port: 3000,
+    port: 5000,
     path: `/api/users/${userId}`,
     method: 'GET'
   });
@@ -69,7 +69,7 @@ async function runTests() {
   });
   const addedPlant = await makeRequest({
     hostname: 'localhost',
-    port: 3000,
+    port: 5000,
     path: `/api/users/${userId}/plants`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Content-Length': plantData.length }
@@ -81,7 +81,7 @@ async function runTests() {
   console.log('Test 4: Get user plants...');
   const userPlants = await makeRequest({
     hostname: 'localhost',
-    port: 3000,
+    port: 5000,
     path: `/api/users/${userId}/plants`,
     method: 'GET'
   });
@@ -90,10 +90,10 @@ async function runTests() {
 
   // Test 5: Update user
   console.log('Test 5: Update user name...');
-  const updateData = JSON.stringify({ name: 'Jane Smith' });
+  const updateData = JSON.stringify({ name: 'Mariem Mohamed' });
   const updatedUser = await makeRequest({
     hostname: 'localhost',
-    port: 3000,
+    port: 5000,
     path: `/api/users/${userId}`,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Content-Length': updateData.length }
