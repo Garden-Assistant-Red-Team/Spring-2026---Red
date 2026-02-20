@@ -7,31 +7,62 @@ const db = admin.firestore();
 // Register a new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullName, email, password, zipCode, gardenZone, phoneNumber } = req.body;
 
-    if (!name || !email || !password) {
+    if (!fullName || !email || !password) {
       return res.status(400).json({ 
-        error: 'Name, email and password are all required' 
+        error: 'Full name, email and password are all required' 
       });
     }
 
     const userRecord = await admin.auth().createUser({
       email: email,
       password: password,
-      displayName: name
+      displayName: fullName
     });
 
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
     await db.collection('users').doc(userRecord.uid).set({
-      name: name,
+      fullName: fullName,
       email: email,
-      createdAt: new Date().toISOString()
+      zipCode: zipCode || '',
+      gardenZone: gardenZone || 'Unknown',
+      phoneNumber: phoneNumber || '',
+      createdAt: now,
+
+      settings: {
+        weatherEnabled: false,
+        locationMode: 'manualZip',
+        careAutoAdjustEnabled: true,
+        weatherRefreshPolicy: 'ttl',
+        weatherTTLMinutes: 180,
+        units: 'imperial'
+      },
+
+      location: {
+        geo: null,
+        source: 'manual',
+        updatedAt: null
+      },
+
+      weather: {
+        lastCheckedAt: null,
+        nextAllowedCheckAt: null,
+        lastResultSummary: {
+          rainNext12hMm: null,
+          rainNext24hMm: null,
+          temp: null
+        },
+        source: 'openweather'
+      }
     });
 
     res.status(201).json({
       message: 'User created successfully!',
       user: {
         id: userRecord.uid,
-        name: name,
+        fullName: fullName,
         email: email
       }
     });
@@ -69,28 +100,27 @@ router.get('/:id', async (req, res) => {
 // Update a user
 router.put('/:id', async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { fullName, email, zipCode, gardenZone, phoneNumber } = req.body;
 
-    // Make sure there's something to update
-    if (!name && !email) {
-      return res.status(400).json({ error: 'Please provide a name or email to update' });
+    if (!fullName && !email && !zipCode && !gardenZone && !phoneNumber) {
+      return res.status(400).json({ error: 'Please provide at least one field to update' });
     }
 
-    // Build update object with only provided fields
     const updates = {};
-    if (name) updates.name = name;
+    if (fullName) updates.fullName = fullName;
     if (email) updates.email = email;
-    updates.updatedAt = new Date().toISOString();
+    if (zipCode) updates.zipCode = zipCode;
+    if (gardenZone) updates.gardenZone = gardenZone;
+    if (phoneNumber) updates.phoneNumber = phoneNumber;
+    updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-    // Update in Firestore
     await db.collection('users').doc(req.params.id).update(updates);
 
-    // Update in Firebase Auth too if email changed
     if (email) {
       await admin.auth().updateUser(req.params.id, { email });
     }
-    if (name) {
-      await admin.auth().updateUser(req.params.id, { displayName: name });
+    if (fullName) {
+      await admin.auth().updateUser(req.params.id, { displayName: fullName });
     }
 
     res.json({ message: 'User updated successfully!', updates });
@@ -106,10 +136,7 @@ router.put('/:id', async (req, res) => {
 // Delete a user
 router.delete('/:id', async (req, res) => {
   try {
-    // Delete from Firebase Authentication
     await admin.auth().deleteUser(req.params.id);
-
-    // Delete from Firestore
     await db.collection('users').doc(req.params.id).delete();
 
     res.json({ message: 'User deleted successfully!' });
@@ -122,7 +149,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Get a user's saved plants
+// Get a user's plants
 router.get('/:id/plants', async (req, res) => {
   try {
     const snapshot = await db
@@ -143,22 +170,60 @@ router.get('/:id/plants', async (req, res) => {
   }
 });
 
-// Add a plant to a user's collection
+// Add a plant to a user's garden
 router.post('/:id/plants', async (req, res) => {
   try {
-    const { name, species, wateringFrequency, sunlight, notes } = req.body;
+    const {
+      catalogId,
+      addedFrom,
+      nickname,
+      locationType,
+      sunlightCategory,
+      wateringEveryDays,
+      notes,
+      plantingDate
+    } = req.body;
 
-    if (!name || !species) {
-      return res.status(400).json({ error: 'Name and species are required' });
+    if (!catalogId) {
+      return res.status(400).json({ error: 'catalogId is required' });
     }
 
+    if (!['dictionary', 'recommender', 'manual'].includes(addedFrom)) {
+      return res.status(400).json({ error: 'addedFrom must be dictionary, recommender, or manual' });
+    }
+
+    if (!['indoor', 'outdoor'].includes(locationType)) {
+      return res.status(400).json({ error: 'locationType must be indoor or outdoor' });
+    }
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
     const newPlant = {
-      name: name,
-      species: species,
-      wateringFrequency: wateringFrequency || 'Unknown',
-      sunlight: sunlight || 'Unknown',
+      catalogId: catalogId,
+      addedFrom: addedFrom,
+      nickname: nickname || '',
+      locationType: locationType,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+
+      care: {
+        default: {
+          sunlightCategory: sunlightCategory || '',
+          wateringEveryDays: wateringEveryDays || 0
+        },
+        override: {
+          wateringEveryDays: null
+        },
+        effective: {
+          wateringEveryDays: wateringEveryDays || 0,
+          lastComputedAt: now
+        }
+      },
+
       notes: notes || '',
-      addedAt: new Date().toISOString()
+      lastWateredAt: null,
+      plantingDate: plantingDate || null
     };
 
     const docRef = await db
@@ -168,7 +233,7 @@ router.post('/:id/plants', async (req, res) => {
       .add(newPlant);
 
     res.status(201).json({ 
-      message: 'Plant added to your collection!', 
+      message: 'Plant added to your garden!', 
       id: docRef.id, 
       plant: newPlant 
     });
