@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updatePassword } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase"; // adjust path if needed
 
@@ -11,10 +11,13 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [fullName, setFullName] = useState("");
   const [zipCode, setZipCode] = useState("");
-  const [gardenZone, setGardenZone] = useState("");
+  const [gardenZone, setGardenZone] = useState("Unknown");
 
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordMsg, setPasswordMsg] = useState("");
 
   const loadProfile = async (uid) => {
     const ref = doc(db, "users", uid);
@@ -27,7 +30,7 @@ export default function ProfilePage() {
       // sync form with stored values
       setFullName(data.fullName || "");
       setZipCode(data.zipCode || "");
-      setGardenZone(data.gardenZone || "");
+      setGardenZone(data.gardenZone || "Unknown");
     } else {
       setProfile(null);
       setMsg("No profile document found.");
@@ -85,9 +88,21 @@ export default function ProfilePage() {
     // reset form back to saved values
     setFullName(profile?.fullName || "");
     setZipCode(profile?.zipCode || "");
-    setGardenZone(profile?.gardenZone || "");
+    setGardenZone(profile?.gardenZone || "Unknown");
     setEditMode(false);
     setMsg("");
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!user) return;
+
+    try {
+      await updatePassword(user, newPassword);
+      setPasswordMsg("Password updated!");
+      setNewPassword("");
+    } catch (err) {
+      setPasswordMsg(` ${err.message}`);
+    }
   };
 
   if (!user) {
@@ -111,7 +126,7 @@ export default function ProfilePage() {
             <p><strong>Full Name:</strong> {profile?.fullName || "-"}</p>
             <p><strong>Email:</strong> {profile?.email || user.email}</p>
             <p><strong>Zip Code:</strong> {profile?.zipCode || "-"}</p>
-            <p><strong>Garden Zone:</strong> {profile?.gardenZone || "-"}</p>
+            <p><strong>Garden Zone:</strong> {profile?.gardenZone || "Unknown"}</p>
 
             <button
               style={{ marginTop: 14, padding: "10px 14px" }}
@@ -143,12 +158,19 @@ export default function ProfilePage() {
 
               <label>
                 Garden Zone
-                <input
+                <select
                   style={{ width: "100%", padding: 10, marginTop: 6 }}
                   value={gardenZone}
                   onChange={(e) => setGardenZone(e.target.value)}
-                  placeholder="ex: 8a"
-                />
+                >
+                  <option value="">Garden zone (optional)</option>
+                  {["Unknown", "1a", "1b", "2a", "2b", "3a", "3b", "4a", "4b", "5a", "5b", "6a", "6b", "7a", "7b",
+                    "8a", "8b", "9a", "9b", "10a", "10b", "11a","11b","12a","12b","13a","13b"].map((zone) => (
+                    <option key={zone} value={zone}>
+                      Zone {zone}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
 
@@ -171,6 +193,29 @@ export default function ProfilePage() {
             </div>
           </>
         )}
+      </div>
+    
+
+  <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
+        <h3>Update Password</h3>
+
+        <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
+          <input
+            type="password"
+            placeholder="New Password"
+            style={{ width: "100%", padding: 10 }}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button onClick={handlePasswordUpdate}>
+            Update Password
+          </button>
+        </div>
+
+        {passwordMsg && <p style={{ marginTop: 12 }}>{passwordMsg}</p>}
       </div>
     </div>
   );
