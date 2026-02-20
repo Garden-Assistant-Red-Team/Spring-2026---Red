@@ -23,7 +23,6 @@ app.use(express.json());
 
 // Import routes
 const usersRouter = require('./routes/users');
-const plantsRouter = require('./routes/plants');
 const remindersRouter = require('./routes/reminders');
 const weatherRouter = require('./routes/weather');
 const recommendationsRouter = require('./routes/recommendations');
@@ -31,7 +30,6 @@ const symptomsRouter = require('./routes/symptoms');
 
 // Use routes
 app.use('/api/users', usersRouter);
-app.use('/api/plants', plantsRouter);
 app.use('/api/reminders', remindersRouter);
 app.use('/api/weather', weatherRouter);
 app.use('/api/recommendations', recommendationsRouter);
