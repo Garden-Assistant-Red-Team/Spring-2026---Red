@@ -3,21 +3,47 @@ import "./ToolLayout.css";
 
 import GardenCalendar from "../components/GardenCalendar";
 
-// Notifications
-import { requestNotificationPermission } from "../firebase-messaging";
-import { doc, updateDoc } from "firebase/firestore";
+// Firestore
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+
+// Firebase
 import { auth, db } from "../firebase";
 
-export default function MyGardenPage() {
-  const [plants] = useState([
-    { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
-    { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
-    { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
-  ]);
+// Notifications
+import { requestNotificationPermission } from "../firebase-messaging";
 
+export default function MyGardenPage() {
+  const [plants, setPlants] = useState([]);
   const [notes, setNotes] = useState("");
 
-  // 🔔 Ask for notification permission after user hits My Garden
+  // ✅ Load user's plants (real data)
+  useEffect(() => {
+    if (!auth.currentUser) {
+      setPlants([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, "users", auth.currentUser.uid, "myPlants"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setPlants(list);
+    });
+
+    return () => unsub();
+  }, []);
+
+  // Ask for notification permission after user hits My Garden
   useEffect(() => {
     async function setupNotifications() {
       if (!auth.currentUser) return;
@@ -44,17 +70,39 @@ export default function MyGardenPage() {
             <h2 className="panelTitle">All Plants</h2>
 
             <div className="listBox">
-              {plants.map((p) => (
-                <button key={p.id} className="listItem" type="button">
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                    <span>{p.name}</span>
-                    <span style={{ opacity: 0.75, fontWeight: 500 }}>{p.status}</span>
-                  </div>
-                  <div className="muted" style={{ marginTop: 6 }}>
-                    Next: {p.nextTask}
-                  </div>
-                </button>
-              ))}
+              {!auth.currentUser ? (
+                <div className="muted" style={{ padding: 10 }}>
+                  Please log in to see your garden plants.
+                </div>
+              ) : plants.length === 0 ? (
+                <div className="muted" style={{ padding: 10 }}>
+                  No plants yet. Add one from Resources → Plant Dictionary.
+                </div>
+              ) : (
+                plants.map((p) => {
+                  const displayName =
+                    p.nickname || p.commonName || p.scientificName || "Unnamed plant";
+
+                  const nextTask =
+                    p.wateringEveryDays
+                      ? `Water every ${p.wateringEveryDays} days`
+                      : "No schedule yet";
+
+                  return (
+                    <button key={p.id} className="listItem" type="button">
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                        <span>{displayName}</span>
+                        <span style={{ opacity: 0.75, fontWeight: 500 }}>
+                          {p.status || "—"}
+                        </span>
+                      </div>
+                      <div className="muted" style={{ marginTop: 6 }}>
+                        Next: {nextTask}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             <p className="muted" style={{ marginTop: 12 }}>
@@ -106,7 +154,7 @@ export default function MyGardenPage() {
           </section>
         </div>
 
-        {/* 🌱 Garden Calendar */}
+        {/* Garden Calendar */}
         <div style={{ marginTop: 24 }}>
           <GardenCalendar />
         </div>

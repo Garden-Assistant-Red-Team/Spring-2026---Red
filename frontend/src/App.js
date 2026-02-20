@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
+import { ensureUserDoc } from "./utils/ensureUserDoc";
 
 import NavBar from "./components/NavBar";
 
@@ -26,17 +30,23 @@ function WithNav({ children }) {
 }
 
 export default function App() {
+  //Ensure users/{uid} exists for anyone who logs in
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) await ensureUserDoc(user);
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
-
         {/* PUBLIC PAGES (no NavBar) */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
         {/* LOGGED-IN / APP PAGES (NavBar visible) */}
-
         <Route
           path="/garden"
           element={
@@ -91,7 +101,7 @@ export default function App() {
           }
         />
 
-        {/* ⭐ RESOURCES → PLANT DICTIONARY */}
+        {/* Resources */}
         <Route
           path="/resources"
           element={
@@ -101,7 +111,7 @@ export default function App() {
           }
         />
 
-        {/* PROFILE */}
+        {/* Profile */}
         <Route
           path="/profile"
           element={
@@ -110,7 +120,6 @@ export default function App() {
             </WithNav>
           }
         />
-
         <Route
           path="/profile/settings"
           element={
@@ -120,7 +129,7 @@ export default function App() {
           }
         />
 
-        {/* OTHER */}
+        {/* Other */}
         <Route
           path="/about"
           element={
@@ -129,7 +138,6 @@ export default function App() {
             </WithNav>
           }
         />
-
       </Routes>
     </BrowserRouter>
   );

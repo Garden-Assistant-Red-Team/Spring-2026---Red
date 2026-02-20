@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { auth, db } from "../firebase";
+import { addDoc, doc, getDoc, setDoc, collection, serverTimestamp } from "firebase/firestore";
+import { ensureUserDoc } from "../utils/ensureUserDoc";
 
 function useDebouncedValue(value, delayMs = 350) {
   const [debounced, setDebounced] = useState(value);
@@ -29,6 +32,47 @@ function badge(text) {
       {text}
     </span>
   );
+}
+async function addToMyGarden(selected) {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please log in to add plants.");
+    return;
+  }
+
+  await ensureUserDoc(user);
+
+  const plantKey = String(selected.id); // ex: "trefle_55246"
+  const plantRef = doc(db, "users", user.uid, "myPlants", plantKey);
+
+  const snap = await getDoc(plantRef);
+  if (snap.exists()) {
+    alert("That plant is already in your garden.");
+    return;
+  }
+
+  const payload = {
+    catalogRef: plantKey,
+    trefleId: selected.trefleId ?? null,
+    commonName: selected.commonName ?? null,
+    scientificName: selected.scientificName ?? null,
+    imageUrl: selected.imageUrl ?? null,
+
+    sunlightCategory: selected?.careEffective?.sunlightCategory ?? null,
+    wateringEveryDays: selected?.careEffective?.wateringEveryDays ?? null,
+    minZone: selected?.careEffective?.minZone ?? null,
+
+    nickname: selected.commonName ?? selected.scientificName ?? "My Plant",
+    location: "",
+    status: "Healthy",
+    notes: "",
+
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(plantRef, payload);
+  alert("Added to My Garden!");
 }
 
 export default function PlantDictionaryPage() {
@@ -358,7 +402,9 @@ export default function PlantDictionaryPage() {
 
               <div style={{ marginTop: 14 }}>
                 <button
-                  onClick={() => alert("Next step: properly wire this.")}
+                  onClick={() => addToMyGarden(selected)}
+                  className="primaryBtn"
+                  type="button"
                   style={{
                     width: "100%",
                     padding: "10px 12px",
