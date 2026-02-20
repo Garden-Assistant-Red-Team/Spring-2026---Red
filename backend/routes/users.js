@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
+const { createPlantReminders } = require('./autoReminders');
 
 const db = admin.firestore();
 
@@ -178,8 +179,6 @@ router.post('/:id/plants', async (req, res) => {
       addedFrom,
       nickname,
       locationType,
-      sunlightCategory,
-      wateringEveryDays,
       notes,
       plantingDate
     } = req.body;
@@ -187,14 +186,22 @@ router.post('/:id/plants', async (req, res) => {
     if (!catalogId) {
       return res.status(400).json({ error: 'catalogId is required' });
     }
-
     if (!['dictionary', 'recommender', 'manual'].includes(addedFrom)) {
       return res.status(400).json({ error: 'addedFrom must be dictionary, recommender, or manual' });
     }
-
     if (!['indoor', 'outdoor'].includes(locationType)) {
       return res.status(400).json({ error: 'locationType must be indoor or outdoor' });
     }
+
+    // Look up plant in plantCatalog to get care data
+    const catalogDoc = await db.collection('plantCatalog').doc(catalogId).get();
+    if (!catalogDoc.exists) {
+      return res.status(404).json({ error: 'Plant not found in catalog' });
+    }
+
+    const catalogData = catalogDoc.data();
+    const effectiveWateringDays = catalogData?.careEffective?.wateringEveryDays || 7;
+    const effectiveSunlight = catalogData?.careEffective?.sunlightCategory || '';
 
     const now = admin.firestore.FieldValue.serverTimestamp();
 
@@ -209,14 +216,14 @@ router.post('/:id/plants', async (req, res) => {
 
       care: {
         default: {
-          sunlightCategory: sunlightCategory || '',
-          wateringEveryDays: wateringEveryDays || 0
+          sunlightCategory: effectiveSunlight,
+          wateringEveryDays: effectiveWateringDays
         },
         override: {
           wateringEveryDays: null
         },
         effective: {
-          wateringEveryDays: wateringEveryDays || 0,
+          wateringEveryDays: effectiveWateringDays,
           lastComputedAt: now
         }
       },
@@ -226,21 +233,25 @@ router.post('/:id/plants', async (req, res) => {
       plantingDate: plantingDate || null
     };
 
-    const docRef = await db
+    // Save plant instance
+    const plantRef = await db
       .collection('users')
       .doc(req.params.id)
       .collection('plants')
       .add(newPlant);
 
-    res.status(201).json({ 
-      message: 'Plant added to your garden!', 
-      id: docRef.id, 
-      plant: newPlant 
+    // Auto-create reminders
+    await createPlantReminders(req.params.id, plantRef.id, catalogData);
+
+    res.status(201).json({
+      message: 'Plant added to your garden!',
+      id: plantRef.id,
+      plant: newPlant,
+      remindersCreated: true
     });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
 module.exports = router;
