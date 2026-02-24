@@ -83,6 +83,166 @@ router.post('/register', async (req, res) => {
   }
 });
 
+/**
+ * The following routes use req.user.uid from requireAuth to ensure
+ * the user can only access their own plants.
+ */
+
+// Get current user's plants
+router.get('/me/plants', requireAuth, async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection('users')
+      .doc(req.user.uid)
+      .collection('plants')
+      .get();
+
+    const plants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return res.json(plants);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Add a plant for current user
+router.post('/me/plants', requireAuth, async (req, res) => { 
+  try {
+    const {
+      catalogId,
+      addedFrom,
+      nickname,
+      locationType,
+      notes,
+      plantingDate
+    } = req.body;
+
+    if (!catalogId) {
+      return res.status(400).json({ error: 'catalogId is required' });
+    }
+    if (!['dictionary', 'recommender', 'manual'].includes(addedFrom)) {
+      return res.status(400).json({ error: 'addedFrom must be dictionary, recommender, or manual' });
+    }
+    if (!['indoor', 'outdoor'].includes(locationType)) {
+      return res.status(400).json({ error: 'locationType must be indoor or outdoor' });
+    }
+
+    const catalogDoc = await db.collection('plantCatalog').doc(catalogId).get();
+    if (!catalogDoc.exists) {
+      return res.status(404).json({ error: 'Plant not found in catalog' });
+    }
+
+    const catalogData = catalogDoc.data();
+    const effectiveWateringDays = catalogData?.careEffective?.wateringEveryDays || 7;
+    const effectiveSunlight = catalogData?.careEffective?.sunlightCategory || '';
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
+    const newPlant = {
+      catalogId,
+      addedFrom,
+      nickname: nickname || '',
+      locationType,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+
+      care: {
+        default: {
+          sunlightCategory: effectiveSunlight,
+          wateringEveryDays: effectiveWateringDays
+        },
+        override: {
+          wateringEveryDays: null
+        },
+        effective: {
+          wateringEveryDays: effectiveWateringDays,
+          lastComputedAt: now
+        }
+      },
+
+      notes: notes || '',
+      lastWateredAt: null,
+      plantingDate: plantingDate || null
+    };
+
+    // Save plant instance to current user's garden (using req.user.uid)
+    const plantRef = await db
+      .collection('users')
+      .doc(req.user.uid)
+      .collection('plants')
+      .add(newPlant);
+
+    // Auto-create reminders
+    await createPlantReminders(req.user.uid, plantRef.id, catalogData);
+
+    res.status(201).json({
+      message: 'Plant added to your garden!',
+      id: plantRef.id,
+      plant: newPlant,
+      remindersCreated: true
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a plant for current user
+router.patch('/me/plants/:plantId', requireAuth, async (req, res) => {
+  try {
+    const { plantId } = req.params;
+
+    // allow only these fields to be updated
+    const allowed = ['nickname', 'notes', 'locationType', 'status', 'lastWateredAt', 'plantingDate'];
+    const updates = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields provided to update' });
+    }
+
+    updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+
+    const plantRef = db
+      .collection('users')
+      .doc(req.user.uid)
+      .collection('plants')
+      .doc(plantId);
+
+    const doc = await plantRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Plant not found' });
+
+    await plantRef.update(updates);
+    return res.json({ message: 'Plant updated', id: plantId, updates });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a plant for current user
+router.delete('/me/plants/:plantId', requireAuth, async (req, res) => {
+  try {
+    const { plantId } = req.params;
+
+    const plantRef = db
+      .collection('users')
+      .doc(req.user.uid)
+      .collection('plants')
+      .doc(plantId);
+
+    const doc = await plantRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Plant not found' });
+
+    await plantRef.delete();
+    return res.json({ message: 'Plant deleted', id: plantId });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Get a user's info
 router.get('/:id', async (req, res) => {
   try {
@@ -147,31 +307,6 @@ router.delete('/:id', async (req, res) => {
     if (error.code === 'auth/user-not-found') {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get a user's plants
-router.get('/:id/plants', requireAuth, async (req, res) => {
-  // ✅ Block access if user tries to read someone else’s data
-  if (req.user.uid !== req.params.id) {
-    return res.status(403).json({ error: "Forbidden: You can only access your own plants" });
-  }
-  try {
-    const snapshot = await db
-      .collection('users')
-      .doc(req.params.id)
-      .collection('plants')
-      .get();
-
-    const plants = [];
-    snapshot.forEach(doc => {
-      plants.push({ id: doc.id, ...doc.data() });
-    });
-
-    res.json(plants);
-
-  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });

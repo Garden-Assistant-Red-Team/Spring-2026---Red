@@ -28,9 +28,11 @@ const remindersRouter = require('./routes/maunalReminders');
 const weatherRouter = require('./routes/weather');
 const recommendationsRouter = require('./routes/recommendations');
 const symptomsRouter = require('./routes/symptoms');
-const gardenRouter = require('./routes/garden');            
+const gardenRouter = require('./routes/garden');
 const identifyPlantRouter = require('./routes/identifyPlant');
 
+const gardenRouter = require('./routes/garden');
+const identifyPlantRouter = require('./routes/identifyPlant');
 // Use routes
 app.use('/api/users', usersRouter);
 app.use('/api/reminders', remindersRouter);
@@ -41,12 +43,16 @@ app.use('/api/symptoms', symptomsRouter);
 // CATALOG ROUTE (Plant Dictionary)
 const catalogRouter = require('./routes/catalog');
 app.use('/api/catalog', catalogRouter);
-console.log("✅ mounted /api/catalog");
+console.log(" mounted /api/catalog");
 
 // Test routes
-app.use('/api/garden', gardenRouter);               
+app.use('/api/garden', gardenRouter);
 app.use('/api/identifyPlant', identifyPlantRouter);
 console.log("✅ mounted /api/identifyPlant");
+app.use('/api/garden', gardenRouter);
+app.use('/api/identify-plant', identifyPlantRouter);
+
+
 // Test route
 app.get('/', (req, res) => {
   res.send('Garden Assistant API is running!');
