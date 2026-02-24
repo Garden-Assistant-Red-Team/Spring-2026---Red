@@ -7,12 +7,12 @@ import "./Home.css";
 // Team Photos
 import kenyta from "../images/kenyta.jpg";
 import michael from "../images/michael.jpg";
-//import augustine from "../images/augustine.jpg";
+import augustine from "../images/augustine.jpg";
 import mariem from "../images/mariem.jpg";
 import ryan from "../images/ryan.jpg";
 import fred from "../images/fred.jpg";
 import ibrahima from "../images/ibrahima.jpeg";
-import placeholder from "../images/placeholder.jpg";
+//import placeholder from "../images/placeholder.jpg";
 // Background
 import heroBg from "../images/hero.jpg";
 
@@ -30,7 +30,7 @@ export default function Home() {
   const team = [
     { name: "Kenyta Blount", img: kenyta },
     { name: "Michael Hollingsworth", img: michael },
-    { name: "Augustine Kpewa", img: placeholder },
+    { name: "Augustine Kpewa", img: augustine },
     { name: "Mariem Mohamed", img: mariem },
     { name: "Ryan Siebert-Ngo", img: ryan },
     { name: "Fred Terling", img: fred },
