@@ -12,7 +12,7 @@ import mariem from "../images/mariem.jpg";
 import ryan from "../images/ryan.jpg";
 import fred from "../images/fred.jpg";
 import ibrahima from "../images/ibrahima.jpeg";
-//import placeholder from "../images/placeholder.jpg";
+
 // Background
 import heroBg from "../images/hero.jpg";
 
@@ -24,7 +24,9 @@ export default function Home() {
     if (!hash) return;
 
     const el = document.getElementById(hash);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, [location.hash]);
 
   const team = [
@@ -42,16 +44,18 @@ export default function Home() {
       <Header />
 
       <main className="home-container">
-        {/* HERO */}
+
+        {/* HERO SECTION */}
         <section
           className="hero"
           style={{ backgroundImage: `url(${heroBg})` }}
         >
           <div className="hero-content">
             <h1>Welcome to Garden Assistant</h1>
+
             <p>
-              Track your plants, get reminders, and keep notes and checklists all
-              in one place.
+              Track your plants, get reminders, and keep notes and checklists
+              all in one place.
             </p>
 
             <div className="cta-buttons">
@@ -69,8 +73,9 @@ export default function Home() {
         <section id="about" className="section card">
           <h2>About Garden Assistant</h2>
           <p>
-            Garden Assistant is a simple hub for managing your plants. Organize your
-            collection, store notes, and use helpful tools to support better plant care.
+            Garden Assistant is a simple hub for managing your plants.
+            Organize your collection, store notes, and use helpful tools
+            to support better plant care.
           </p>
 
           <ul>
@@ -141,16 +146,12 @@ export default function Home() {
               <h3>Email</h3>
               <p className="muted">Prefer email? Reach us here:</p>
 
-              <a className="email-link" href="mailto:gardenassistant@odu.edu">
+              <a
+                className="email-link"
+                href="mailto:gardenassistant@odu.edu"
+              >
                 gardenassistant@odu.edu
               </a>
-
-              <div className="contact-note">
-                <div className="contact-note-title">Additional contact</div>
-                <a className="email-link" href="mailto:iwann001@odu.edu">
-                  iwann001@odu.edu
-                </a>
-              </div>
             </div>
           </div>
         </section>
