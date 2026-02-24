@@ -27,6 +27,11 @@ const remindersRouter = require('./routes/maunalReminders');
 const weatherRouter = require('./routes/weather');
 const recommendationsRouter = require('./routes/recommendations');
 const symptomsRouter = require('./routes/symptoms');
+<<<<<<< HEAD
+=======
+const gardenRouter = require('./routes/garden');            
+const identifyPlantRouter = require('./routes/identifyPlant');
+>>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
 
 // Use routes
 app.use('/api/users', usersRouter);
@@ -34,6 +39,7 @@ app.use('/api/reminders', remindersRouter);
 app.use('/api/weather', weatherRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/symptoms', symptomsRouter);
+<<<<<<< HEAD
 
 // CATALOG ROUTE (Plant Dictionary)
 const catalogRouter = require('./routes/catalog');
@@ -41,6 +47,11 @@ app.use('/api/catalog', catalogRouter);
 console.log("✅ mounted /api/catalog");
 
 // Test routes
+=======
+app.use('/api/garden', gardenRouter);               
+app.use('/api/identify-plant', identifyPlantRouter); 
+// Test route
+>>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
 app.get('/', (req, res) => {
   res.send('Garden Assistant API is running!');
 });
