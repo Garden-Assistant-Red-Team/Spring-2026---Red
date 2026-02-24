@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { auth, db } from "../firebase";
-import { addDoc, doc, getDoc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { ensureUserDoc } from "../utils/ensureUserDoc";
 
 function useDebouncedValue(value, delayMs = 350) {
@@ -42,37 +41,42 @@ async function addToMyGarden(selected) {
 
   await ensureUserDoc(user);
 
-  const plantKey = String(selected.id); // ex: "trefle_55246"
-  const plantRef = doc(db, "users", user.uid, "myPlants", plantKey);
+  const uid = user.uid;
 
-  const snap = await getDoc(plantRef);
-  if (snap.exists()) {
-    alert("That plant is already in your garden.");
+  // match what /api/garden/:uid/plants expects
+  const body = {
+    name: selected.scientificName || selected.commonName || selected.id,
+    commonName: selected.commonName ?? null,
+    scientificName: selected.scientificName ?? null,
+    plantId: selected.id, // plantCatalog doc id
+    trefle_id: typeof selected.trefleId === "number" ? selected.trefleId : null,
+
+    // use careEffective if you have it
+    minZone: typeof selected?.careEffective?.minZone === "number" ? selected.careEffective.minZone : null,
+    maxZone: typeof selected?.careEffective?.maxZone === "number" ? selected.careEffective.maxZone : null,
+
+    sunlight: selected?.careEffective?.sunlightCategory ?? null,
+    wateringFrequency: selected?.careEffective?.wateringEveryDays ?? null,
+
+    reason: "Added from dictionary",
+    source: "dictionary", // important: matches allowed values
+    confidence: null,
+    photoUrl: selected.imageUrl ?? null,
+  };
+
+  const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data?.error || "Failed to add plant.");
     return;
   }
 
-  const payload = {
-    catalogRef: plantKey,
-    trefleId: selected.trefleId ?? null,
-    commonName: selected.commonName ?? null,
-    scientificName: selected.scientificName ?? null,
-    imageUrl: selected.imageUrl ?? null,
-
-    sunlightCategory: selected?.careEffective?.sunlightCategory ?? null,
-    wateringEveryDays: selected?.careEffective?.wateringEveryDays ?? null,
-    minZone: selected?.careEffective?.minZone ?? null,
-
-    nickname: selected.commonName ?? selected.scientificName ?? "My Plant",
-    location: "",
-    status: "Healthy",
-    notes: "",
-
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
-
-  await setDoc(plantRef, payload);
-  alert("Added to My Garden!");
+  alert(data?.message || "Added to My Garden!");
 }
 
 export default function PlantDictionaryPage() {

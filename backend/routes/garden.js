@@ -1,6 +1,7 @@
 // backend/routes/garden.js
 const express = require("express");
 const admin = require("firebase-admin");
+const { FieldValue } = admin.firestore;
 
 const router = express.Router();
 const db = admin.firestore();
@@ -20,8 +21,8 @@ router.post("/:uid/plants", async (req, res) => {
       confidence,
       photoUrl,
       source,
-      plantId,     
-      trefle_id,   
+      plantId,
+      trefle_id,
       minZone,
       maxZone,
       sunlight,
@@ -80,6 +81,110 @@ router.get("/:uid/plants", async (req, res) => {
     const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
     const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     return res.json(plants);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+//Add a note
+//PATCH is /api/garden/:uid/plantsId/notes  body: { text }
+router.patch("/:uid/plants/:plantId/notes", async (req, res) => {
+  try {
+    const { uid, plantId } = req.params;
+    const { text } = req.body;
+
+    const clean = String(text || "").trim();
+    if (!clean) return res.status(400).json({ error: "text is required" });
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(404).json({ error: "Plant not found" });
+
+    const plant = snap.data();
+    const notes = Array.isArray(plant.notes) ? plant.notes : [];
+
+    notes.push({
+      text: clean,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    await ref.update({ notes });
+
+    return res.json({ ok: true, notes });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// NOTES: Edit a note by index
+// PUT /api/garden/:uid/plants/:plantId/notes/:index  body: { text }
+router.put("/:uid/plants/:plantId/notes/:index", async (req, res) => {
+  try {
+    const { uid, plantId, index } = req.params;
+    const { text } = req.body;
+
+    const i = Number(index);
+    if (!Number.isInteger(i) || i < 0) {
+      return res.status(400).json({ error: "index must be a non-negative integer" });
+    }
+
+    const clean = String(text || "").trim();
+    if (!clean) return res.status(400).json({ error: "text is required" });
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(404).json({ error: "Plant not found" });
+
+    const plant = snap.data();
+    const notes = Array.isArray(plant.notes) ? plant.notes : [];
+
+    if (i >= notes.length) return res.status(404).json({ error: "Note index out of range" });
+
+    // support string notes too, just in case
+    const existing = notes[i];
+    const createdAt =
+      typeof existing === "object" && existing?.createdAt ? existing.createdAt : new Date().toISOString();
+
+    notes[i] = {
+      text: clean,
+      createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await ref.update({ notes });
+
+    return res.json({ ok: true, notes });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// NOTES: Delete a note by index
+// DELETE /api/garden/:uid/plants/:plantId/notes/:index
+router.delete("/:uid/plants/:plantId/notes/:index", async (req, res) => {
+  try {
+    const { uid, plantId, index } = req.params;
+
+    const i = Number(index);
+    if (!Number.isInteger(i) || i < 0) {
+      return res.status(400).json({ error: "index must be a non-negative integer" });
+    }
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(404).json({ error: "Plant not found" });
+
+    const plant = snap.data();
+    const notes = Array.isArray(plant.notes) ? plant.notes : [];
+
+    if (i >= notes.length) return res.status(404).json({ error: "Note index out of range" });
+
+    notes.splice(i, 1);
+
+    await ref.update({ notes });
+
+    return res.json({ ok: true, notes });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

@@ -8,14 +8,11 @@ import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 export default function MyGardenPage() {
-  // ✅ Demo plants (hardcoded)
-  const [demoPlants] = useState([
-    { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
-    { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
-    { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
-  ]);
+  // notes section
+  const [selectedPlantId, setSelectedPlantId] = useState(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
 
-  const [notes, setNotes] = useState("");
 
   // Recommendations
   const [recZone, setRecZone] = useState("");
@@ -27,6 +24,12 @@ export default function MyGardenPage() {
   const [savedPlants, setSavedPlants] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
+
+  useEffect(() => {
+    if (!selectedPlantId && savedPlants.length > 0) {
+      setSelectedPlantId(savedPlants[0].id);
+    }
+  }, [savedPlants, selectedPlantId]);
 
   // 🔔 Ask for notification permission
   useEffect(() => {
@@ -43,6 +46,11 @@ export default function MyGardenPage() {
 
     setupNotifications();
   }, []);
+
+  useEffect(() => {
+    setNoteDraft("");
+    setEditingIndex(null);
+  }, [selectedPlantId]);
 
   // ✅ Load recommendations
   useEffect(() => {
@@ -92,6 +100,57 @@ export default function MyGardenPage() {
     } finally {
       setSavedLoading(false);
     }
+  }
+
+  const selectedPlant = savedPlants.find(p => p.id === selectedPlantId) || null;
+
+  async function addNote(plantDocId) {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    const uid = auth.currentUser.uid;
+    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to add note");
+
+    setNoteDraft("");
+    await loadSavedPlants();
+  }
+
+  async function saveEdit(plantDocId, index) {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    const uid = auth.currentUser.uid;
+    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to edit note");
+
+    setEditingIndex(null);
+    setNoteDraft("");
+    await loadSavedPlants();
+  }
+
+  async function deleteNote(plantDocId, index) {
+    const uid = auth.currentUser.uid;
+    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to delete note");
+
+    await loadSavedPlants();
   }
 
   useEffect(() => {
@@ -153,37 +212,6 @@ export default function MyGardenPage() {
         <div className="toolGrid" style={{ gridTemplateColumns: "1.4fr 1fr 1fr" }}>
           {/* LEFT */}
           <section className="panel">
-            <h2 className="panelTitle">All Plants</h2>
-
-            {/* ✅ Demo list */}
-            <div className="listBox">
-              {!auth.currentUser ? (
-                <div className="muted" style={{ padding: 10 }}>
-                  Please log in to see your garden plants.
-                </div>
-              ) : demoPlants.length === 0 ? (
-                <div className="muted" style={{ padding: 10 }}>
-                  No plants yet.
-                </div>
-              ) : (
-                demoPlants.map((p) => (
-                  <button key={p.id} className="listItem" type="button">
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <span>{p.name}</span>
-                      <span style={{ opacity: 0.75, fontWeight: 500 }}>{p.status || "—"}</span>
-                    </div>
-                    <div className="muted" style={{ marginTop: 6 }}>
-                      Next: {p.nextTask || "—"}
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-
-            <p className="muted" style={{ marginTop: 12 }}>
-              This page supports the “one screen to see all my plants” idea.
-            </p>
-
             {/* ✅ Saved plants */}
             <div style={{ marginTop: 16 }}>
               <h3 style={{ margin: "10px 0 6px", fontWeight: 700 }}>My Saved Plants</h3>
@@ -197,24 +225,36 @@ export default function MyGardenPage() {
 
               {!savedLoading && !savedError && savedPlants.length > 0 && (
                 <div className="listBox">
-                  {savedPlants.map((p) => (
-                    <div key={p.id} className="listItem" style={{ cursor: "default" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <span style={{ fontWeight: 700 }}>
-                          {p.commonName || p.name || "Unnamed plant"}
-                        </span>
-                        <span style={{ opacity: 0.75 }}>
-                          Zones {p.minZone ?? "?"}–{p.maxZone ?? "?"}
-                        </span>
-                      </div>
-
-                      {p.scientificName && (
-                        <div className="muted" style={{ marginTop: 6 }}>
-                          {p.scientificName}
+                  {savedPlants.map((p) => {
+                    const isSelected = p.id === selectedPlantId;
+                    return (
+                      <button
+                        key={p.id}
+                        className="listItem"
+                        type="button"
+                        onClick={() => setSelectedPlantId(p.id)}
+                        style={{
+                          cursor: "pointer",
+                          border: isSelected ? "2px solid #2F6B4F" : undefined,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                          <span style={{ fontWeight: 700 }}>
+                            {p.commonName || p.name || "Unnamed plant"}
+                          </span>
+                          <span style={{ opacity: 0.75 }}>
+                            Zones {p.minZone ?? "?"}–{p.maxZone ?? "?"}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {p.scientificName && (
+                          <div className="muted" style={{ marginTop: 6 }}>
+                            {p.scientificName}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -271,27 +311,106 @@ export default function MyGardenPage() {
           {/* CENTER */}
           <section className="panel">
             <h2 className="panelTitle">Notes</h2>
-            <p className="muted">Quick notes / observations (placeholder for now).</p>
 
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Moved basil closer to window. Tomato leaves curling slightly..."
-              style={{
-                width: "100%",
-                minHeight: 220,
-                borderRadius: 14,
-                border: "1px solid rgba(31,35,31,0.12)",
-                padding: 12,
-                resize: "vertical",
-              }}
-            />
+            {!auth.currentUser ? (
+              <p className="muted">Log in to view and edit notes.</p>
+            ) : !selectedPlant ? (
+              <p className="muted">Click a saved plant to view notes.</p>
+            ) : (
+              <>
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontWeight: 800 }}>
+                    {selectedPlant.commonName || selectedPlant.name || "Unnamed plant"}
+                  </div>
+                  {selectedPlant.scientificName && (
+                    <div className="muted">{selectedPlant.scientificName}</div>
+                  )}
+                </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
-              <button className="primaryBtn" type="button">
-                Save note
-              </button>
-            </div>
+                {/* Existing notes list */}
+                <div style={{ marginBottom: 12 }}>
+                  <h3 style={{ margin: "10px 0 6px", fontWeight: 700 }}>Saved Notes</h3>
+
+                  {Array.isArray(selectedPlant.notes) && selectedPlant.notes.length > 0 ? (
+                    <div className="listBox">
+                      {selectedPlant.notes.map((n, idx) => (
+                        <div key={idx} className="listItem" style={{ cursor: "default" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                            <span>{typeof n === "string" ? n : n.text}</span>
+
+                            <span style={{ display: "flex", gap: 8 }}>
+                              <button
+                                type="button"
+                                className="primaryBtn"
+                                style={{ padding: "6px 10px" }}
+                                onClick={() => {
+                                  setEditingIndex(idx);
+                                  setNoteDraft(typeof n === "string" ? n : n.text);
+                                }}
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                className="primaryBtn"
+                                style={{ padding: "6px 10px" }}
+                                onClick={() => deleteNote(selectedPlant.id, idx)}
+                              >
+                                Delete
+                              </button>
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="muted">No notes yet.</p>
+                  )}
+                </div>
+
+                {/* Add / edit note */}
+                <textarea
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder="Type a note for this plant..."
+                  style={{
+                    width: "100%",
+                    minHeight: 140,
+                    borderRadius: 14,
+                    border: "1px solid rgba(31,35,31,0.12)",
+                    padding: 12,
+                    resize: "vertical",
+                  }}
+                />
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
+                  {editingIndex !== null && (
+                    <button
+                      className="primaryBtn"
+                      type="button"
+                      onClick={() => {
+                        setEditingIndex(null);
+                        setNoteDraft("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  <button
+                    className="primaryBtn"
+                    type="button"
+                    onClick={() => {
+                      if (editingIndex === null) addNote(selectedPlant.id);
+                      else saveEdit(selectedPlant.id, editingIndex);
+                    }}
+                  >
+                    {editingIndex === null ? "Add note" : "Save changes"}
+                  </button>
+                </div>
+              </>
+            )}
           </section>
 
           {/* RIGHT */}
