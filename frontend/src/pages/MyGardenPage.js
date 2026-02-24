@@ -2,21 +2,31 @@ import React, { useEffect, useState } from "react";
 import "./ToolLayout.css";
 
 import GardenCalendar from "../components/GardenCalendar";
+import PlantIdentifyUpload from "../components/PlantIdentifyUpload";
 
 import { requestNotificationPermission } from "../firebase-messaging";
 import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import PlantIdentifyUpload from "../components/PlantIdentifyUpload";
+
+const API_BASE = "http://localhost:5000";
 
 export default function MyGardenPage() {
-
-  const [plants] = useState([
+  // ✅ Demo plants (hardcoded)
+  const [demoPlants] = useState([
     { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
     { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
     { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
   ]);
 
-  const [notes, setNotes] = useState("");
+  // ✅ Saved plants pulled from backend (Firestore via Express)
+  const [savedPlants, setSavedPlants] = useState([]);
+  const [savedLoading, setSavedLoading] = useState(false);
+  const [savedError, setSavedError] = useState("");
+
+  // Notes panel state (selected plant + editor)
+  const [selectedPlantId, setSelectedPlantId] = useState(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
 
   // Recommendations
   const [recZone, setRecZone] = useState("");
@@ -24,10 +34,10 @@ export default function MyGardenPage() {
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState("");
 
-  const [savedPlants, setSavedPlants] = useState([]);
-  const [savedLoading, setSavedLoading] = useState(false);
-  const [savedError, setSavedError] = useState("");
+  // Derived selected plant
+  const selectedPlant = savedPlants.find((p) => p.id === selectedPlantId) || null;
 
+  // 🔔 Ask for notification permission on entry
   useEffect(() => {
     async function setupNotifications() {
       if (!auth.currentUser) return;
@@ -43,6 +53,55 @@ export default function MyGardenPage() {
     setupNotifications();
   }, []);
 
+  // ✅ Load saved plants
+  async function loadSavedPlants() {
+    try {
+      if (!auth.currentUser) {
+        setSavedPlants([]);
+        setSavedError("");
+        return;
+      }
+
+      setSavedLoading(true);
+      setSavedError("");
+
+      const uid = auth.currentUser.uid;
+      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Failed to load saved plants (${res.status})`);
+      }
+
+      setSavedPlants(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setSavedError(String(e.message || e));
+      setSavedPlants([]);
+    } finally {
+      setSavedLoading(false);
+    }
+  }
+
+  // Load saved plants on mount
+  useEffect(() => {
+    loadSavedPlants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-select first saved plant when list loads
+  useEffect(() => {
+    if (!selectedPlantId && savedPlants.length > 0) {
+      setSelectedPlantId(savedPlants[0].id);
+    }
+  }, [savedPlants, selectedPlantId]);
+
+  // Clear note editor when switching plants
+  useEffect(() => {
+    setNoteDraft("");
+    setEditingIndex(null);
+  }, [selectedPlantId]);
+
+  // ✅ Load recommendations
   useEffect(() => {
     async function loadRecommendations() {
       if (!auth.currentUser) return;
@@ -52,7 +111,7 @@ export default function MyGardenPage() {
 
       try {
         const uid = auth.currentUser.uid;
-        const res = await fetch(`http://localhost:5000/api/recommendations?uid=${uid}`);
+        const res = await fetch(`${API_BASE}/api/recommendations?uid=${uid}`);
         const data = await res.json();
 
         if (!res.ok) throw new Error(data?.error || "Failed to load recommendations");
@@ -69,34 +128,7 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  async function loadSavedPlants() {
-    try {
-      if (!auth.currentUser) return;
-
-      setSavedLoading(true);
-      setSavedError("");
-
-      const uid = auth.currentUser.uid;
-      const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants`);
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data?.error || `Failed to load saved plants (${res.status})`);
-
-      setSavedPlants(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setSavedError(String(e.message || e));
-      setSavedPlants([]);
-    } finally {
-      setSavedLoading(false);
-    }
-  }
-
-
-  useEffect(() => {
-    loadSavedPlants();
-
-  }, []);
-
+  // ✅ Add plant to garden via backend
   async function addToGarden(p) {
     try {
       if (!auth.currentUser) {
@@ -107,23 +139,24 @@ export default function MyGardenPage() {
       const uid = auth.currentUser.uid;
 
       const body = {
-        name: p.scientificName || p.commonName || p.id,
+        name: p.scientificName || p.commonName || p.name || p.id,
         commonName: p.commonName || null,
         scientificName: p.scientificName || null,
 
-        plantId: p.id, 
-        trefle_id: typeof p.trefle_id === "number" ? p.trefle_id : null,
+        plantId: p.id || p.plantId || null,
+        trefle_id: typeof p.trefle_id === "number" ? p.trefle_id : (typeof p.trefleId === "number" ? p.trefleId : null),
         minZone: typeof p.minZone === "number" ? p.minZone : null,
         maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
         sunlight: p.sunlight || null,
         wateringFrequency: p.wateringFrequency || null,
         reason: p.reason || null,
-        source: "recommendations",
-        confidence: null,
-        photoUrl: null,
+
+        source: p.source || "recommendations",
+        confidence: typeof p.confidence === "number" ? p.confidence : null,
+        photoUrl: p.photoUrl || null,
       };
 
-      const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants`, {
+      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -136,13 +169,67 @@ export default function MyGardenPage() {
       }
 
       alert("Added to My Garden 🌿");
-
-    
       await loadSavedPlants();
     } catch (e) {
       console.error(e);
       alert("Server error while adding plant.");
     }
+  }
+
+  // ✅ NOTES: add / edit / delete
+  async function addNote(plantDocId) {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    if (!auth.currentUser) return alert("You must be logged in.");
+    const uid = auth.currentUser.uid;
+
+    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to add note");
+
+    setNoteDraft("");
+    await loadSavedPlants();
+  }
+
+  async function saveEdit(plantDocId, index) {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    if (!auth.currentUser) return alert("You must be logged in.");
+    const uid = auth.currentUser.uid;
+
+    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to edit note");
+
+    setEditingIndex(null);
+    setNoteDraft("");
+    await loadSavedPlants();
+  }
+
+  async function deleteNote(plantDocId, index) {
+    if (!auth.currentUser) return alert("You must be logged in.");
+    const uid = auth.currentUser.uid;
+
+    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data?.error || "Failed to delete note");
+
+    await loadSavedPlants();
   }
 
   return (
@@ -153,38 +240,23 @@ export default function MyGardenPage() {
         <div className="toolGrid" style={{ gridTemplateColumns: "1.4fr 1fr 1fr" }}>
           {/* LEFT */}
           <section className="panel">
-            <h2 className="panelTitle">All Plants</h2>
 
-            
-            <div className="listBox">
-              {plants.map((p) => (
-                <button key={p.id} className="listItem" type="button">
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                    <span>{p.name}</span>
-                    <span style={{ opacity: 0.75, fontWeight: 500 }}>{p.status}</span>
-                  </div>
-                  <div className="muted" style={{ marginTop: 6 }}>
-                    Next: {p.nextTask}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <p className="muted" style={{ marginTop: 12 }}>
-              This page supports the “one screen to see all my plants” idea.
-            </p>
-
+            {/* Saved plants */}
             <div style={{ marginTop: 16 }}>
               <h3 style={{ margin: "10px 0 6px", fontWeight: 700 }}>My Saved Plants</h3>
 
-              {savedLoading && <p className="muted">Loading saved plants…</p>}
-              {savedError && <p style={{ color: "crimson" }}>{savedError}</p>}
+              {!auth.currentUser && (
+                <p className="muted">Log in to load your saved plants.</p>
+              )}
 
-              {!savedLoading && !savedError && savedPlants.length === 0 && (
+              {auth.currentUser && savedLoading && <p className="muted">Loading saved plants…</p>}
+              {auth.currentUser && savedError && <p style={{ color: "crimson" }}>{savedError}</p>}
+
+              {auth.currentUser && !savedLoading && !savedError && savedPlants.length === 0 && (
                 <p className="muted">No saved plants yet. Add one below from recommendations.</p>
               )}
 
-              {!savedLoading && !savedError && savedPlants.length > 0 && (
+              {auth.currentUser && !savedLoading && !savedError && savedPlants.length > 0 && (
                 <div className="listBox">
                   {savedPlants.map((p) => {
                     const isSelected = p.id === selectedPlantId;
@@ -226,10 +298,10 @@ export default function MyGardenPage() {
                 Recommended {recZone ? `for Zone ${recZone}` : ""}
               </h3>
 
-              {recLoading && <p className="muted">Loading recommendations…</p>}
-              {recError && <p style={{ color: "crimson" }}>{recError}</p>}
-
-              {!recLoading && !recError && recommendations.length === 0 && (
+              {!auth.currentUser && <p className="muted">Log in to load recommendations.</p>}
+              {auth.currentUser && recLoading && <p className="muted">Loading recommendations…</p>}
+              {auth.currentUser && recError && <p style={{ color: "crimson" }}>{recError}</p>}
+              {auth.currentUser && !recLoading && !recError && recommendations.length === 0 && (
                 <p className="muted">No recommendations yet.</p>
               )}
 
@@ -267,14 +339,14 @@ export default function MyGardenPage() {
                 ))}
               </div>
             </div>
-            {/* Plant Identification Upload */}
-<div style={{ marginTop: 24 }}>
-  <h3 style={{ margin: "14px 0 8px", fontWeight: 700 }}>
-    Identify a Plant from Photo
-  </h3>
 
-  <PlantIdentifyUpload onAddToGarden={addToGarden} />
-</div>
+            {/* Plant Identification Upload */}
+            <div style={{ marginTop: 24 }}>
+              <h3 style={{ margin: "14px 0 8px", fontWeight: 700 }}>
+                Identify a Plant from Photo
+              </h3>
+              <PlantIdentifyUpload onAddToGarden={addToGarden} />
+            </div>
           </section>
 
           {/* CENTER */}
@@ -302,36 +374,39 @@ export default function MyGardenPage() {
 
                   {Array.isArray(selectedPlant.notes) && selectedPlant.notes.length > 0 ? (
                     <div className="listBox">
-                      {selectedPlant.notes.map((n, idx) => (
-                        <div key={idx} className="listItem" style={{ cursor: "default" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                            <span>{typeof n === "string" ? n : n.text}</span>
+                      {selectedPlant.notes.map((n, idx) => {
+                        const text = typeof n === "string" ? n : n?.text || "";
+                        return (
+                          <div key={idx} className="listItem" style={{ cursor: "default" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                              <span>{text}</span>
 
-                            <span style={{ display: "flex", gap: 8 }}>
-                              <button
-                                type="button"
-                                className="primaryBtn"
-                                style={{ padding: "6px 10px" }}
-                                onClick={() => {
-                                  setEditingIndex(idx);
-                                  setNoteDraft(typeof n === "string" ? n : n.text);
-                                }}
-                              >
-                                Edit
-                              </button>
+                              <span style={{ display: "flex", gap: 8 }}>
+                                <button
+                                  type="button"
+                                  className="primaryBtn"
+                                  style={{ padding: "6px 10px" }}
+                                  onClick={() => {
+                                    setEditingIndex(idx);
+                                    setNoteDraft(text);
+                                  }}
+                                >
+                                  Edit
+                                </button>
 
-                              <button
-                                type="button"
-                                className="primaryBtn"
-                                style={{ padding: "6px 10px" }}
-                                onClick={() => deleteNote(selectedPlant.id, idx)}
-                              >
-                                Delete
-                              </button>
-                            </span>
+                                <button
+                                  type="button"
+                                  className="primaryBtn"
+                                  style={{ padding: "6px 10px" }}
+                                  onClick={() => deleteNote(selectedPlant.id, idx)}
+                                >
+                                  Delete
+                                </button>
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="muted">No notes yet.</p>
