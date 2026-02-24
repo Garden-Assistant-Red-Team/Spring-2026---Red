@@ -38,11 +38,10 @@ export default function ProfilePage() {
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // password update (keep from HEAD)
+  // derived phone value 
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
 
-  // derived phone value (keep from incoming)
   const phoneE164 = useMemo(() => toE164US(phoneDisplay), [phoneDisplay]);
 
   const loadProfile = async (uid) => {
@@ -149,7 +148,7 @@ export default function ProfilePage() {
       setPasswordMsg("Password updated!");
       setNewPassword("");
     } catch (err) {
-      setPasswordMsg(` ${err.message}`);
+      setPasswordMsg(`${err.message}`);
     }
   };
 
@@ -271,9 +270,8 @@ export default function ProfilePage() {
           </>
         )}
       </div>
-    
 
-  <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
+      <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
         <h3>Update Password</h3>
 
         <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
@@ -287,7 +285,7 @@ export default function ProfilePage() {
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-          <button onClick={handlePasswordUpdate}>
+          <button onClick={handlePasswordUpdate} type="button">
             Update Password
           </button>
         </div>

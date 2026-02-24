@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
@@ -44,7 +45,8 @@ console.log("✅ mounted /api/catalog");
 
 // Test routes
 app.use('/api/garden', gardenRouter);               
-app.use('/api/identify-plant', identifyPlantRouter); 
+app.use('/api/identifyPlant', identifyPlantRouter);
+console.log("✅ mounted /api/identifyPlant");
 // Test route
 app.get('/', (req, res) => {
   res.send('Garden Assistant API is running!');

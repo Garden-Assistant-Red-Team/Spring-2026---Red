@@ -6,13 +6,17 @@ import GardenCalendar from "../components/GardenCalendar";
 import { requestNotificationPermission } from "../firebase-messaging";
 import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import PlantIdentifyUpload from "../components/PlantIdentifyUpload";
 
 export default function MyGardenPage() {
-  // notes section
-  const [selectedPlantId, setSelectedPlantId] = useState(null);
-  const [noteDraft, setNoteDraft] = useState("");
-  const [editingIndex, setEditingIndex] = useState(null);
 
+  const [plants] = useState([
+    { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
+    { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
+    { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
+  ]);
+
+  const [notes, setNotes] = useState("");
 
   // Recommendations
   const [recZone, setRecZone] = useState("");
@@ -20,18 +24,10 @@ export default function MyGardenPage() {
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState("");
 
-  // ✅ Saved plants pulled from backend (Firestore via Express)
   const [savedPlants, setSavedPlants] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
 
-  useEffect(() => {
-    if (!selectedPlantId && savedPlants.length > 0) {
-      setSelectedPlantId(savedPlants[0].id);
-    }
-  }, [savedPlants, selectedPlantId]);
-
-  // 🔔 Ask for notification permission
   useEffect(() => {
     async function setupNotifications() {
       if (!auth.currentUser) return;
@@ -47,12 +43,6 @@ export default function MyGardenPage() {
     setupNotifications();
   }, []);
 
-  useEffect(() => {
-    setNoteDraft("");
-    setEditingIndex(null);
-  }, [selectedPlantId]);
-
-  // ✅ Load recommendations
   useEffect(() => {
     async function loadRecommendations() {
       if (!auth.currentUser) return;
@@ -79,7 +69,6 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  // ✅ Load saved plants
   async function loadSavedPlants() {
     try {
       if (!auth.currentUser) return;
@@ -102,63 +91,12 @@ export default function MyGardenPage() {
     }
   }
 
-  const selectedPlant = savedPlants.find(p => p.id === selectedPlantId) || null;
-
-  async function addNote(plantDocId) {
-    const text = noteDraft.trim();
-    if (!text) return;
-
-    const uid = auth.currentUser.uid;
-    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to add note");
-
-    setNoteDraft("");
-    await loadSavedPlants();
-  }
-
-  async function saveEdit(plantDocId, index) {
-    const text = noteDraft.trim();
-    if (!text) return;
-
-    const uid = auth.currentUser.uid;
-    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to edit note");
-
-    setEditingIndex(null);
-    setNoteDraft("");
-    await loadSavedPlants();
-  }
-
-  async function deleteNote(plantDocId, index) {
-    const uid = auth.currentUser.uid;
-    const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
-      method: "DELETE",
-    });
-
-    const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to delete note");
-
-    await loadSavedPlants();
-  }
 
   useEffect(() => {
     loadSavedPlants();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
-  // ✅ Add recommended plant to user’s garden via backend
   async function addToGarden(p) {
     try {
       if (!auth.currentUser) {
@@ -172,7 +110,8 @@ export default function MyGardenPage() {
         name: p.scientificName || p.commonName || p.id,
         commonName: p.commonName || null,
         scientificName: p.scientificName || null,
-        plantId: p.id,
+
+        plantId: p.id, 
         trefle_id: typeof p.trefle_id === "number" ? p.trefle_id : null,
         minZone: typeof p.minZone === "number" ? p.minZone : null,
         maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
@@ -197,6 +136,8 @@ export default function MyGardenPage() {
       }
 
       alert("Added to My Garden 🌿");
+
+    
       await loadSavedPlants();
     } catch (e) {
       console.error(e);
@@ -212,7 +153,27 @@ export default function MyGardenPage() {
         <div className="toolGrid" style={{ gridTemplateColumns: "1.4fr 1fr 1fr" }}>
           {/* LEFT */}
           <section className="panel">
-            {/* ✅ Saved plants */}
+            <h2 className="panelTitle">All Plants</h2>
+
+            
+            <div className="listBox">
+              {plants.map((p) => (
+                <button key={p.id} className="listItem" type="button">
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                    <span>{p.name}</span>
+                    <span style={{ opacity: 0.75, fontWeight: 500 }}>{p.status}</span>
+                  </div>
+                  <div className="muted" style={{ marginTop: 6 }}>
+                    Next: {p.nextTask}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <p className="muted" style={{ marginTop: 12 }}>
+              This page supports the “one screen to see all my plants” idea.
+            </p>
+
             <div style={{ marginTop: 16 }}>
               <h3 style={{ margin: "10px 0 6px", fontWeight: 700 }}>My Saved Plants</h3>
 
@@ -306,6 +267,14 @@ export default function MyGardenPage() {
                 ))}
               </div>
             </div>
+            {/* Plant Identification Upload */}
+<div style={{ marginTop: 24 }}>
+  <h3 style={{ margin: "14px 0 8px", fontWeight: 700 }}>
+    Identify a Plant from Photo
+  </h3>
+
+  <PlantIdentifyUpload onAddToGarden={addToGarden} />
+</div>
           </section>
 
           {/* CENTER */}
@@ -431,6 +400,7 @@ export default function MyGardenPage() {
           </section>
         </div>
 
+        {/* 🌱 Garden Calendar */}
         <div style={{ marginTop: 24 }}>
           <GardenCalendar />
         </div>
