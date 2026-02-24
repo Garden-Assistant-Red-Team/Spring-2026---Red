@@ -11,14 +11,7 @@ import { auth, db } from "../firebase";
 const API_BASE = "http://localhost:5000";
 
 export default function MyGardenPage() {
-  // ✅ Demo plants (hardcoded)
-  const [demoPlants] = useState([
-    { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
-    { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
-    { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
-  ]);
-
-  // ✅ Saved plants pulled from backend (Firestore via Express)
+  // Saved plants pulled from backend (Firestore via Express)
   const [savedPlants, setSavedPlants] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
@@ -53,7 +46,7 @@ export default function MyGardenPage() {
     setupNotifications();
   }, []);
 
-  // ✅ Load saved plants
+  // Load saved plants
   async function loadSavedPlants() {
     try {
       if (!auth.currentUser) {
@@ -101,7 +94,7 @@ export default function MyGardenPage() {
     setEditingIndex(null);
   }, [selectedPlantId]);
 
-  // ✅ Load recommendations
+  // Load recommendations
   useEffect(() => {
     async function loadRecommendations() {
       if (!auth.currentUser) return;
@@ -128,7 +121,7 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  // ✅ Add plant to garden via backend
+  // Add plant to garden via backend
   async function addToGarden(p) {
     try {
       if (!auth.currentUser) {
@@ -176,7 +169,7 @@ export default function MyGardenPage() {
     }
   }
 
-  // ✅ NOTES: add / edit / delete
+  // NOTES: add / edit / delete
   async function addNote(plantDocId) {
     const text = noteDraft.trim();
     if (!text) return;
