@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, updatePassword } from "firebase/auth";
-=======
 import { useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
+import { onAuthStateChanged, updatePassword } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase"; // adjust path if needed
 
@@ -43,12 +38,10 @@ export default function ProfilePage() {
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
-<<<<<<< HEAD
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
-=======
+
   const phoneE164 = useMemo(() => toE164US(phoneDisplay), [phoneDisplay]);
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
 
   const loadProfile = async (uid) => {
     const ref = doc(db, "users", uid);
@@ -60,18 +53,13 @@ export default function ProfilePage() {
 
       setFullName(data.fullName || "");
       setZipCode(data.zipCode || "");
-<<<<<<< HEAD
       setGardenZone(data.gardenZone || "Unknown");
-=======
-      setGardenZone(data.gardenZone || "");
 
-   
       const storedPhone =
         data.phoneDisplay || data.phoneNumber || data.phoneE164 || "";
       setPhoneDisplay(formatUSPhone(storedPhone));
 
       setSmsEnabled(Boolean(data.smsEnabled));
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
     } else {
       setProfile(null);
       setMsg("No profile document found.");
@@ -119,11 +107,10 @@ export default function ProfilePage() {
         zipCode: zipCode.trim(),
         gardenZone: gardenZone.trim(),
 
-       
         phoneDisplay: phoneDisplay.trim(),
         phoneE164: phoneE164 || "",
 
-        
+        // keep if you already use it elsewhere
         phoneNumber: phoneDisplay.trim(),
 
         smsEnabled: Boolean(smsEnabled),
@@ -143,10 +130,7 @@ export default function ProfilePage() {
   const handleCancel = () => {
     setFullName(profile?.fullName || "");
     setZipCode(profile?.zipCode || "");
-<<<<<<< HEAD
     setGardenZone(profile?.gardenZone || "Unknown");
-=======
-    setGardenZone(profile?.gardenZone || "");
 
     const storedPhone =
       profile?.phoneDisplay || profile?.phoneNumber || profile?.phoneE164 || "";
@@ -154,7 +138,6 @@ export default function ProfilePage() {
 
     setSmsEnabled(Boolean(profile?.smsEnabled));
 
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
     setEditMode(false);
     setMsg("");
   };
@@ -167,7 +150,7 @@ export default function ProfilePage() {
       setPasswordMsg("Password updated!");
       setNewPassword("");
     } catch (err) {
-      setPasswordMsg(` ${err.message}`);
+      setPasswordMsg(`${err.message}`);
     }
   };
 
@@ -289,9 +272,8 @@ export default function ProfilePage() {
           </>
         )}
       </div>
-    
 
-  <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
+      <div style={{ background: "white", padding: 22, borderRadius: 16, marginTop: 24 }}>
         <h3>Update Password</h3>
 
         <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
@@ -305,7 +287,7 @@ export default function ProfilePage() {
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-          <button onClick={handlePasswordUpdate}>
+          <button onClick={handlePasswordUpdate} type="button">
             Update Password
           </button>
         </div>

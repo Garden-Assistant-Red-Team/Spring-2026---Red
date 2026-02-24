@@ -29,16 +29,12 @@ export default function SettingsPage() {
       // 1) Delete Firestore profile document
       await deleteDoc(doc(db, "users", user.uid));
 
-      // (Optional later) delete other user data like plants/reminders/calendar subcollections
-
-      // 2) Delete Firebase Auth user (account)
       await deleteUser(user);
 
-      // 3) Send them home (they are now signed out because account is gone)
+      // Send them home 
       navigate("/");
     } catch (err) {
-      // Very common:
-      // auth/requires-recent-login
+      
       if (err.code === "auth/requires-recent-login") {
         setMessage(
           "For security, please log out and log back in, then try deleting again."
