@@ -30,6 +30,9 @@ const recommendationsRouter = require('./routes/recommendations');
 const symptomsRouter = require('./routes/symptoms');
 const gardenRouter = require('./routes/garden');
 const identifyPlantRouter = require('./routes/identifyPlant');
+
+const gardenRouter = require('./routes/garden');
+//const identifyPlantRouter = require('./routes/identifyPlant');
 // Use routes
 app.use('/api/users', usersRouter);
 app.use('/api/reminders', remindersRouter);
