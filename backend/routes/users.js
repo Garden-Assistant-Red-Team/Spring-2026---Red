@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
+const { requireAuth } = require("../middleware/auth");
 const { createPlantReminders } = require('./autoReminders');
 
 const db = admin.firestore();
@@ -151,7 +152,11 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Get a user's plants
-router.get('/:id/plants', async (req, res) => {
+router.get('/:id/plants', requireAuth, async (req, res) => {
+  // ✅ Block access if user tries to read someone else’s data
+  if (req.user.uid !== req.params.id) {
+    return res.status(403).json({ error: "Forbidden: You can only access your own plants" });
+  }
   try {
     const snapshot = await db
       .collection('users')
@@ -172,8 +177,11 @@ router.get('/:id/plants', async (req, res) => {
 });
 
 // Add a plant to a user's garden
-router.post('/:id/plants', async (req, res) => {
-  try {
+router.post('/:id/plants', requireAuth, async (req, res) => {
+  // Block access if user tries to write to someone else’s data
+  if (req.user.uid !== req.params.id) {
+    return res.status(403).json({ error: "Forbidden: You can only add plants to your own garden" });
+  }  try {
     const {
       catalogId,
       addedFrom,
@@ -253,5 +261,6 @@ router.post('/:id/plants', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+
 });
 module.exports = router;
