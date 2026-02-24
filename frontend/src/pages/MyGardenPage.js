@@ -3,76 +3,32 @@ import "./ToolLayout.css";
 
 import GardenCalendar from "../components/GardenCalendar";
 
-<<<<<<< HEAD
-// Firestore
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-
-// Firebase
-import { auth, db } from "../firebase";
-
-// Notifications
-import { requestNotificationPermission } from "../firebase-messaging";
-=======
 import { requestNotificationPermission } from "../firebase-messaging";
 import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 export default function MyGardenPage() {
-  // ✅ Keep your team’s hardcoded demo plants
-  const [plants] = useState([
+  // ✅ Demo plants (hardcoded)
+  const [demoPlants] = useState([
     { id: 1, name: "Basil", status: "Healthy", nextTask: "Water tomorrow" },
     { id: 2, name: "Tomato", status: "Needs attention", nextTask: "Check leaves" },
     { id: 3, name: "Rosemary", status: "Healthy", nextTask: "Prune this week" },
   ]);
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
 
-export default function MyGardenPage() {
-  const [plants, setPlants] = useState([]);
   const [notes, setNotes] = useState("");
 
-<<<<<<< HEAD
-  // ✅ Load user's plants (real data)
-  useEffect(() => {
-    if (!auth.currentUser) {
-      setPlants([]);
-      return;
-    }
-
-    const q = query(
-      collection(db, "users", auth.currentUser.uid, "myPlants"),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setPlants(list);
-    });
-
-    return () => unsub();
-  }, []);
-
-  // Ask for notification permission after user hits My Garden
-=======
   // Recommendations
   const [recZone, setRecZone] = useState("");
   const [recommendations, setRecommendations] = useState([]);
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState("");
 
-  // ✅ Saved plants pulled from Firestore via backend
+  // ✅ Saved plants pulled from backend (Firestore via Express)
   const [savedPlants, setSavedPlants] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
 
   // 🔔 Ask for notification permission
->>>>>>> 64ec885 (Added Firestore garden saving and dynamic My Garden list)
   useEffect(() => {
     async function setupNotifications() {
       if (!auth.currentUser) return;
@@ -101,9 +57,7 @@ export default function MyGardenPage() {
         const res = await fetch(`http://localhost:5000/api/recommendations?uid=${uid}`);
         const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data?.error || "Failed to load recommendations");
-        }
+        if (!res.ok) throw new Error(data?.error || "Failed to load recommendations");
 
         setRecZone(data.zone || "");
         setRecommendations(data.recommendations || []);
@@ -117,7 +71,7 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  // ✅ NEW: Load saved plants from backend (Firestore)
+  // ✅ Load saved plants
   async function loadSavedPlants() {
     try {
       if (!auth.currentUser) return;
@@ -129,19 +83,17 @@ export default function MyGardenPage() {
       const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants`);
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to load saved plants");
-      }
+      if (!res.ok) throw new Error(data?.error || `Failed to load saved plants (${res.status})`);
 
       setSavedPlants(Array.isArray(data) ? data : []);
     } catch (e) {
       setSavedError(String(e.message || e));
+      setSavedPlants([]);
     } finally {
       setSavedLoading(false);
     }
   }
 
-  // ✅ NEW: Load saved plants when page opens
   useEffect(() => {
     loadSavedPlants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,15 +113,13 @@ export default function MyGardenPage() {
         name: p.scientificName || p.commonName || p.id,
         commonName: p.commonName || null,
         scientificName: p.scientificName || null,
-
-        plantId: p.id, // plantCatalog doc id like "trefle_101995"
+        plantId: p.id,
         trefle_id: typeof p.trefle_id === "number" ? p.trefle_id : null,
         minZone: typeof p.minZone === "number" ? p.minZone : null,
         maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
         sunlight: p.sunlight || null,
         wateringFrequency: p.wateringFrequency || null,
         reason: p.reason || null,
-
         source: "recommendations",
         confidence: null,
         photoUrl: null,
@@ -182,15 +132,12 @@ export default function MyGardenPage() {
       });
 
       const data = await res.json();
-
       if (!res.ok) {
         alert(data?.error || "Failed to add plant");
         return;
       }
 
       alert("Added to My Garden 🌿");
-
-      // ✅ NEW: refresh saved list so it appears immediately
       await loadSavedPlants();
     } catch (e) {
       console.error(e);
@@ -204,44 +151,32 @@ export default function MyGardenPage() {
 
       <div className="container">
         <div className="toolGrid" style={{ gridTemplateColumns: "1.4fr 1fr 1fr" }}>
-          {/* LEFT: Plant list */}
+          {/* LEFT */}
           <section className="panel">
             <h2 className="panelTitle">All Plants</h2>
 
-            {/* ✅ Your team’s hardcoded list stays exactly as-is */}
+            {/* ✅ Demo list */}
             <div className="listBox">
               {!auth.currentUser ? (
                 <div className="muted" style={{ padding: 10 }}>
                   Please log in to see your garden plants.
                 </div>
-              ) : plants.length === 0 ? (
+              ) : demoPlants.length === 0 ? (
                 <div className="muted" style={{ padding: 10 }}>
-                  No plants yet. Add one from Resources → Plant Dictionary.
+                  No plants yet.
                 </div>
               ) : (
-                plants.map((p) => {
-                  const displayName =
-                    p.nickname || p.commonName || p.scientificName || "Unnamed plant";
-
-                  const nextTask =
-                    p.wateringEveryDays
-                      ? `Water every ${p.wateringEveryDays} days`
-                      : "No schedule yet";
-
-                  return (
-                    <button key={p.id} className="listItem" type="button">
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <span>{displayName}</span>
-                        <span style={{ opacity: 0.75, fontWeight: 500 }}>
-                          {p.status || "—"}
-                        </span>
-                      </div>
-                      <div className="muted" style={{ marginTop: 6 }}>
-                        Next: {nextTask}
-                      </div>
-                    </button>
-                  );
-                })
+                demoPlants.map((p) => (
+                  <button key={p.id} className="listItem" type="button">
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                      <span>{p.name}</span>
+                      <span style={{ opacity: 0.75, fontWeight: 500 }}>{p.status || "—"}</span>
+                    </div>
+                    <div className="muted" style={{ marginTop: 6 }}>
+                      Next: {p.nextTask || "—"}
+                    </div>
+                  </button>
+                ))
               )}
             </div>
 
@@ -249,7 +184,7 @@ export default function MyGardenPage() {
               This page supports the “one screen to see all my plants” idea.
             </p>
 
-            {/* ✅ NEW: Saved plants from Firestore */}
+            {/* ✅ Saved plants */}
             <div style={{ marginTop: 16 }}>
               <h3 style={{ margin: "10px 0 6px", fontWeight: 700 }}>My Saved Plants</h3>
 
@@ -263,11 +198,7 @@ export default function MyGardenPage() {
               {!savedLoading && !savedError && savedPlants.length > 0 && (
                 <div className="listBox">
                   {savedPlants.map((p) => (
-                    <div
-                      key={p.id}
-                      className="listItem"
-                      style={{ cursor: "default" }}
-                    >
+                    <div key={p.id} className="listItem" style={{ cursor: "default" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                         <span style={{ fontWeight: 700 }}>
                           {p.commonName || p.name || "Unnamed plant"}
@@ -337,7 +268,7 @@ export default function MyGardenPage() {
             </div>
           </section>
 
-          {/* CENTER: Notes */}
+          {/* CENTER */}
           <section className="panel">
             <h2 className="panelTitle">Notes</h2>
             <p className="muted">Quick notes / observations (placeholder for now).</p>
@@ -363,7 +294,7 @@ export default function MyGardenPage() {
             </div>
           </section>
 
-          {/* RIGHT: Checklist */}
+          {/* RIGHT */}
           <section className="panel">
             <h2 className="panelTitle">Checklist</h2>
             <p className="muted">“Notes and custom checklists” placeholder.</p>
@@ -381,7 +312,6 @@ export default function MyGardenPage() {
           </section>
         </div>
 
-        {/* Garden Calendar */}
         <div style={{ marginTop: 24 }}>
           <GardenCalendar />
         </div>
