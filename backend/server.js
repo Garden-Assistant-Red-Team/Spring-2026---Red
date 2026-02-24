@@ -53,6 +53,8 @@ app.use('/api/garden', gardenRouter);
 app.use('/api/identify-plant', identifyPlantRouter);
 
 
+console.log(" mounted /api/identifyPlant");``
+
 // Test route
 app.get('/', (req, res) => {
   res.send('Garden Assistant API is running!');

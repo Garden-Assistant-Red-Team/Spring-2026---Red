@@ -16,10 +16,8 @@ export default function PlantIdentifyUpload({ onAddToGarden }) {
     setPreview(URL.createObjectURL(f));
   };
 
-  // Normalizes your backend response into UI-friendly fields
   const normalizeIdentifyResponse = (data) => {
-    // Your backend shape:
-    // { isPlant, suggestions: [{ name, probability, details: { common_names: [] } }] }
+
     const best = data?.suggestions?.[0];
 
     if (best) {
@@ -42,7 +40,6 @@ export default function PlantIdentifyUpload({ onAddToGarden }) {
       };
     }
 
-    // Fallback if backend returns a different shape in the future
     return {
       plantName: data?.plantName || data?.name || "Unknown plant",
       commonName: "",
@@ -84,7 +81,6 @@ export default function PlantIdentifyUpload({ onAddToGarden }) {
 
       if (!res.ok) throw new Error(data?.error || "Identify request failed");
 
-      // ✅ This is the key change
       setResult(normalizeIdentifyResponse(data));
     } catch (err) {
       setError(err.message);
