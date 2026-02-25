@@ -31,8 +31,8 @@ const symptomsRouter = require('./routes/symptoms');
 const gardenRouter = require('./routes/garden');
 const identifyPlantRouter = require('./routes/identifyPlant');
 
-const gardenRouter = require('./routes/garden');
-const identifyPlantRouter = require('./routes/identifyPlant');
+//const gardenRouter = require('./routes/garden');
+//const identifyPlantRouter = require('./routes/identifyPlant');
 // Use routes
 app.use('/api/users', usersRouter);
 app.use('/api/reminders', remindersRouter);
@@ -52,6 +52,8 @@ console.log("✅ mounted /api/identifyPlant");
 app.use('/api/garden', gardenRouter);
 app.use('/api/identify-plant', identifyPlantRouter);
 
+
+console.log(" mounted /api/identifyPlant");``
 
 // Test route
 app.get('/', (req, res) => {

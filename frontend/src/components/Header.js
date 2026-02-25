@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Header.css";
+import logo from "../images/logo.png";
 
 export default function Header() {
   const location = useLocation();
@@ -23,9 +24,13 @@ export default function Header() {
     <header className="public-header">
       <div className="public-header-inner">
         
-        {/* App Name */}
+        {/* Logo replacing text */}
         <Link to="/" className="public-brand">
-          Garden Assistant
+          <img
+            src={logo}
+            alt="Garden Assistant Logo"
+            className="nav-logo"
+          />
         </Link>
 
         {/* Navigation Tabs */}

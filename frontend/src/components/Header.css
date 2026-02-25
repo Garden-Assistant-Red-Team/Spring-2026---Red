@@ -49,6 +49,12 @@
   cursor: pointer;
   padding: 6px 8px;
 }
+/* Logo inside navbar */
+.nav-logo {
+  height: 55px;
+  width: 130px;
+  object-fit: contain;
+}
 
 .tab:hover {
   text-decoration: underline;   /* simple hover effect */
@@ -75,6 +81,8 @@
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.2);
 }
+
+
 
 /* Slight hover feedback */
 .public-signup:hover {

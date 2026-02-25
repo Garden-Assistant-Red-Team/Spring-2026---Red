@@ -4,6 +4,14 @@ import { app } from "./firebase";
 const messaging = getMessaging(app);
 
 export async function requestNotificationPermission() {
+  const vapidKey = (process.env.REACT_APP_FIREBASE_VAPID_KEY || "").trim();
+
+  // Prevent crash if key is missing
+  if (!vapidKey) {
+    console.warn("FCM disabled: Missing VAPID key.");
+    return null;
+  }
+
   const permission = await Notification.requestPermission();
 
   if (permission !== "granted") {
@@ -11,15 +19,24 @@ export async function requestNotificationPermission() {
     return null;
   }
 
-  const token = await getToken(messaging, {
-    vapidKey: "PASTE_YOUR_PUBLIC_VAPID_KEY_HERE"
-  });
+  try {
+    const token = await getToken(messaging, {
+      vapidKey: vapidKey,
+    });
 
-  return token;
+    return token;
+  } catch (error) {
+    console.warn("Failed to get FCM token:", error);
+    return null;
+  }
 }
 
 export function listenForForegroundMessages() {
   onMessage(messaging, (payload) => {
-    alert(payload.notification.title + "\n" + payload.notification.body);
+    alert(
+      payload?.notification?.title +
+        "\n" +
+        payload?.notification?.body
+    );
   });
 }
