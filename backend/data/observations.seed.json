@@ -1,0 +1,18 @@
+[
+  { "id": "soil_moisture", "label": "Soil moisture", "type": "enum", "options": ["dry", "moist", "wet"] },
+  { "id": "light_level", "label": "Light level", "type": "enum", "options": ["low", "medium", "high"] },
+  { "id": "recent_light_change", "label": "Recent big change in light?", "type": "bool" },
+
+  { "id": "humidity_low", "label": "Indoor air is dry / low humidity", "type": "bool" },
+  { "id": "drafts_temp_fluctuations", "label": "Drafts / heat vent / cold window nearby", "type": "bool" },
+  { "id": "cold_exposure_transport", "label": "Recent cold exposure during transport?", "type": "bool" },
+
+  { "id": "fertilized_recently", "label": "Fertilized recently?", "type": "bool" },
+  { "id": "water_quality_issue", "label": "Possible water quality issue (chlorine/fluoride)?", "type": "bool" },
+
+  { "id": "poor_drainage_or_saucer_water", "label": "No drainage hole or water sits in saucer?", "type": "bool" },
+  { "id": "leaf_shine_used", "label": "Used leaf-shine products?", "type": "bool" },
+
+  { "id": "overcrowded_poor_airflow", "label": "Overcrowded / poor air circulation?", "type": "bool" },
+  { "id": "leaves_stay_wet", "label": "Leaves stay wet (misting/overhead watering)?", "type": "bool" }
+]

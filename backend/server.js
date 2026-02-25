@@ -48,7 +48,7 @@ console.log(" mounted /api/catalog");
 // Test routes
 app.use('/api/garden', gardenRouter);
 app.use('/api/identifyPlant', identifyPlantRouter);
-console.log("✅ mounted /api/identifyPlant");
+console.log("mounted /api/identifyPlant");
 app.use('/api/garden', gardenRouter);
 app.use('/api/identify-plant', identifyPlantRouter);
 

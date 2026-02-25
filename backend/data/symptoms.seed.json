@@ -1,0 +1,26 @@
+[
+  { "id": "no_flowers", "label": "Not flowering", "category": "growth" },
+  { "id": "brown_leaf_tips", "label": "Brown leaf tips/edges", "category": "leaf" },
+  { "id": "spindly_growth", "label": "Spindly / lanky growth", "category": "growth" },
+  { "id": "leaf_scorch", "label": "Leaf scorch / sunburn patches", "category": "leaf" },
+  { "id": "wilting", "label": "Wilting / drooping", "category": "leaf" },
+  { "id": "leaf_drop", "label": "Leaves dropping", "category": "leaf" },
+  { "id": "yellow_leaves", "label": "Yellow leaves", "category": "leaf" },
+  { "id": "brown_leaves", "label": "Brown leaves", "category": "leaf" },
+
+  { "id": "sticky_residue", "label": "Sticky residue (honeydew)", "category": "pest" },
+  { "id": "sooty_mold", "label": "Black sooty mold on sticky areas", "category": "pest" },
+  { "id": "cottony_masses", "label": "White cottony masses on plant", "category": "pest" },
+  { "id": "bumps_on_stems", "label": "Small bumps/scales on stems or veins", "category": "pest" },
+  { "id": "flying_black_gnats", "label": "Small black flying gnats", "category": "pest" },
+  { "id": "fine_webbing", "label": "Fine webbing on leaves/stems", "category": "pest" },
+  { "id": "mottled_leaves", "label": "Mottled / speckled leaves", "category": "pest" },
+  { "id": "curled_deformed_leaves", "label": "Curled / deformed leaves", "category": "pest" },
+  { "id": "flying_white_insects", "label": "Small white flying insects", "category": "pest" },
+
+  { "id": "gray_fuzzy_mold", "label": "Gray fuzzy mold on dying tissue/flowers", "category": "disease" },
+  { "id": "leaf_spots", "label": "Brown/black leaf spots that enlarge", "category": "disease" },
+  { "id": "mosaic_mottling", "label": "Mosaic/mottled color pattern", "category": "disease" },
+  { "id": "mushy_roots", "label": "Dark, mushy roots / rapid decline", "category": "disease" },
+  { "id": "powdery_coating", "label": "White powdery coating on leaves", "category": "disease" }
+]

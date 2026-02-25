@@ -1,0 +1,410 @@
+[
+  {
+    "id": "no_flowers_environment",
+    "name": "Not flowering (environment mismatch)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "no_flowers" }],
+      "supportingAny": [
+        { "type": "observation", "id": "light_level", "op": "eq", "value": "low" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Confirm the plant is expected to flower indoors (some only flower seasonally or rarely inside).",
+      "Increase light (brighter window or supplemental light).",
+      "Make sure daylength/photoperiod and temperatures match what the plant needs."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – No Flowers", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "brown_leaf_tips_low_humidity_or_care",
+    "name": "Brown leaf tips/edges (humidity, watering, salts, water quality)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "brown_leaf_tips" }],
+      "supportingAny": [
+        { "type": "observation", "id": "humidity_low", "op": "eq", "value": true },
+        { "type": "observation", "id": "fertilized_recently", "op": "eq", "value": true },
+        { "type": "observation", "id": "water_quality_issue", "op": "eq", "value": true }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Raise humidity (humidifier, pebble tray, group plants).",
+      "Avoid letting the plant dry too long between waterings.",
+      "If salts are suspected, flush soil and reduce fertilizer.",
+      "If water quality is suspected, try a different water source."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Brown Leaf Tips", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "spindly_growth_low_light_or_overfert",
+    "name": "Spindly growth (low light or too much fertilizer)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "spindly_growth" }],
+      "supportingAny": [
+        { "type": "observation", "id": "light_level", "op": "eq", "value": "low" },
+        { "type": "observation", "id": "fertilized_recently", "op": "eq", "value": true }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Increase light (move to brighter location or use supplemental lighting).",
+      "Reduce fertilizer (slower growth, but more compact)."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Spindly Growth", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "leaf_scorch_or_drop_light_change_or_too_much_light",
+    "name": "Leaf scorch or drop (light shock / too much light)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "leaf_scorch" }],
+      "supportingAny": [
+        { "type": "observation", "id": "recent_light_change", "op": "eq", "value": true },
+        { "type": "observation", "id": "light_level", "op": "eq", "value": "high" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Avoid sudden light changes; transition over weeks.",
+      "Reduce light intensity if it’s too strong for the species."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Leaf Scorch & Drop", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "wilting_underwatering_path",
+    "name": "Wilting (too dry / not watering effectively)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [
+        { "type": "symptom", "id": "wilting" },
+        { "type": "observation", "id": "soil_moisture", "op": "eq", "value": "dry" }
+      ],
+      "supportingAny": [],
+      "contradictionsAny": [{ "type": "observation", "id": "soil_moisture", "op": "eq", "value": "wet" }]
+    },
+    "treatment": [
+      "Water thoroughly so the full root ball gets wet.",
+      "If water runs down the sides, soak the root ball so it rehydrates evenly.",
+      "If pot-bound or container too small/porous, consider repotting."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Wilting (dry soil causes)", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "wilting_overwatering_path",
+    "name": "Wilting (too wet → root decline)",
+    "category": "poor_culture",
+    "rules": {
+      "requiredAny": [
+        { "type": "symptom", "id": "wilting" },
+        { "type": "observation", "id": "soil_moisture", "op": "eq", "value": "wet" }
+      ],
+      "supportingAny": [{ "type": "observation", "id": "poor_drainage_or_saucer_water", "op": "eq", "value": true }],
+      "contradictionsAny": [{ "type": "observation", "id": "soil_moisture", "op": "eq", "value": "dry" }]
+    },
+    "treatment": [
+      "Let soil dry between waterings (wet–dry cycle).",
+      "Make sure there’s drainage and no standing water in saucers/outer pots.",
+      "If soil is old/compacted, repot in fresh well-draining mix."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Wilting (wet soil causes)", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "leaf_drop_yellow_brown_multi_factor",
+    "name": "Leaf drop / yellowing / browning (multi-factor)",
+    "category": "environment",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "leaf_drop" }],
+      "supportingAny": [
+        { "type": "observation", "id": "drafts_temp_fluctuations", "op": "eq", "value": true },
+        { "type": "observation", "id": "cold_exposure_transport", "op": "eq", "value": true },
+        { "type": "observation", "id": "recent_light_change", "op": "eq", "value": true }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Consider normal shedding first (few older inner leaves).",
+      "Avoid drafts and big temp swings (doors, vents, cold windows).",
+      "Review watering (too wet or too dry can trigger drop).",
+      "Review fertilizer and humidity, then light level / recent light changes."
+    ],
+    "citations": [{ "title": "Improper Environmental Conditions – Leaf Drop, Yellowing, or Browning", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-improper-environmental-conditions", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "overwatering",
+    "name": "Overwatering",
+    "category": "poor_culture",
+    "rules": {
+      "requiredAny": [{ "type": "observation", "id": "soil_moisture", "op": "eq", "value": "wet" }],
+      "supportingAny": [
+        { "type": "symptom", "id": "yellow_leaves" },
+        { "type": "symptom", "id": "brown_leaves" },
+        { "type": "symptom", "id": "leaf_drop" },
+        { "type": "symptom", "id": "wilting" },
+        { "type": "symptom", "id": "flying_black_gnats" }
+      ],
+      "contradictionsAny": [{ "type": "observation", "id": "soil_moisture", "op": "eq", "value": "dry" }]
+    },
+    "treatment": [
+      "Don’t water on a schedule—check soil first; wait if damp.",
+      "Use a wet–dry cycle (thoroughly wet, then let dry before watering again).",
+      "Ensure drainage and avoid water sitting in saucers; refresh compacted/old soil."
+    ],
+    "citations": [{ "title": "Poor Culture – Overwatering", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-related-poor-culture", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "over_fertilization",
+    "name": "Over-fertilization / salt buildup",
+    "category": "poor_culture",
+    "rules": {
+      "requiredAny": [{ "type": "observation", "id": "fertilized_recently", "op": "eq", "value": true }],
+      "supportingAny": [
+        { "type": "symptom", "id": "spindly_growth" },
+        { "type": "symptom", "id": "yellow_leaves" },
+        { "type": "symptom", "id": "brown_leaves" },
+        { "type": "symptom", "id": "leaf_drop" },
+        { "type": "symptom", "id": "wilting" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Water thoroughly so salts flush out through the drainage hole.",
+      "Reduce fertilizer rate and frequency (often too strong for indoor use).",
+      "Fertilize only during active growth; repot if salt buildup is severe."
+    ],
+    "citations": [{ "title": "Poor Culture – Over-Fertilization", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-related-poor-culture", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "leaf_shine_buildup",
+    "name": "Leaf-shine buildup (stomata blocked / dust attracted)",
+    "category": "poor_culture",
+    "rules": {
+      "requiredAny": [{ "type": "observation", "id": "leaf_shine_used", "op": "eq", "value": true }],
+      "supportingAny": [{ "type": "symptom", "id": "sticky_residue" }],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Stop using leaf-shine products.",
+      "Wipe leaves with a damp cloth or rinse gently to remove dust/residue."
+    ],
+    "citations": [{ "title": "Poor Culture – Using Leaf Shine", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-related-poor-culture", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "mealybugs",
+    "name": "Mealybugs",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "cottony_masses" }],
+      "supportingAny": [
+        { "type": "symptom", "id": "sticky_residue" },
+        { "type": "symptom", "id": "sooty_mold" },
+        { "type": "symptom", "id": "yellow_leaves" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Isolate the plant to prevent spread.",
+      "Manually remove visible clusters; prune heavily infested parts.",
+      "Use indoor-labeled treatments (e.g., insecticidal soap), repeating as needed."
+    ],
+    "citations": [{ "title": "Insect Pests – Mealybug", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "scale_insects",
+    "name": "Scale insects",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "bumps_on_stems" }],
+      "supportingAny": [
+        { "type": "symptom", "id": "sticky_residue" },
+        { "type": "symptom", "id": "sooty_mold" },
+        { "type": "symptom", "id": "yellow_leaves" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Catch early; scrape off a few with a fingernail.",
+      "Spot-treat with rubbing alcohol on a cotton swab; prune heavy areas.",
+      "Repeat weekly treatments for several weeks if using indoor-labeled products."
+    ],
+    "citations": [{ "title": "Insect Pests – Scale", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "fungus_gnats",
+    "name": "Fungus gnats (often indicates overwatering)",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "flying_black_gnats" }],
+      "supportingAny": [{ "type": "observation", "id": "soil_moisture", "op": "eq", "value": "wet" }],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Let the soil surface dry between waterings and avoid standing water.",
+      "Sticky traps help catch adults (good for scouting, not a full fix).",
+      "Check other wet areas (drains/condensation trays) as sources."
+    ],
+    "citations": [{ "title": "Insect Pests – Fungus Gnats", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "spider_mites",
+    "name": "Spider mites",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "mottled_leaves" }],
+      "supportingAny": [{ "type": "symptom", "id": "fine_webbing" }],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Rinse foliage thoroughly; focus on leaf undersides.",
+      "Increase humidity (they prefer dry conditions).",
+      "Repeat weekly treatments for several weeks if using indoor-labeled options."
+    ],
+    "citations": [{ "title": "Insect Pests – Spider Mites", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "aphids",
+    "name": "Aphids",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "curled_deformed_leaves" }],
+      "supportingAny": [{ "type": "symptom", "id": "sticky_residue" }],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Spray with water to knock them off if light infestation.",
+      "Prune heavily infested growth.",
+      "Use indoor-labeled treatments like insecticidal soap if needed."
+    ],
+    "citations": [{ "title": "Insect Pests – Aphids", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "whiteflies",
+    "name": "Whiteflies",
+    "category": "pest",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "flying_white_insects" }],
+      "supportingAny": [{ "type": "symptom", "id": "yellow_leaves" }],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Inspect new plants; don’t bring infested plants inside.",
+      "Use yellow sticky traps to catch adults (great for scouting).",
+      "Focus sprays on undersides of leaves; repeat weekly applications."
+    ],
+    "citations": [{ "title": "Insect Pests – Whiteflies", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-caused-insect-pests", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "gray_mold_botrytis",
+    "name": "Gray mold (Botrytis)",
+    "category": "disease",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "gray_fuzzy_mold" }],
+      "supportingAny": [
+        { "type": "observation", "id": "overcrowded_poor_airflow", "op": "eq", "value": true },
+        { "type": "observation", "id": "light_level", "op": "eq", "value": "low" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Remove dying flowers/tissue and improve air circulation/spacing.",
+      "Increase light if too low; reduce humidity if high.",
+      "Focus on fixing conditions; fungicides mainly prevent spread."
+    ],
+    "citations": [{ "title": "Diseases – Gray Mold", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-diseases", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "leaf_spot_disease",
+    "name": "Leaf spots (fungal/bacterial/viral symptom group)",
+    "category": "disease",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "leaf_spots" }],
+      "supportingAny": [
+        { "type": "observation", "id": "leaves_stay_wet", "op": "eq", "value": true },
+        { "type": "observation", "id": "overcrowded_poor_airflow", "op": "eq", "value": true }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Avoid wetting leaves; improve air circulation and spacing.",
+      "Remove badly affected leaves.",
+      "If it keeps spreading, consider discarding the plant to protect others."
+    ],
+    "citations": [{ "title": "Diseases – Leaf spots", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-diseases", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "virus_infection",
+    "name": "Virus (mosaic/mottling/ringspot patterns)",
+    "category": "disease",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "mosaic_mottling" }],
+      "supportingAny": [],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Viruses aren’t curable with fungicides; prevent spread to other plants.",
+      "Consider discarding the plant if symptoms are severe or spreading."
+    ],
+    "citations": [{ "title": "Diseases – Virus", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-diseases", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "crown_root_rot",
+    "name": "Crown/root rot (water molds/fungi favored by wet soils)",
+    "category": "disease",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "mushy_roots" }],
+      "supportingAny": [
+        { "type": "observation", "id": "soil_moisture", "op": "eq", "value": "wet" },
+        { "type": "observation", "id": "poor_drainage_or_saucer_water", "op": "eq", "value": true }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Stop overwatering; ensure drainage and no standing water.",
+      "Improve soil quality (repot into fresh well-draining mix).",
+      "Be aware recovery is often unlikely once rot is advanced."
+    ],
+    "citations": [{ "title": "Diseases – Crown and/or Root Rot", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-diseases", "accessedAt": "2026-02-24" }]
+  },
+
+  {
+    "id": "powdery_mildew",
+    "name": "Powdery mildew",
+    "category": "disease",
+    "rules": {
+      "requiredAny": [{ "type": "symptom", "id": "powdery_coating" }],
+      "supportingAny": [
+        { "type": "observation", "id": "overcrowded_poor_airflow", "op": "eq", "value": true },
+        { "type": "observation", "id": "light_level", "op": "eq", "value": "low" }
+      ],
+      "contradictionsAny": []
+    },
+    "treatment": [
+      "Increase air circulation/spacing and raise light levels if too low.",
+      "Reduce humidity if it’s high.",
+      "Fungicides help prevent spread more than they cure existing damage."
+    ],
+    "citations": [{ "title": "Diseases – Powdery Mildew", "url": "https://yardandgarden.extension.iastate.edu/how-to/diagnosing-houseplant-problems-diseases", "accessedAt": "2026-02-24" }]
+  }
+]
