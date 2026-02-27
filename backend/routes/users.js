@@ -94,7 +94,7 @@ router.get('/me/plants', requireAuth, async (req, res) => {
     const snapshot = await db
       .collection('users')
       .doc(req.user.uid)
-      .collection('plants')
+      .collection('gardenPlants')
       .get();
 
     const plants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -169,7 +169,7 @@ router.post('/me/plants', requireAuth, async (req, res) => {
     const plantRef = await db
       .collection('users')
       .doc(req.user.uid)
-      .collection('plants')
+      .collection('gardenPlants')
       .add(newPlant);
 
     // Auto-create reminders
@@ -208,7 +208,7 @@ router.patch('/me/plants/:plantId', requireAuth, async (req, res) => {
     const plantRef = db
       .collection('users')
       .doc(req.user.uid)
-      .collection('plants')
+      .collection('gardenPlants')
       .doc(plantId);
 
     const doc = await plantRef.get();
@@ -229,7 +229,7 @@ router.delete('/me/plants/:plantId', requireAuth, async (req, res) => {
     const plantRef = db
       .collection('users')
       .doc(req.user.uid)
-      .collection('plants')
+      .collection('gardenPlants')
       .doc(plantId);
 
     const doc = await plantRef.get();
@@ -380,7 +380,7 @@ router.post('/:id/plants', requireAuth, async (req, res) => {
     const plantRef = await db
       .collection('users')
       .doc(req.params.id)
-      .collection('plants')
+      .collection('gardenPlants')
       .add(newPlant);
 
     // Auto-create reminders
