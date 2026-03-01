@@ -5,6 +5,7 @@ const { FieldValue } = admin.firestore;
 
 const router = express.Router();
 const db = admin.firestore();
+const { createPlantReminders } = require('./autoReminders');
 
 /**
  * POST /api/garden/:uid/plants
@@ -69,18 +70,33 @@ router.post("/:uid/plants", async (req, res) => {
 
     const docRef = await gardenPlantsRef.add(gardenPlant);
 
-    return res.status(201).json({ message: "Added to garden", id: docRef.id, plant: gardenPlant });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-});
+    // Auto-create reminders
+    try {
+      await createPlantReminders(uid, docRef.id, {
+        commonName: gardenPlant.commonName,
+        scientificName: gardenPlant.scientificName,
+        careEffective: {
+          wateringEveryDays: typeof gardenPlant.wateringFrequency === 'number' 
+            ? gardenPlant.wateringFrequency 
+            : 7
+        }
+      });
+    } catch (reminderErr) {
+      console.error('Failed to create reminders:', reminderErr.message);
+    }
 
-router.get("/:uid/plants", async (req, res) => {
-  try {
-    const { uid } = req.params;
-    const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
-    const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    return res.json(plants);
+    return res.status(201).json({ message: "Added to garden", id: docRef.id, plant: gardenPlant });
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    });
+
+    router.get("/:uid/plants", async (req, res) => {
+      try {
+        const { uid } = req.params;
+        const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
+        const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        return res.json(plants);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
