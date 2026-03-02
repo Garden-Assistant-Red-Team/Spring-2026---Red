@@ -19,7 +19,6 @@ router.get('/:uid', async (req, res) => {
     });
 
     res.json(reminders);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -34,9 +33,10 @@ router.post('/:uid', async (req, res) => {
       title,
       dueAt,
       recurrence,
+      frequency, 
     } = req.body;
 
-    // Validate required fields
+   
     if (!title) {
       return res.status(400).json({ error: 'title is required' });
     }
@@ -60,11 +60,19 @@ router.post('/:uid', async (req, res) => {
       updatedAt: now,
     };
 
-    // Add recurrence if provided
-    if (recurrence?.everyDays) {
-      newReminder.recurrence = {
-        everyDays: recurrence.everyDays
-      };
+    // Convert frequency -> recurrence.everyDays so recurring works everywhere
+    let everyDays = recurrence?.everyDays;
+
+    if (!everyDays && frequency) {
+      if (frequency === "daily") everyDays = 1;
+      else if (frequency === "every2days") everyDays = 2;
+      else if (frequency === "weekly") everyDays = 7;
+      else if (frequency === "biweekly") everyDays = 14;
+      else if (frequency === "monthly") everyDays = 30;
+    }
+
+    if (everyDays) {
+      newReminder.recurrence = { everyDays };
     }
 
     const docRef = await db
@@ -84,24 +92,64 @@ router.post('/:uid', async (req, res) => {
   }
 });
 
-// PATCH /api/reminders/:uid/:reminderId — update reminder status
+// PATCH /api/reminders/:uid/:reminderId — update reminder status / occurrence completion
 router.patch('/:uid/:reminderId', async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, occurrenceDueAt } = req.body;
 
     if (!['pending', 'done', 'skipped'].includes(status)) {
       return res.status(400).json({ error: 'status must be pending, done, or skipped' });
     }
 
-    await db
+    const uid = req.params.uid;
+    const reminderId = req.params.reminderId;
+
+    const ref = db
       .collection('users')
-      .doc(req.params.uid)
+      .doc(uid)
       .collection('reminders')
-      .doc(req.params.reminderId)
-      .update({
-        status: status,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+      .doc(reminderId);
+
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: 'Reminder not found' });
+    }
+
+    const reminder = snap.data();
+    const isRecurring = Boolean(reminder?.recurrence?.everyDays);
+
+    // If it's recurring, "done/skipped" should apply ONLY to the clicked occurrence.
+    if (isRecurring && (status === "done" || status === "skipped")) {
+      if (!occurrenceDueAt) {
+        return res.status(400).json({ error: "occurrenceDueAt is required for recurring reminders" });
+      }
+
+      const occDate = new Date(occurrenceDueAt);
+      if (Number.isNaN(occDate.getTime())) {
+        return res.status(400).json({ error: "occurrenceDueAt is invalid" });
+      }
+
+      const patch = {
+        status: "pending", // keep series alive
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      if (status === "done") {
+        patch.lastCompletedAt = admin.firestore.Timestamp.fromDate(occDate);
+      } else if (status === "skipped") {
+        patch.lastSkippedAt = admin.firestore.Timestamp.fromDate(occDate);
+      }
+
+      await ref.update(patch);
+
+      return res.json({ message: "Occurrence updated!" });
+    }
+
+    // Non-recurring reminders: update status normally
+    await ref.update({
+      status: status,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
 
     res.json({ message: 'Reminder updated!' });
 

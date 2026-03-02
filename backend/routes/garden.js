@@ -205,5 +205,26 @@ router.delete("/:uid/plants/:plantId/notes/:index", async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+// DELETE a plant from My Garden
+// DELETE /api/garden/:uid/plants/:plantId
+router.delete("/:uid/plants/:plantId", async (req, res) => {
+  try {
+    const { uid, plantId } = req.params;
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      return res.status(404).json({ error: "Plant not found" });
+    }
+
+    await ref.delete();
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Failed to delete plant:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

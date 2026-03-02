@@ -44,27 +44,27 @@ export default function Home() {
       <Header />
 
       <main className="home-container">
-
         {/* HERO SECTION */}
-        <section
-          className="hero"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        >
-          <div className="hero-content">
-            <h1>Welcome to Garden Assistant</h1>
+        <section className="hero" style={{ backgroundImage: `url(${heroBg})` }}>
+          <div className="hero-overlay">
+            <div className="hero-inner">
+              <div className="hero-content">
+                <h1>Welcome to Garden Assistant</h1>
 
-            <p>
-              Track your plants, get reminders, and keep notes and checklists
-              all in one place.
-            </p>
+                <p>
+                  Track your plants, get reminders, and keep notes and checklists
+                  all in one place.
+                </p>
 
-            <div className="cta-buttons">
-              <Link to="/login" className="primary-btn">
-                Log In
-              </Link>
-              <Link to="/signup" className="secondary-btn">
-                Sign Up
-              </Link>
+                <div className="cta-buttons">
+                  <Link to="/login" className="primary-btn">
+                    Log In
+                  </Link>
+                  <Link to="/signup" className="secondary-btn">
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -73,9 +73,9 @@ export default function Home() {
         <section id="about" className="section card">
           <h2>About Garden Assistant</h2>
           <p>
-            Garden Assistant is a simple hub for managing your plants.
-            Organize your collection, store notes, and use helpful tools
-            to support better plant care.
+            Garden Assistant is a simple hub for managing your plants. Organize
+            your collection, store notes, and use helpful tools to support
+            better plant care.
           </p>
 
           <ul>
@@ -88,18 +88,12 @@ export default function Home() {
         {/* TEAM */}
         <section id="team" className="section">
           <h2>Meet the Team</h2>
-          <p className="muted">
-            We’re a team of 7 developers building Garden Assistant.
-          </p>
+          <p className="muted">We’re a team of 7 developers building Garden Assistant.</p>
 
           <div className="team-grid">
             {team.map((member) => (
               <div key={member.name} className="team-card">
-                <img
-                  src={member.img}
-                  alt={member.name}
-                  className="team-photo"
-                />
+                <img src={member.img} alt={member.name} className="team-photo" />
                 <h3>{member.name}</h3>
                 <p>Developer</p>
               </div>
@@ -146,10 +140,7 @@ export default function Home() {
               <h3>Email</h3>
               <p className="muted">Prefer email? Reach us here:</p>
 
-              <a
-                className="email-link"
-                href="mailto:gardenassistant@odu.edu"
-              >
+              <a className="email-link" href="mailto:gardenassistant@odu.edu">
                 gardenassistant@odu.edu
               </a>
             </div>

@@ -4,12 +4,6 @@ const multer = require("multer");
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-/**
- * POST /api/identifyPlant
- * multipart/form-data with field: image
- *
- * Requires: process.env.PLANT_ID_API_KEY
- */
 router.post("/", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
@@ -21,10 +15,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       return res.status(500).json({ error: "Missing PLANT_ID_API_KEY in backend .env" });
     }
 
-    // Convert image to base64 for Plant.id
     const base64 = req.file.buffer.toString("base64");
-
-    // NOTE: This endpoint/body is for Plant.id API v3 identification
     const plantIdRes = await fetch("https://plant.id/api/v3/identification", {
       method: "POST",
       headers: {
@@ -33,7 +24,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       },
       body: JSON.stringify({
         images: [base64],
-        // options you can keep simple for now:
+   
         similar_images: true,
       }),
     });
@@ -49,7 +40,6 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const raw = await plantIdRes.json();
 
-    // Shape a smaller response your frontend expects
     const isPlant = raw?.result?.is_plant?.binary ?? null;
 
     const suggestions = (raw?.result?.classification?.suggestions || []).map((s) => ({

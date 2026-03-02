@@ -39,6 +39,7 @@ app.use('/api/reminders', remindersRouter);
 app.use('/api/weather', weatherRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/symptoms', symptomsRouter);
+app.use("/api/checklist", require("./routes/checklist"));
 
 // CATALOG ROUTE (Plant Dictionary)
 const catalogRouter = require('./routes/catalog');

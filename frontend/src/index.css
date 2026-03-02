@@ -35,3 +35,26 @@ a { color: inherit; text-decoration: none; }
 a:hover { text-decoration: none; }
 
 button, input { font: inherit; }
+/* ================= GLOBAL LEAF OVERLAY ================= */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22; /* bumped up so you can SEE it */
+
+  background-repeat: repeat;
+  background-size: 220px 220px;
+  background-position: 0 0;
+
+  /* One pattern first (simpler and harder to break) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='%232e5b42' stroke-opacity='0.35' stroke-width='2'%3E%3Cpath d='M38 86c26-40 66-50 90-30 18 15 20 43-3 68-24 26-68 40-102 19 12-19 8-40 15-57z'/%3E%3Cpath d='M53 132c34-35 58-56 98-78'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Ensure app content sits above leaves */
+#root {
+  position: relative;
+  z-index: 1;
+}
