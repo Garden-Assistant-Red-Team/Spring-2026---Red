@@ -88,6 +88,13 @@ router.get("/users/:uid/check", async (req, res) => {
       const response = await axios.get(url);
       const forecast = response.data;
 
+      // Calculate rain in next 12 hours (4 x 3-hour blocks)
+      const rainNext12hMm = forecast.list
+        .slice(0, 4)
+        .reduce((sum, entry) => {
+          return sum + (entry.rain?.["3h"] || 0);
+        }, 0);
+
       // Calculate rain in next 24 hours (8 x 3-hour blocks)
       const rainNext24hMm = forecast.list
       .slice(0, 8)
@@ -105,6 +112,7 @@ router.get("/users/:uid/check", async (req, res) => {
       nextAllowedCheckAt:
         admin.firestore.Timestamp.fromMillis(now + ttlMs),
       lastResultSummary: {
+        rainNext12hMm,
         rainNext24hMm,
         temp
       },
