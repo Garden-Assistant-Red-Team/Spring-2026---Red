@@ -12,7 +12,7 @@ export default function RecommendedPlants({ uid, onAdd }) {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`http://localhost:5000/api/recommendations?uid=${uid}`);
+        const res = await fetch(`/api/recommendations?uid=${uid}`);
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "Failed to load recommendations");
         setData(json);
