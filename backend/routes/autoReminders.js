@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 
 const db = admin.firestore();
 
+
 // Auto-create care reminders when a plant is added to a user's garden
 async function createPlantReminders(uid, plantInstanceId, catalogData) {
   const now = admin.firestore.FieldValue.serverTimestamp();
@@ -60,5 +61,119 @@ async function createPlantReminders(uid, plantInstanceId, catalogData) {
 
   await batch.commit();
 }
+// Skip today's watering reminders (heavy rain)
+async function skipTodayWateringReminders(uid) {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const tomorrowStart = new Date(todayStart);
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
-module.exports = { createPlantReminders };
+  const snap = await db
+    .collection('users').doc(uid)
+    .collection('reminders')
+    .where('type', '==', 'water')
+    .where('status', '==', 'pending')
+    .where('dueAt', '>=', admin.firestore.Timestamp.fromDate(todayStart))
+    .where('dueAt', '<',  admin.firestore.Timestamp.fromDate(tomorrowStart))
+    .get();
+
+  if (snap.empty) return 0;
+
+  const batch = db.batch();
+  snap.docs.forEach(doc => {
+    batch.update(doc.ref, {
+      status: 'skipped',
+      skipReason: 'heavyRain',
+      updatedAt: admin.firestore.Timestamp.now()
+    });
+  });
+  await batch.commit();
+  return snap.size;
+}
+
+// NEW: Pause outdoor plants + reminders (frost)
+async function pauseOutdoorPlantsForFrost(uid) {
+  const now = admin.firestore.Timestamp.now();
+
+  const plantsSnap = await db
+    .collection('users').doc(uid)
+    .collection('gardenPlants')
+    .where('status', '==', 'active')
+    .where('locationType', '==', 'outdoor')
+    .get();
+
+  if (plantsSnap.empty) return 0;
+
+  const batch = db.batch();
+
+  for (const plantDoc of plantsSnap.docs) {
+    batch.update(plantDoc.ref, {
+      status: 'paused',
+      'care.weatherOverride.reason': 'frost',
+      'care.weatherOverride.appliedAt': now,
+      updatedAt: now
+    });
+
+    const remSnap = await db
+      .collection('users').doc(uid)
+      .collection('reminders')
+      .where('plantInstanceId', '==', plantDoc.id)
+      .where('type', '==', 'water')
+      .where('status', '==', 'pending')
+      .get();
+
+    remSnap.docs.forEach(remDoc => {
+      batch.update(remDoc.ref, {
+        status: 'paused',
+        pauseReason: 'frost',
+        updatedAt: now
+      });
+    });
+  }
+
+  await batch.commit();
+  return plantsSnap.size;
+}
+
+//  Shorten watering interval by 1 day (heat)
+async function increaseWateringForHeat(uid) {
+  const now = admin.firestore.Timestamp.now();
+
+  const plantsSnap = await db
+    .collection('users').doc(uid)
+    .collection('gardenPlants')
+    .where('status', '==', 'active')
+    .get();
+
+  if (plantsSnap.empty) return 0;
+
+  const batch = db.batch();
+
+  plantsSnap.docs.forEach(plantDoc => {
+    const plant = plantDoc.data();
+    const current =
+      plant.care?.effective?.wateringEveryDays ||
+      plant.care?.default?.wateringEveryDays ||
+      7;
+    const adjusted = Math.max(1, current - 1);
+
+    batch.update(plantDoc.ref, {
+      'care.weatherOverride.wateringEveryDays': adjusted,
+      'care.weatherOverride.reason': 'heat',
+      'care.weatherOverride.appliedAt': now,
+      'care.effective.wateringEveryDays': adjusted,
+      'care.effective.lastComputedAt': now,
+      updatedAt: now
+    });
+  });
+
+  await batch.commit();
+  return plantsSnap.size;
+}
+
+module.exports = {
+  createPlantReminders,
+  skipTodayWateringReminders,
+  pauseOutdoorPlantsForFrost,
+  increaseWateringForHeat
+};
