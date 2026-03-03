@@ -4,24 +4,38 @@ const axios = require("axios");
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
+// Weather adjustment helpers
+const {
+  skipTodayWateringReminders,
+  pauseOutdoorPlantsForFrost,
+  increaseWateringForHeat
+} = require('./autoReminders');
+const { saveWeatherAlerts, buildWeatherAlerts } = require('./alerts');
+
+// Thresholds for weather conditions
+const THRESHOLDS = {
+  frost: 32,       // °F
+  heat: 95,        // °F
+  heavyRainMm: 10  // mm in next 12h
+};
+
 // GET /api/weather?city=Norfolk
 router.get("/", async (req, res) => {
   const { city } = req.query;
 
   // If no API key, return placeholder
-  if (!process.env.REACT_APP_WEATHER_API_KEY) {
+  if (!process.env.OPENWEATHER_API_KEY) {
     return res.json({
       placeholder: true,
       city: city || "Unknown",
       temp: 72,
       condition: "Clear",
       humidity: 50,
-      message: "No REACT_APP_WEATHER_API_KEY set. Returning placeholder weather."
-    });
+message: "No OPENWEATHER_API_KEY set. Returning placeholder weather."    });
   }
 
   try {
-    const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
+    const apiKey = process.env.OPENWEATHER_API_KEY;
     const q = city || "Norfolk";
 
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(q)}&appid=${apiKey}&units=imperial`;
@@ -73,14 +87,14 @@ router.get("/users/:uid/check", async (req, res) => {
       }
 
       // check if api key
-      if(!process.env.REACT_APP_WEATHER_API_KEY) {
+      if(!process.env.OPENWEATHER_API_KEY) {
         return res.json({
-          error: "No REACT_APP_WEATHER_API_KEY"
+         error: "No OPENWEATHER_API_KEY set"
         });
       }
 
       const zip = userData.zipCode || "Norfolk";
-      const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
+      const apiKey = process.env.OPENWEATHER_API_KEY;
 
       // Using forecast endpoint so we can calculate rain
       const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
@@ -133,4 +147,83 @@ router.get("/users/:uid/check", async (req, res) => {
 });
 
 
-module.exports = router;
+// ── DAILY WEATHER CHECK — called by cron job in server.js ────
+async function runDailyWeatherCheck() {
+  console.log('[Weather Job] Starting daily weather check...');
+
+  const usersSnap = await db.collection('users').get();
+  if (usersSnap.empty) {
+    console.log('[Weather Job] No users found.');
+    return;
+  }
+
+  await Promise.all(usersSnap.docs.map(async (userDoc) => {
+    const uid = userDoc.id;
+    const zip = userDoc.data().zipCode;
+
+    if (!zip) {
+      console.log(`[Weather Job] Skipping ${uid} — no zip code`);
+      return;
+    }
+
+    try {
+      const apiKey = process.env.OPENWEATHER_API_KEY;
+      if (!apiKey) throw new Error('OPENWEATHER_API_KEY not set');
+
+      // Fetch forecast
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
+      const response = await axios.get(url);
+      const forecast = response.data;
+
+      // Calculate rain
+      const rainNext12hMm = forecast.list.slice(0, 4)
+        .reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
+      const rainNext24hMm = forecast.list.slice(0, 8)
+        .reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
+      const temp = forecast.list[0].main.temp;
+      const condition = forecast.list[0].weather?.[0]?.main || 'Unknown';
+
+      const weather = { temp, condition, rainNext12hMm, rainNext24hMm };
+
+      // Evaluate conditions
+      const conditions = {
+        isFrost:     temp <= THRESHOLDS.frost,
+        isHeat:      temp >= THRESHOLDS.heat,
+        isHeavyRain: rainNext12hMm >= THRESHOLDS.heavyRainMm
+      };
+
+      console.log(
+        `[Weather Job] ${uid} | ${zip} | ${temp}°F | ` +
+        `frost:${conditions.isFrost} heat:${conditions.isHeat} rain:${conditions.isHeavyRain}`
+      );
+
+      // Save alerts to Firestore
+      const alerts = buildWeatherAlerts(conditions, weather);
+      await saveWeatherAlerts(uid, alerts);
+
+      // Adjust reminders based on conditions
+      if (conditions.isHeavyRain) await skipTodayWateringReminders(uid);
+      if (conditions.isFrost)     await pauseOutdoorPlantsForFrost(uid);
+      if (conditions.isHeat)      await increaseWateringForHeat(uid);
+
+      // Cache result on user doc
+      await db.collection('users').doc(uid).update({
+        'weather.lastCheckedAt': admin.firestore.Timestamp.now(),
+        'weather.lastResultSummary': {
+          temp, condition, rainNext12hMm, rainNext24hMm,
+          isFrost: conditions.isFrost,
+          isHeat: conditions.isHeat,
+          isHeavyRain: conditions.isHeavyRain
+        },
+        'weather.source': 'openweather'
+      });
+
+    } catch (err) {
+      console.error(`[Weather Job] Failed for user ${uid}:`, err.message);
+    }
+  }));
+
+  console.log('[Weather Job] Daily check complete.');
+}
+
+module.exports = { router, runDailyWeatherCheck };
