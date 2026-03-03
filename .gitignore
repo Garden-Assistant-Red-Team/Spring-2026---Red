@@ -13,3 +13,4 @@ Thumbs.db
 frontend/src/models/oracleJdk-25/
 frontend/src/models/oracleJdk-25/**
 
+node_modules/

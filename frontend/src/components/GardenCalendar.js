@@ -4,7 +4,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useState, useEffect } from "react";
 import { auth } from "../firebase";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "http://localhost:5000"; // Update if backend runs on different port
 const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
 export default function GardenCalendar() {

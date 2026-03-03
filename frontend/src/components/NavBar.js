@@ -48,8 +48,9 @@ export default function NavBar() {
         <Link to="/" className="brand">Garden Assistant</Link>
 
         <Link to="/" className="navLink">Home</Link>
-        <Link to="/about" className="navLink">About</Link>
+       {/* <Link to="/about" className="navLink">About</Link>*/}
         <Link to="/garden" className="navLink">My Garden</Link>
+
 
         {/* Tools Dropdown */}
         <div className="dropdown" ref={toolsRef}>

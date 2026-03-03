@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./ToolLayout.css";
 import { auth } from "../firebase";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "http://localhost:5000"; // Update if your backend runs on a different port
 
 export default function PlantRecommendationPage() {
   const [recommendations, setRecommendations] = useState([]);
