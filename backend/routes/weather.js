@@ -147,6 +147,104 @@ router.get("/users/:uid/check", async (req, res) => {
 });
 
 
+router.post("/users/:uid/login-check", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+
+    if (!userSnap.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userData = userSnap.data();
+    const settings = userData.settings;
+
+    // If weather or auto-adjust is disabled, do nothing
+    if (!settings?.weatherEnabled || !settings?.careAutoAdjustEnabled) {
+      return res.json({ message: "Weather or auto-adjust disabled, skipping" });
+    }
+
+    const weatherMeta = userData.weather;
+    const now = Date.now();
+    const nextAllowed = weatherMeta?.nextAllowedCheckAt?.toMillis?.() || 0;
+
+    let weather;
+
+    // Use cached weather if still fresh
+    if (settings.weatherRefreshPolicy === "ttl" && now < nextAllowed) {
+      weather = weatherMeta.lastResultSummary;
+      console.log(`[Login Check] ${uid} — using cached weather`);
+    } else {
+      // Fetch fresh weather
+      if (!process.env.OPENWEATHER_API_KEY) {
+        return res.json({ error: "No OPENWEATHER_API_KEY set" });
+      }
+
+      const zip = userData.zipCode || "Norfolk";
+      const apiKey = process.env.OPENWEATHER_API_KEY;
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
+      const response = await axios.get(url);
+      const forecast = response.data;
+
+      const rainNext12hMm = forecast.list.slice(0, 4)
+        .reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+      const rainNext24hMm = forecast.list.slice(0, 8)
+        .reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+      const temp = forecast.list[0].main.temp;
+      const condition = forecast.list[0].weather?.[0]?.main || "Unknown";
+
+      weather = { temp, condition, rainNext12hMm, rainNext24hMm };
+
+      // Cache result
+      const ttlMs = (settings.weatherTTLMinutes || 180) * 60 * 1000;
+      await userRef.update({
+        "weather.lastCheckedAt": admin.firestore.Timestamp.now(),
+        "weather.nextAllowedCheckAt": admin.firestore.Timestamp.fromMillis(now + ttlMs),
+        "weather.lastResultSummary": weather,
+        "weather.source": "openweather"
+      });
+
+      console.log(`[Login Check] ${uid} — fresh weather fetched`);
+    }
+
+    // Evaluate conditions
+    const conditions = {
+      isFrost: weather.temp <= THRESHOLDS.frost,
+      isHeat: weather.temp >= THRESHOLDS.heat,
+      isHeavyRain: weather.rainNext12hMm >= THRESHOLDS.heavyRainMm
+    };
+
+    // Adjust reminders
+    const results = {};
+    if (conditions.isHeavyRain) {
+      results.skippedWatering = await skipTodayWateringReminders(uid);
+    }
+    if (conditions.isFrost) {
+      results.pausedForFrost = await pauseOutdoorPlantsForFrost(uid);
+    }
+    if (conditions.isHeat) {
+      results.adjustedForHeat = await increaseWateringForHeat(uid);
+    }
+
+    // Save alerts
+    const alerts = buildWeatherAlerts(conditions, weather);
+    await saveWeatherAlerts(uid, alerts);
+
+    return res.json({
+      message: "Login weather check complete",
+      weather,
+      conditions,
+      adjustments: results
+    });
+
+  } catch (err) {
+    console.error("Login weather check error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ── DAILY WEATHER CHECK — called by cron job in server.js ────
 async function runDailyWeatherCheck() {
   console.log('[Weather Job] Starting daily weather check...');

@@ -5,9 +5,8 @@ user profile document in Firestore with the additional info.
 */
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignupPage() {
@@ -27,22 +26,35 @@ export default function SignupPage() {
     setMsg("");
 
     try {
-      // 1) Create auth user
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-      // 2) Create Firestore user profile
-      await setDoc(doc(db, "users", cred.user.uid), {
-        email,
-        fullName,
-        zipCode,
-        phoneNumber,
-        createdAt: serverTimestamp(),
+      const res = await fetch("http://localhost:5000/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName,
+          email,
+          password,
+          zipCode,
+          phoneNumber,
+          gardenZone: "Unknown"
+        }),
       });
 
-      setMsg("✅ Account created!");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Registration failed");
+
+      // Sign in after successful registration
+      await signInWithEmailAndPassword(auth, email, password);
+
+      setMsg("Account created!");
       navigate("/garden");
     } catch (err) {
-      setMsg(`❌ ${err.message}`);
+      if (err.message.includes("email-already-exists") || err.message.includes("Email is already in use")) {
+        setMsg("That email is already in use.");
+      } else if (err.message.includes("weak-password") || err.message.includes("6 characters")) {
+        setMsg("Password must be at least 6 characters.");
+      } else {
+        setMsg(err.message);
+      }
     }
   };
 
