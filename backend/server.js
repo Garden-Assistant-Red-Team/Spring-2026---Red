@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
-const cron = require('node-cron');
 
 const serviceAccount = require('./config/serviceAccountKey.json');
 
@@ -60,14 +59,3 @@ app.get('/api/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// ── DAILY WEATHER CRON JOB ────────────────────────────────────
-// Runs every day at 6:00 AM
-cron.schedule('0 6 * * *', () => {
-  console.log('[CRON] Running daily weather check...');
-  runDailyWeatherCheck().catch(err => {
-    console.error('[CRON] Weather check failed:', err.message);
-  });
-});
-
-console.log('[CRON] Daily weather job scheduled for 6:00 AM');
