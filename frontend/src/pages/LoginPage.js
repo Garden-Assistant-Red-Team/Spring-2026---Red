@@ -13,19 +13,32 @@ export default function LoginPage() {
 
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMsg("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+  e.preventDefault();
+  setMsg("");
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
 
-// Redirect user
-navigate("/garden");
+    // Trigger weather check and reminder adjustment in background
+    fetch(`http://localhost:5000/api/weather/users/${uid}/login-check`, {
+      method: "POST",
+    }).catch(err => console.warn("Weather check failed:", err.message));
 
-        
-    } catch (err) {
-      setMsg(`❌ ${err.message}`);
+    // Redirect user
+    navigate("/garden");
+
+  } catch (err) {
+    if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+      setMsg("Incorrect email or password. Please try again.");
+    } else if (err.code === 'auth/user-not-found') {
+      setMsg("No account found with that email.");
+    } else if (err.code === 'auth/invalid-email') {
+      setMsg("Please enter a valid email address.");
+    } else {
+      setMsg("Something went wrong. Please try again.");
     }
-  };
+  }
+};
 
   return (
     <div style={{ maxWidth: 400, margin: "40px auto" }}>

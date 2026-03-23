@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
       createdAt: now,
 
       settings: {
-        weatherEnabled: false,
+        weatherEnabled: true,
         locationMode: 'manualZip',
         careAutoAdjustEnabled: true,
         weatherRefreshPolicy: 'ttl',
