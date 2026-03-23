@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./ToolLayout.css";
 import { auth } from "../firebase";
+import DashboardLayout from "../components/DashboardLayout";
 
 const API_BASE = "http://localhost:5000";
 
@@ -10,7 +11,6 @@ export default function RemindersPage() {
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
 
-  // Form state
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [type, setType] = useState("water");
@@ -61,12 +61,19 @@ export default function RemindersPage() {
     const lastSkipped = toDate(reminder.lastSkippedAt);
     const lastAction =
       lastCompleted && lastSkipped
-        ? (lastCompleted > lastSkipped ? lastCompleted : lastSkipped)
-        : (lastCompleted || lastSkipped || null);
+        ? lastCompleted > lastSkipped
+          ? lastCompleted
+          : lastSkipped
+        : lastCompleted || lastSkipped || null;
 
-    // Non-recurring: return as-is
     if (!every || !Number.isFinite(every) || every <= 0) {
-      return [{ ...reminder, _virtualKey: reminder.id, _occurrenceDueAtISO: baseDue.toISOString() }];
+      return [
+        {
+          ...reminder,
+          _virtualKey: reminder.id,
+          _occurrenceDueAtISO: baseDue.toISOString(),
+        },
+      ];
     }
 
     const now = new Date();
@@ -74,8 +81,7 @@ export default function RemindersPage() {
     end.setDate(end.getDate() + daysAhead);
 
     let d = new Date(baseDue);
-  
-    const cutoff = lastAction && lastAction > now ? lastAction : (lastAction || now);
+    const cutoff = lastAction && lastAction > now ? lastAction : lastAction || now;
 
     while (d <= cutoff) d.setDate(d.getDate() + every);
 
@@ -88,7 +94,7 @@ export default function RemindersPage() {
         dueAt: new Date(d),
         _virtualKey: `${reminder.id}-${d.toISOString()}`,
         _isVirtual: true,
-        _occurrenceDueAtISO: d.toISOString(), // <-- send this to backend
+        _occurrenceDueAtISO: d.toISOString(),
       });
       d.setDate(d.getDate() + every);
       safety++;
@@ -172,6 +178,7 @@ export default function RemindersPage() {
       setDueAt("");
       setType("water");
       setFrequency("weekly");
+      setPlantId("");
 
       await loadReminders();
     } catch (e) {
@@ -181,12 +188,10 @@ export default function RemindersPage() {
     }
   }
 
-  // send occurrenceDueAt for recurring reminders
   async function updateStatus(reminderId, status, occurrenceDueAtISO) {
     if (!auth.currentUser) return;
 
     const uid = auth.currentUser.uid;
-
     const body = { status };
     if (occurrenceDueAtISO) body.occurrenceDueAt = occurrenceDueAtISO;
 
@@ -201,22 +206,23 @@ export default function RemindersPage() {
       await loadReminders();
     }
   }
-async function deleteReminder(reminderId) {
-  if (!auth.currentUser) return;
 
-  const uid = auth.currentUser.uid;
-  const res = await fetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
-    method: "DELETE",
-  });
+  async function deleteReminder(reminderId) {
+    if (!auth.currentUser) return;
 
-  if (res.ok) {
-    setSelected(null);
-    await loadReminders();
-  } else {
-    const data = await res.json().catch(() => ({}));
-    alert(data?.error || "Failed to delete reminder");
+    const uid = auth.currentUser.uid;
+    const res = await fetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      setSelected(null);
+      await loadReminders();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data?.error || "Failed to delete reminder");
+    }
   }
-}
 
   function formatDue(dueAtValue) {
     const date = toDate(dueAtValue);
@@ -232,29 +238,31 @@ async function deleteReminder(reminderId) {
   function getPlantNameFromReminder(r) {
     if (!r?.plantInstanceId) return "";
     const p = plants.find((x) => x.id === r.plantInstanceId);
-    return p ? (p.commonName || p.name || "") : "";
+    return p ? p.commonName || p.name || "" : "";
   }
 
-  // Build Upcoming list
-  const upcomingItems = reminders
-    .filter((r) => r.status === "pending")
-    .flatMap((r) => expandRecurringForDays(r, 7))
-    .filter((r) => isWithinNextDays(r.dueAt, 7))
-    .sort((a, b) => {
-      const da = toDate(a.dueAt);
-      const db = toDate(b.dueAt);
-      return (da?.getTime() || 0) - (db?.getTime() || 0);
-    });
+  const upcomingItems = useMemo(() => {
+    return reminders
+      .filter((r) => r.status === "pending")
+      .flatMap((r) => expandRecurringForDays(r, 7))
+      .filter((r) => isWithinNextDays(r.dueAt, 7))
+      .sort((a, b) => {
+        const da = toDate(a.dueAt);
+        const db = toDate(b.dueAt);
+        return (da?.getTime() || 0) - (db?.getTime() || 0);
+      });
+  }, [reminders]);
 
   return (
-    <div className="toolPage">
-      <h1 className="toolTitle">Reminders</h1>
-
+    <DashboardLayout
+      title="Reminders"
+      subtitle="Create reminders, view upcoming occurrences, and manage plant care tasks."
+      badge={`${upcomingItems.length} upcoming`}
+    >
       <div className="container">
         <div className="toolGrid" style={{ gridTemplateColumns: "1fr 1.2fr 1fr" }}>
-          {/* LEFT */}
           <section className="panel">
-            <h2 className="panelTitle">Create reminder</h2>
+            <h2 className="panelTitle">Create Reminder</h2>
 
             <label className="field">
               <span>Plant</span>
@@ -273,7 +281,7 @@ async function deleteReminder(reminderId) {
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Prune rose bush"
+                placeholder="e.g. Prune rose bush"
               />
             </label>
 
@@ -313,11 +321,10 @@ async function deleteReminder(reminderId) {
               onClick={handleSubmit}
               disabled={submitting}
             >
-              {submitting ? "Adding..." : "Add reminder"}
+              {submitting ? "Adding..." : "Add Reminder"}
             </button>
           </section>
 
-          {/* CENTER */}
           <section className="panel">
             <h2 className="panelTitle">Upcoming</h2>
 
@@ -329,6 +336,8 @@ async function deleteReminder(reminderId) {
               {upcomingItems.map((r) => {
                 const plantName = r.plantName || getPlantNameFromReminder(r);
                 const freqLabel = displayFrequencyLabel(r);
+                const isSelected =
+                  selected?._virtualKey === r._virtualKey || selected?.id === r.id;
 
                 return (
                   <button
@@ -337,132 +346,96 @@ async function deleteReminder(reminderId) {
                     type="button"
                     onClick={() => setSelected(r)}
                     style={{
-                      border:
-                        (selected?._virtualKey && selected._virtualKey === r._virtualKey) ||
-                        (!selected?._virtualKey && selected?.id === r.id)
-                          ? "2px solid #2F6B4F"
-                          : undefined,
+                      border: isSelected
+                        ? "2px solid rgba(90,139,98,0.45)"
+                        : "1px solid rgba(31,35,31,0.1)",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <span>
-                        {r.title}
-                        {plantName ? (
-                          <span className="muted" style={{ marginLeft: 8 }}>
-                            • {plantName}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span style={{ opacity: 0.75, fontWeight: 500 }}>{r.type}</span>
+                      <span style={{ fontWeight: 700 }}>{r.title}</span>
+                      <span className="muted">{formatDue(r.dueAt)}</span>
                     </div>
 
+                    {plantName ? (
+                      <div className="muted" style={{ marginTop: 6 }}>
+                        Plant: {plantName}
+                      </div>
+                    ) : null}
+
                     <div className="muted" style={{ marginTop: 6 }}>
-                      {formatDue(r.dueAt)}
-                      {freqLabel ? (
-                        <span className="muted" style={{ marginLeft: 10 }}>
-                          • {freqLabel}
-                        </span>
-                      ) : null}
+                      Type: {r.type || "custom"} {freqLabel ? `• ${freqLabel}` : ""}
                     </div>
                   </button>
                 );
               })}
-            </div>
 
-            {!loading && !error && auth.currentUser && upcomingItems.length === 0 && (
-              <p className="muted" style={{ marginTop: 10 }}>
-                No reminders due in the next 7 days.
-              </p>
-            )}
+              {!loading && auth.currentUser && upcomingItems.length === 0 && (
+                <p className="muted">No upcoming reminders in the next 7 days.</p>
+              )}
+            </div>
           </section>
 
-          {/* RIGHT */}
           <section className="panel">
-            <h2 className="panelTitle">Details</h2>
+            <h2 className="panelTitle">Selected Reminder</h2>
 
             {!selected ? (
               <p className="muted">Click a reminder to see details.</p>
             ) : (
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>
-                  {selected.title}
-                </div>
+              <div className="toolContentStack">
+                <div className="issueBox">
+                  <div style={{ fontWeight: 800, fontSize: 18 }}>{selected.title}</div>
 
-                <div className="muted" style={{ marginBottom: 10 }}>
-                  Due: {formatDue(selected.dueAt)}
-                </div>
-
-                <div className="muted" style={{ marginBottom: 10 }}>
-                  Type: {selected.type}
-                </div>
-
-                {displayFrequencyLabel(selected) && (
-                  <div className="muted" style={{ marginBottom: 10 }}>
-                    Frequency: {displayFrequencyLabel(selected)}
+                  <div className="muted" style={{ marginTop: 8 }}>
+                    Due: {formatDue(selected.dueAt)}
                   </div>
-                )}
 
-                {(selected.plantName || selected.plantInstanceId) && (
-                  <div className="muted" style={{ marginBottom: 10 }}>
-                    Plant:{" "}
-                    {selected.plantName ||
-                      getPlantNameFromReminder(selected) ||
-                      selected.plantInstanceId}
+                  <div className="muted" style={{ marginTop: 6 }}>
+                    Plant: {selected.plantName || getPlantNameFromReminder(selected) || "None"}
                   </div>
-                )}
 
-                <div className="muted" style={{ marginBottom: 16 }}>
-                  Source: {selected.source}
+                  <div className="muted" style={{ marginTop: 6 }}>
+                    Type: {selected.type || "custom"}
+                  </div>
+
+                  <div className="muted" style={{ marginTop: 6 }}>
+                    Frequency: {displayFrequencyLabel(selected) || "one time"}
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10 }}>
+                <div className="splitActions">
                   <button
                     className="primaryBtn"
                     type="button"
                     onClick={() =>
-                      updateStatus(
-                        selected.id,
-                        "done",
-                        selected._occurrenceDueAtISO || toDate(selected.dueAt)?.toISOString()
-                      )
+                      updateStatus(selected.id, "done", selected._occurrenceDueAtISO)
                     }
                   >
-                    Mark done
+                    Mark Done
                   </button>
 
                   <button
-                    className="primaryBtn"
+                    className="secondaryBtn"
                     type="button"
                     onClick={() =>
-                      updateStatus(
-                        selected.id,
-                        "skipped",
-                        selected._occurrenceDueAtISO || toDate(selected.dueAt)?.toISOString()
-                      )
+                      updateStatus(selected.id, "skipped", selected._occurrenceDueAtISO)
                     }
                   >
                     Skip
                   </button>
-                  <button
-    className="primaryBtn"
-    type="button"
-    onClick={() => {
-      const isRecurring = Boolean(selected?.recurrence?.everyDays);
-      const msg = isRecurring
-        ? "Delete this reminder series? This removes all future occurrences."
-        : "Delete this reminder?";
-      if (window.confirm(msg)) deleteReminder(selected.id);
-    }}
-    style={{ background: "#B00020" }}
-  >
-    {selected?.recurrence?.everyDays ? "Delete series" : "Delete reminder"}
-  </button>
                 </div>
+
+                <button
+                  className="dangerBtn"
+                  type="button"
+                  onClick={() => deleteReminder(selected.id)}
+                >
+                  Delete Reminder
+                </button>
               </div>
             )}
           </section>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

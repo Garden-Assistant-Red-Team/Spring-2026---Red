@@ -1,9 +1,3 @@
-/* This is the signup page where new users can create an account. 
-It collects email, password, and additional profile info (full name, ZIP code, phone number).
-Upon form submission, it creates a new user in Firebase Authentication and also creates a corresponding 
-user profile document in Firestore with the additional info.
-*/
-
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
@@ -13,7 +7,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Profile fields
   const [fullName, setFullName] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -42,15 +35,18 @@ export default function SignupPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Registration failed");
 
-      // Sign in after successful registration
+      // auto login after signup
       await signInWithEmailAndPassword(auth, email, password);
 
       setMsg("Account created!");
-      navigate("/garden");
+
+      // ✅ NEW redirect
+      navigate("/dashboard");
+
     } catch (err) {
-      if (err.message.includes("email-already-exists") || err.message.includes("Email is already in use")) {
+      if (err.message.includes("email-already-exists")) {
         setMsg("That email is already in use.");
-      } else if (err.message.includes("weak-password") || err.message.includes("6 characters")) {
+      } else if (err.message.includes("weak-password")) {
         setMsg("Password must be at least 6 characters.");
       } else {
         setMsg(err.message);
@@ -84,7 +80,7 @@ export default function SignupPage() {
         <input
           style={{ width: "100%", padding: 10, marginBottom: 10 }}
           type="tel"
-          placeholder="Phone number (for reminders)"
+          placeholder="Phone number (optional)"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
         />

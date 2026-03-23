@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import "./Home.css";
+import DashboardLayout from "../components/DashboardLayout";
+import "./ToolLayout.css";
 
 // Team Photos
 import kenyta from "../images/kenyta.jpg";
@@ -12,9 +11,6 @@ import mariem from "../images/mariem.jpg";
 import ryan from "../images/ryan.jpg";
 import fred from "../images/fred.jpg";
 import ibrahima from "../images/ibrahima.jpeg";
-
-// Background
-import heroBg from "../images/hero.jpg";
 
 export default function Home() {
   const location = useLocation();
@@ -40,117 +36,142 @@ export default function Home() {
   ];
 
   return (
-    <div className="home-wrapper">
-      <Header />
-
-      <main className="home-container">
-        {/* HERO SECTION */}
-        <section className="hero" style={{ backgroundImage: `url(${heroBg})` }}>
-          <div className="hero-overlay">
-            <div className="hero-inner">
-              <div className="hero-content">
-                <h1>Welcome to Garden Assistant</h1>
-
-                <p>
-                  Track your plants, get reminders, and keep notes and checklists
-                  all in one place.
+    <DashboardLayout
+      title="Home"
+      subtitle="Welcome to Garden Assistant. Track plants, manage care, and use helpful plant tools in one place."
+      badge="Garden dashboard"
+    >
+      <div className="container">
+        <div className="homeDashboardGrid">
+          <section className="panel heroPanel">
+            <div className="heroDashboardCard">
+              <div className="heroDashboardContent">
+                <span className="heroEyebrow">All-in-one plant care</span>
+                <h2 className="heroDashboardTitle">Welcome to Garden Assistant</h2>
+                <p className="heroDashboardText">
+                  Keep your plant collection organized, save notes, manage reminders,
+                  and use tools like recommendations, weather, and symptom assessment.
                 </p>
 
-                <div className="cta-buttons">
-                  <Link to="/login" className="primary-btn">
+                <div className="heroDashboardActions">
+                  <Link to="/login" className="primaryBtn heroBtnLink">
                     Log In
                   </Link>
-                  <Link to="/signup" className="secondary-btn">
+                  <Link to="/signup" className="secondaryBtn heroBtnLink">
                     Sign Up
+                  </Link>
+                  <Link to="/garden" className="secondaryBtn heroBtnLink">
+                    Go to My Garden
                   </Link>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ABOUT */}
-        <section id="about" className="section card">
-          <h2>About Garden Assistant</h2>
-          <p>
-            Garden Assistant is a simple hub for managing your plants. Organize
-            your collection, store notes, and use helpful tools to support
-            better plant care.
-          </p>
-
-          <ul>
-            <li>Keep your plant collection organized</li>
-            <li>Add notes and daily checklists</li>
-            <li>Use tools like recommendations and symptom assessment</li>
-          </ul>
-        </section>
-
-        {/* TEAM */}
-        <section id="team" className="section">
-          <h2>Meet the Team</h2>
-          <p className="muted">We’re a team of 7 developers building Garden Assistant.</p>
-
-          <div className="team-grid">
-            {team.map((member) => (
-              <div key={member.name} className="team-card">
-                <img src={member.img} alt={member.name} className="team-photo" />
-                <h3>{member.name}</h3>
-                <p>Developer</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* CONTACT */}
-        <section id="contact" className="section card">
-          <h2>Contact Us</h2>
-          <p className="muted">
-            Have feedback or questions? Send us a message or email us directly.
-          </p>
-
-          <div className="contact-grid">
-            <form
-              className="contact-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("Message submitted! (Connect this to your backend later.)");
-              }}
-            >
-              <label>
-                Your name
-                <input type="text" placeholder="Jane Doe" required />
-              </label>
-
-              <label>
-                Your email
-                <input type="email" placeholder="jane@email.com" required />
-              </label>
-
-              <label>
-                Message
-                <textarea placeholder="Write your message..." required />
-              </label>
-
-              <button type="submit" className="submit-btn">
-                Send Message
-              </button>
-            </form>
-
-            <div className="contact-side">
-              <h3>Email</h3>
-              <p className="muted">Prefer email? Reach us here:</p>
-
-              <a className="email-link" href="mailto:gardenassistant@odu.edu">
-                gardenassistant@odu.edu
-              </a>
+          <section id="about" className="panel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">About Garden Assistant</h2>
             </div>
-          </div>
-        </section>
 
-        <Footer />
-      </main>
-    </div>
+            <p className="muted">
+              Garden Assistant is a simple hub for managing your plants. Organize
+              your collection, store notes, and use helpful tools to support
+              better plant care.
+            </p>
+
+            <div className="featureList">
+              <div className="featureCard">
+                <div className="featureTitle">Organize your plants</div>
+                <p className="muted">
+                  Keep your saved plants in one place and quickly switch between them.
+                </p>
+              </div>
+
+              <div className="featureCard">
+                <div className="featureTitle">Stay on top of care</div>
+                <p className="muted">
+                  Add reminders, checklist items, and notes for each plant.
+                </p>
+              </div>
+
+              <div className="featureCard">
+                <div className="featureTitle">Use helpful tools</div>
+                <p className="muted">
+                  Get recommendations, weather updates, and symptom assessments.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section id="team" className="panel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Meet the Team</h2>
+            </div>
+
+            <p className="muted" style={{ marginBottom: 16 }}>
+              We’re a team of 7 developers building Garden Assistant.
+            </p>
+
+            <div className="teamDashboardGrid">
+              {team.map((member) => (
+                <div key={member.name} className="teamDashboardCard">
+                  <img src={member.img} alt={member.name} className="teamDashboardPhoto" />
+                  <h3>{member.name}</h3>
+                  <p className="muted">Developer</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="contact" className="panel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Contact Us</h2>
+            </div>
+
+            <p className="muted" style={{ marginBottom: 16 }}>
+              Have feedback or questions? Send us a message or email us directly.
+            </p>
+
+            <div className="contactDashboardGrid">
+              <form
+                className="contactDashboardForm"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Message submitted! (Connect this to your backend later.)");
+                }}
+              >
+                <label className="field">
+                  <span>Your name</span>
+                  <input type="text" placeholder="Jane Doe" required />
+                </label>
+
+                <label className="field">
+                  <span>Your email</span>
+                  <input type="email" placeholder="jane@email.com" required />
+                </label>
+
+                <label className="field">
+                  <span>Message</span>
+                  <textarea placeholder="Write your message..." required />
+                </label>
+
+                <button type="submit" className="primaryBtn">
+                  Send Message
+                </button>
+              </form>
+
+              <div className="softCard">
+                <h3 style={{ marginTop: 0 }}>Email</h3>
+                <p className="muted">Prefer email? Reach us here:</p>
+
+                <a className="emailDashboardLink" href="mailto:gardenassistant@odu.edu">
+                  gardenassistant@odu.edu
+                </a>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </DashboardLayout>
   );
-
-  
 }

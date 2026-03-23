@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./ToolLayout.css";
 import { auth } from "../firebase";
+import DashboardLayout from "../components/DashboardLayout";
 
-const API_BASE = "http://localhost:5000"; // Update if your backend runs on a different port
+const API_BASE = "http://localhost:5000";
 
 export default function PlantRecommendationPage() {
   const [recommendations, setRecommendations] = useState([]);
@@ -68,26 +69,24 @@ export default function PlantRecommendationPage() {
   }
 
   return (
-    <div className="toolPage">
-      <h1 className="toolTitle">Plant Recommendation</h1>
-
+    <DashboardLayout
+      title="Plant Recommendation"
+      subtitle="See plants that match your garden zone and save them to My Garden."
+      badge={zone ? `Zone ${zone}` : "Recommendations"}
+    >
       <div className="container">
         <div className="toolGrid">
-
-          {/* LEFT */}
           <section className="panel">
             <h2 className="panelTitle">Your Garden Info</h2>
 
-            {!auth.currentUser && (
-              <p className="muted">Log in to see recommendations.</p>
-            )}
+            {!auth.currentUser && <p className="muted">Log in to see recommendations.</p>}
 
             {zone && (
               <>
-                <p className="muted">Garden Zone: <strong>{zone}</strong></p>
                 <p className="muted">
-                  Showing plants that thrive in your zone.
+                  Garden Zone: <strong>{zone}</strong>
                 </p>
+                <p className="muted">Showing plants that thrive in your zone.</p>
               </>
             )}
 
@@ -96,16 +95,14 @@ export default function PlantRecommendationPage() {
 
             {!zone && !loading && auth.currentUser && (
               <p className="muted">
-                No garden zone set. Update your profile with a zip code and garden zone to get recommendations.
+                No garden zone set. Update your profile with a zip code and garden zone to get
+                recommendations.
               </p>
             )}
           </section>
 
-          {/* CENTER */}
           <section className="panel">
-            <h2 className="panelTitle">
-              Plant Suggestions {zone ? `for Zone ${zone}` : ""}
-            </h2>
+            <h2 className="panelTitle">Plant Suggestions {zone ? `for Zone ${zone}` : ""}</h2>
 
             {!loading && recommendations.length === 0 && auth.currentUser && (
               <p className="muted">No recommendations found for your zone.</p>
@@ -115,7 +112,7 @@ export default function PlantRecommendationPage() {
               {recommendations.map((p) => (
                 <button
                   key={p.id}
-                  className={"listItem " + (selected?.id === p.id ? "active" : "")}
+                  className={`listItem ${selected?.id === p.id ? "active" : ""}`}
                   onClick={() => setSelected(p)}
                   type="button"
                 >
@@ -127,6 +124,7 @@ export default function PlantRecommendationPage() {
                       Zones {p.minZone}–{p.maxZone}
                     </span>
                   </div>
+
                   {p.scientificName && (
                     <div className="muted" style={{ marginTop: 4 }}>
                       {p.scientificName}
@@ -137,7 +135,6 @@ export default function PlantRecommendationPage() {
             </div>
           </section>
 
-          {/* RIGHT */}
           <section className="panel">
             <h2 className="panelTitle">Selected Plant</h2>
 
@@ -148,6 +145,7 @@ export default function PlantRecommendationPage() {
                 <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>
                   {selected.commonName || selected.scientificName}
                 </div>
+
                 <div className="muted" style={{ marginBottom: 12 }}>
                   {selected.scientificName}
                 </div>
@@ -155,29 +153,34 @@ export default function PlantRecommendationPage() {
                 {selected.imageUrl && (
                   <img
                     src={selected.imageUrl}
-                    alt={selected.commonName}
+                    alt={selected.commonName || selected.scientificName}
                     style={{
                       width: "100%",
                       borderRadius: 12,
                       marginBottom: 12,
-                      objectFit: "cover"
+                      objectFit: "cover",
                     }}
                   />
                 )}
 
                 <p className="muted">Zones: {selected.minZone}–{selected.maxZone}</p>
+
                 <p className="muted">
-                  Sunlight: {selected.sunlight?.category || 
-                            (typeof selected.sunlight === 'string' ? selected.sunlight : null) || 
-                            "Unknown"}
+                  Sunlight:{" "}
+                  {selected.sunlight?.category ||
+                    (typeof selected.sunlight === "string" ? selected.sunlight : null) ||
+                    "Unknown"}
                 </p>
+
                 <p className="muted">
-                  Watering: {selected.watering?.defaultEveryDays
+                  Watering:{" "}
+                  {selected.watering?.defaultEveryDays
                     ? `Every ${selected.watering.defaultEveryDays} days`
                     : selected.wateringFrequency
-                    ? `Every ${selected.wateringFrequency} days`
-                    : "Unknown"}
+                      ? `Every ${selected.wateringFrequency} days`
+                      : "Unknown"}
                 </p>
+
                 <p className="muted">{selected.reason}</p>
 
                 <button
@@ -192,9 +195,8 @@ export default function PlantRecommendationPage() {
               </div>
             )}
           </section>
-
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

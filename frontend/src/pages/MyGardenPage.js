@@ -1,46 +1,101 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
 import "./ToolLayout.css";
 
-import GardenCalendar from "../components/GardenCalendar";
 import PlantIdentifyUpload from "../components/PlantIdentifyUpload";
 
 import { requestNotificationPermission } from "../firebase-messaging";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 const API_BASE = "http://localhost:5000";
+const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
+
+function formatDayLabel(date) {
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+}
+
+function formatMonthDay(date) {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export default function MyGardenPage() {
-  // Saved plants pulled from backend (Firestore via Express)
   const [savedPlants, setSavedPlants] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
 
-  // Notes panel state
   const [selectedPlantId, setSelectedPlantId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
 
-  // Recommendations
   const [recZone, setRecZone] = useState("");
   const [recommendations, setRecommendations] = useState([]);
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState("");
 
-  // Checklist
   const [checklistItems, setChecklistItems] = useState([]);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [checklistError, setChecklistError] = useState("");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [newChecklistDue, setNewChecklistDue] = useState(() => {
     const d = new Date();
-    return d.toISOString().split("T")[0]; // YYYY-MM-DD
+    return d.toISOString().split("T")[0];
   });
 
-  // Derived selected plant
-  const selectedPlant = savedPlants.find((p) => p.id === selectedPlantId) || null;
+  const [toolsOpen, setToolsOpen] = useState(false);
 
-  //  Ask for notification permission on entry
+  const [sidebarWeather, setSidebarWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState("");
+
+  const selectedPlant = savedPlants.find((p) => p.id === selectedPlantId) || null;
+  const selectedPlantNotes = Array.isArray(selectedPlant?.notes) ? selectedPlant.notes : [];
+
+  const completedChecklistCount = useMemo(
+    () => checklistItems.filter((item) => item.done).length,
+    [checklistItems]
+  );
+
+  const pendingChecklistCount = useMemo(
+    () => checklistItems.filter((item) => !item.done).length,
+    [checklistItems]
+  );
+
+  const todayIso = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayPretty = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      }),
+    []
+  );
+
+  const todayTasksCount = useMemo(() => {
+    return checklistItems.filter((item) => !item.done && item.dueDate === todayIso).length;
+  }, [checklistItems, todayIso]);
+
+  const upcomingWeek = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const iso = d.toISOString().split("T")[0];
+
+      const itemsForDay = checklistItems.filter((item) => item.dueDate === iso);
+
+      return {
+        iso,
+        date: d,
+        tasks: itemsForDay.length,
+        pending: itemsForDay.filter((item) => !item.done).length,
+      };
+    });
+  }, [checklistItems]);
+
   useEffect(() => {
     async function setupNotifications() {
       if (!auth.currentUser) return;
@@ -55,8 +110,6 @@ export default function MyGardenPage() {
 
     setupNotifications();
   }, []);
-
-  // ================= SAVED PLANTS =================
 
   async function loadSavedPlants() {
     try {
@@ -86,8 +139,6 @@ export default function MyGardenPage() {
     }
   }
 
-  // ================= CHECKLIST =================
-
   async function loadChecklist() {
     try {
       if (!auth.currentUser) {
@@ -114,11 +165,57 @@ export default function MyGardenPage() {
     }
   }
 
+  async function loadSidebarWeather() {
+  if (!WEATHER_API_KEY) {
+    setWeatherError("Missing weather key");
+    return;
+  }
+
+  try {
+    setWeatherLoading(true);
+    setWeatherError("");
+
+    let zipCode = "23508"; // fallback only if no user zip exists
+
+    if (auth.currentUser) {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.zipCode && String(userData.zipCode).trim()) {
+          zipCode = String(userData.zipCode).trim();
+        }
+      }
+    }
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?zip=${encodeURIComponent(
+      `${zipCode},US`
+    )}&appid=${WEATHER_API_KEY}&units=imperial`;
+
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (!res.ok) {
+      throw new Error(json?.message || "Weather request failed");
+    }
+
+    setSidebarWeather(json);
+  } catch (err) {
+    setWeatherError(err.message || "Failed to load weather");
+    setSidebarWeather(null);
+  } finally {
+    setWeatherLoading(false);
+  }
+}
   async function addChecklistItem() {
     const text = newChecklistText.trim();
     if (!text) return;
 
-    if (!auth.currentUser) return alert("You must be logged in.");
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
 
     const uid = auth.currentUser.uid;
 
@@ -136,7 +233,10 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to add checklist item");
+    if (!res.ok) {
+      alert(data?.error || "Failed to add checklist item");
+      return;
+    }
 
     setNewChecklistText("");
     await loadChecklist();
@@ -153,7 +253,10 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return alert(data?.error || "Failed to update checklist item");
+    if (!res.ok) {
+      alert(data?.error || "Failed to update checklist item");
+      return;
+    }
 
     await loadChecklist();
   }
@@ -167,31 +270,36 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return alert(data?.error || "Failed to delete checklist item");
+    if (!res.ok) {
+      alert(data?.error || "Failed to delete checklist item");
+      return;
+    }
 
     await loadChecklist();
   }
 
-  // Load saved plants + checklist on mount
   useEffect(() => {
     loadSavedPlants();
     loadChecklist();
+    loadSidebarWeather();
+
+    const interval = setInterval(() => {
+      loadSidebarWeather();
+    }, 30 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // Auto-select first saved plant when list loads
   useEffect(() => {
     if (!selectedPlantId && savedPlants.length > 0) {
       setSelectedPlantId(savedPlants[0].id);
     }
   }, [savedPlants, selectedPlantId]);
 
-  // Clear note editor when switching plants
   useEffect(() => {
     setNoteDraft("");
     setEditingIndex(null);
   }, [selectedPlantId]);
-
-  // ================= RECOMMENDATIONS =================
 
   useEffect(() => {
     async function loadRecommendations() {
@@ -219,7 +327,6 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  // Add plant to garden via backend
   async function addToGarden(p) {
     try {
       if (!auth.currentUser) {
@@ -233,7 +340,6 @@ export default function MyGardenPage() {
         name: p.scientificName || p.commonName || p.name || p.id,
         commonName: p.commonName || null,
         scientificName: p.scientificName || null,
-
         plantId: p.id || p.plantId || null,
         trefle_id:
           typeof p.trefle_id === "number"
@@ -246,7 +352,6 @@ export default function MyGardenPage() {
         sunlight: p.sunlight || null,
         wateringFrequency: p.wateringFrequency || null,
         reason: p.reason || null,
-
         source: p.source || "recommendations",
         confidence: typeof p.confidence === "number" ? p.confidence : null,
         photoUrl: p.photoUrl || null,
@@ -272,7 +377,6 @@ export default function MyGardenPage() {
     }
   }
 
-  // Delete plant from "My Garden"
   async function deletePlant(plantDocId) {
     if (!auth.currentUser) {
       alert("You must be logged in.");
@@ -309,12 +413,15 @@ export default function MyGardenPage() {
     }
   }
 
-  // NOTES: add / edit / delete
   async function addNote(plantDocId) {
     const text = noteDraft.trim();
     if (!text) return;
 
-    if (!auth.currentUser) return alert("You must be logged in.");
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
     const uid = auth.currentUser.uid;
 
     const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes`, {
@@ -324,7 +431,10 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to add note");
+    if (!res.ok) {
+      alert(data?.error || "Failed to add note");
+      return;
+    }
 
     setNoteDraft("");
     await loadSavedPlants();
@@ -334,7 +444,11 @@ export default function MyGardenPage() {
     const text = noteDraft.trim();
     if (!text) return;
 
-    if (!auth.currentUser) return alert("You must be logged in.");
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
     const uid = auth.currentUser.uid;
 
     const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
@@ -344,7 +458,10 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to edit note");
+    if (!res.ok) {
+      alert(data?.error || "Failed to edit note");
+      return;
+    }
 
     setEditingIndex(null);
     setNoteDraft("");
@@ -352,7 +469,11 @@ export default function MyGardenPage() {
   }
 
   async function deleteNote(plantDocId, index) {
-    if (!auth.currentUser) return alert("You must be logged in.");
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
     const uid = auth.currentUser.uid;
 
     const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
@@ -360,85 +481,267 @@ export default function MyGardenPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) return alert(data?.error || "Failed to delete note");
+    if (!res.ok) {
+      alert(data?.error || "Failed to delete note");
+      return;
+    }
 
     await loadSavedPlants();
   }
 
   return (
-    <div className="toolPage">
-      <h1 className="toolTitle">My Garden</h1>
+    <div className="toolPage gardenShell">
+      <aside className="gardenSidebar">
+        <div className="sidebarBrand">
+          <div className="sidebarBrandIcon">🌿</div>
+          <div>
+            <div className="sidebarBrandTitle">Garden Assistant</div>
+            <div className="sidebarBrandSub">Plant care dashboard</div>
+          </div>
+        </div>
 
-      <div className="container">
-        <div className="toolGrid" style={{ gridTemplateColumns: "1.4fr 1fr 1fr" }}>
-          {/* LEFT */}
-          <section className="panel">
-            <h2 className="panelTitle">My Saved Plants</h2>
+        <nav className="sidebarNav">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) => `sidebarLink ${isActive ? "active" : ""}`}
+          >
+            <span className="sidebarLinkIcon">🏠</span>
+            <span>Home</span>
+          </NavLink>
+
+          <NavLink
+            to="/garden"
+            className={({ isActive }) => `sidebarLink ${isActive ? "active" : ""}`}
+          >
+            <span className="sidebarLinkIcon">🪴</span>
+            <span>My Garden</span>
+          </NavLink>
+
+          <div className="sidebarDropdown sidebarDropdownClick">
+            <button
+              type="button"
+              className="sidebarLink sidebarStaticLink sidebarToggleBtn"
+              onClick={() => setToolsOpen((prev) => !prev)}
+            >
+              <span className="sidebarLinkIcon">🧰</span>
+              <span>Tools</span>
+              <span className="sidebarCaret">{toolsOpen ? "▾" : "▸"}</span>
+            </button>
+
+            {toolsOpen && (
+              <div className="sidebarDropdownMenu">
+                <NavLink to="/tools/reminders" className="dropdownItem">
+                  Reminders
+                </NavLink>
+
+                <NavLink to="/tools/recommendations" className="dropdownItem">
+                  Plant Recommendation
+                </NavLink>
+
+                <NavLink to="/tools/symptoms" className="dropdownItem">
+                  Symptom Assessment
+                </NavLink>
+
+                <NavLink to="/tools/weather" className="dropdownItem">
+                  Weather
+                </NavLink>
+              </div>
+            )}
+          </div>
+
+          <NavLink
+            to="/resources"
+            className={({ isActive }) => `sidebarLink ${isActive ? "active" : ""}`}
+          >
+            <span className="sidebarLinkIcon">📚</span>
+            <span>Resources</span>
+          </NavLink>
+
+          <NavLink
+            to="/profile/settings"
+            className={({ isActive }) => `sidebarLink ${isActive ? "active" : ""}`}
+          >
+            <span className="sidebarLinkIcon">⚙️</span>
+            <span>Settings</span>
+          </NavLink>
+        </nav>
+
+        <div className="sidebarDivider" />
+
+        <div className="sidebarMiniCard">
+          <div className="sidebarMiniLabel">Today</div>
+          <div className="sidebarMiniValue sidebarMiniValueSmall">{todayPretty}</div>
+        </div>
+
+        <div className="sidebarMiniCard">
+          <div className="sidebarMiniLabel">Weather</div>
+
+          {weatherLoading ? (
+            <div className="sidebarMiniValue sidebarMiniValueSmall">Loading...</div>
+          ) : weatherError ? (
+            <div className="sidebarMiniValue sidebarMiniValueSmall">Unavailable</div>
+          ) : sidebarWeather ? (
+            <>
+              <div className="sidebarMiniValue sidebarMiniValueSmall">
+                {sidebarWeather.name}
+              </div>
+              <div className="sidebarWeatherDetails">
+                <div>{Math.round(sidebarWeather.main.temp)}°F</div>
+                <div>{sidebarWeather.weather?.[0]?.description}</div>
+              </div>
+            </>
+          ) : (
+            <div className="sidebarMiniValue sidebarMiniValueSmall">No weather data</div>
+          )}
+
+          <NavLink to="/tools/weather" className="sidebarMiniLink">
+            View full weather
+          </NavLink>
+        </div>
+
+        <div className="sidebarMiniCard">
+          <div className="sidebarMiniLabel">Saved Plants</div>
+          <div className="sidebarMiniValue">{savedPlants.length}</div>
+        </div>
+
+        <div className="sidebarMiniCard">
+          <div className="sidebarMiniLabel">Zone</div>
+          <div className="sidebarMiniValue">{recZone || "--"}</div>
+        </div>
+
+        <div className="sidebarMiniCard">
+          <div className="sidebarMiniLabel">Pending Tasks</div>
+          <div className="sidebarMiniValue">{pendingChecklistCount}</div>
+        </div>
+
+        <div className="sidebarFooter">
+          <div className="sidebarFooterTitle">My Profile</div>
+          <div className="sidebarFooterText">
+            {auth.currentUser?.email || "Logged out"}
+          </div>
+        </div>
+      </aside>
+
+      <main className="gardenMain">
+        <div className="dashboardTopbar">
+          <div>
+            <h1 className="toolTitle">My Garden</h1>
+            <p className="dashboardSubtitle">
+              Track your plants, notes, checklist items, and garden schedule in one place.
+            </p>
+          </div>
+
+          <div className="topbarBadge">
+            {selectedPlant ? selectedPlant.commonName || selectedPlant.name : "Plant dashboard"}
+          </div>
+        </div>
+
+        <section className="panel weekStripPanel">
+          <div className="sectionHeader">
+            <h2 className="panelTitle">This Week</h2>
+            <span className="sectionPill">{upcomingWeek.length} days</span>
+          </div>
+
+          <div className="weekStripScroller">
+            {upcomingWeek.map((day) => {
+              const isToday = day.iso === todayIso;
+              return (
+                <div
+                  key={day.iso}
+                  className={`weekDayCard ${isToday ? "today" : ""}`}
+                >
+                  <div className="weekDayTop">
+                    <span className="weekDayName">{formatDayLabel(day.date)}</span>
+                    <span className="weekDayDate">{formatMonthDay(day.date)}</span>
+                  </div>
+
+                  <div className="weekDayStats">
+                    <div className="weekDayStat">
+                      <span className="weekDayStatLabel">Tasks</span>
+                      <strong>{day.tasks}</strong>
+                    </div>
+                    <div className="weekDayStat">
+                      <span className="weekDayStatLabel">Pending</span>
+                      <strong>{day.pending}</strong>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="summaryGrid">
+          <div className="summaryCard">
+            <span className="summaryLabel">Saved Plants</span>
+            <span className="summaryValue">{savedPlants.length}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Tasks Today</span>
+            <span className="summaryValue">{todayTasksCount}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Pending Tasks</span>
+            <span className="summaryValue">{pendingChecklistCount}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Zone</span>
+            <span className="summaryValue">{recZone || "--"}</span>
+          </div>
+        </section>
+
+        <div className="dashboardMainGrid">
+          <section className="panel plantsPanel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">My Plants</h2>
+              <span className="sectionPill">{savedPlants.length}</span>
+            </div>
 
             {!auth.currentUser && <p className="muted">Log in to load your saved plants.</p>}
             {auth.currentUser && savedLoading && <p className="muted">Loading saved plants…</p>}
-            {auth.currentUser && savedError && <p style={{ color: "crimson" }}>{savedError}</p>}
+            {auth.currentUser && savedError && <p className="errorText">{savedError}</p>}
 
             {auth.currentUser && !savedLoading && !savedError && savedPlants.length === 0 && (
-              <p className="muted">No saved plants yet. Add one below from recommendations.</p>
+              <p className="muted">No saved plants yet. Add one from recommendations below.</p>
             )}
 
             {auth.currentUser && !savedLoading && !savedError && savedPlants.length > 0 && (
-              <div className="listBox" style={{ marginBottom: 14 }}>
+              <div className="plantList">
                 {savedPlants.map((p) => {
                   const isSelected = p.id === selectedPlantId;
                   return (
                     <button
                       key={p.id}
-                      className={`listItem ${isSelected ? "active" : ""}`}
+                      className={`plantCard ${isSelected ? "active" : ""}`}
                       type="button"
                       onClick={() => setSelectedPlantId(p.id)}
-                      style={{ cursor: "pointer", textAlign: "left" }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>
+                      <div className="plantCardTop">
+                        <div className="plantTextWrap">
+                          <div className="plantCardName">
                             {p.commonName || p.name || "Unnamed plant"}
                           </div>
-
                           {p.scientificName && (
-                            <div className="muted" style={{ marginTop: 4 }}>
-                              {p.scientificName}
-                            </div>
+                            <div className="plantCardMeta">{p.scientificName}</div>
                           )}
+                          <div className="plantCardBottom">
+                            Zones {p.minZone ?? "?"}–{p.maxZone ?? "?"}
+                          </div>
                         </div>
 
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 6,
+                        <button
+                          type="button"
+                          className="dangerBtn compactBtn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deletePlant(p.id);
                           }}
                         >
-                          <span style={{ opacity: 0.75 }}>
-                            Zones {p.minZone ?? "?"}–{p.maxZone ?? "?"}
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation(); // don't select when deleting
-                              deletePlant(p.id);
-                            }}
-                            style={{
-                              background: "rgba(200,60,60,0.15)",
-                              border: "1px solid rgba(200,60,60,0.4)",
-                              color: "#8a1f1f",
-                              borderRadius: 10,
-                              padding: "4px 8px",
-                              fontSize: 12,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                          Delete
+                        </button>
                       </div>
                     </button>
                   );
@@ -446,261 +749,269 @@ export default function MyGardenPage() {
               </div>
             )}
 
-            {/* Recommendations */}
-            <div style={{ marginTop: 8 }}>
-              <h3 style={{ margin: "12px 0 8px", fontWeight: 800 }}>
-                Recommended {recZone ? `for Zone ${recZone}` : ""}
-              </h3>
+            <div className="sidebarBlock">
+              <div className="sectionHeader">
+                <h3 className="subsectionTitle">
+                  Recommended {recZone ? `for Zone ${recZone}` : ""}
+                </h3>
+              </div>
 
               {!auth.currentUser && <p className="muted">Log in to load recommendations.</p>}
               {auth.currentUser && recLoading && <p className="muted">Loading recommendations…</p>}
-              {auth.currentUser && recError && <p style={{ color: "crimson" }}>{recError}</p>}
+              {auth.currentUser && recError && <p className="errorText">{recError}</p>}
               {auth.currentUser && !recLoading && !recError && recommendations.length === 0 && (
                 <p className="muted">No recommendations yet.</p>
               )}
 
-              <div style={{ display: "grid", gap: 12 }}>
-                {recommendations.slice(0, 6).map((p) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      border: "1px solid rgba(31,35,31,0.10)",
-                      borderRadius: 16,
-                      padding: 12,
-                      background: "rgba(255,255,255,0.75)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 800 }}>
+              <div className="recommendationList">
+                {recommendations.slice(0, 4).map((p) => (
+                  <div key={p.id} className="recommendationCard">
+                    <div className="recommendationName">
                       {p.commonName || p.scientificName || p.id}
                     </div>
 
                     {p.scientificName && (
-                      <div className="muted" style={{ marginTop: 2 }}>
-                        {p.scientificName}
-                      </div>
+                      <div className="recommendationMeta">{p.scientificName}</div>
                     )}
 
-                    <div className="muted" style={{ marginTop: 6 }}>
+                    <div className="recommendationMeta">
                       Zones {p.minZone}–{p.maxZone}
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
-                      <button className="primaryBtn" type="button" onClick={() => addToGarden(p)}>
-                        Add to My Garden
-                      </button>
-                    </div>
+                    <button
+                      className="primaryBtn compactBtn recommendationBtn"
+                      type="button"
+                      onClick={() => addToGarden(p)}
+                    >
+                      Add to My Garden
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Plant Identification Upload */}
-            <div style={{ marginTop: 18 }}>
-              <h3 style={{ margin: "14px 0 8px", fontWeight: 800 }}>
-                Identify a Plant from Photo
-              </h3>
-              <PlantIdentifyUpload onAddToGarden={addToGarden} />
-            </div>
           </section>
 
-          {/* CENTER */}
-          <section className="panel">
-            <h2 className="panelTitle">Notes</h2>
+          <section className="centerColumn">
+            <section className="panel detailsPanel">
+              <div className="sectionHeader">
+                <h2 className="panelTitle">Plant Details</h2>
+                {selectedPlant && (
+                  <span className="sectionPill">
+                    {selectedPlant.commonName || selectedPlant.name || "Plant"}
+                  </span>
+                )}
+              </div>
 
-            {!auth.currentUser ? (
-              <p className="muted">Log in to view and edit notes.</p>
-            ) : !selectedPlant ? (
-              <p className="muted">Click a saved plant to view notes.</p>
-            ) : (
-              <>
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontWeight: 850 }}>
-                    {selectedPlant.commonName || selectedPlant.name || "Unnamed plant"}
-                  </div>
-                  {selectedPlant.scientificName && (
-                    <div className="muted">{selectedPlant.scientificName}</div>
-                  )}
+              {!auth.currentUser ? (
+                <p className="muted">Log in to view your garden details.</p>
+              ) : !selectedPlant ? (
+                <div className="emptyState">
+                  <div className="emptyStateIcon">🌿</div>
+                  <p className="muted">Click a saved plant to view notes and details.</p>
                 </div>
+              ) : (
+                <>
+                  <div className="selectedPlantHero">
+                    <div className="selectedPlantIcon">🪴</div>
 
-                <div style={{ marginBottom: 12 }}>
-                  <h3 style={{ margin: "10px 0 6px", fontWeight: 800 }}>Saved Notes</h3>
+                    <div className="selectedPlantInfo">
+                      <h3 className="selectedPlantName">
+                        {selectedPlant.commonName || selectedPlant.name || "Unnamed plant"}
+                      </h3>
 
-                  {Array.isArray(selectedPlant.notes) && selectedPlant.notes.length > 0 ? (
-                    <div className="listBox">
-                      {selectedPlant.notes.map((n, idx) => {
-                        const text = typeof n === "string" ? n : n?.text || "";
-                        return (
-                          <div
-                            key={idx}
-                            className="listItem"
-                            style={{
-                              cursor: "default",
-                              display: "flex",
-                              justifyContent: "space-between",
-                              gap: 10,
-                            }}
-                          >
-                            <span>{text}</span>
+                      {selectedPlant.scientificName && (
+                        <p className="selectedPlantScientific">
+                          {selectedPlant.scientificName}
+                        </p>
+                      )}
 
-                            <span style={{ display: "flex", gap: 8 }}>
-                              <button
-                                type="button"
-                                className="primaryBtn"
-                                style={{ padding: "8px 10px" }}
-                                onClick={() => {
-                                  setEditingIndex(idx);
-                                  setNoteDraft(text);
-                                }}
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                className="primaryBtn"
-                                style={{ padding: "8px 10px" }}
-                                onClick={() => deleteNote(selectedPlant.id, idx)}
-                              >
-                                Delete
-                              </button>
-                            </span>
-                          </div>
-                        );
-                      })}
+                      <div className="tagRow">
+                        <span className="tag">
+                          Zones {selectedPlant.minZone ?? "?"}–{selectedPlant.maxZone ?? "?"}
+                        </span>
+                        {selectedPlant.sunlight && <span className="tag">{selectedPlant.sunlight}</span>}
+                        {selectedPlant.wateringFrequency && (
+                          <span className="tag">{selectedPlant.wateringFrequency}</span>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="muted">No notes yet.</p>
-                  )}
-                </div>
+                  </div>
 
-                <textarea
-                  value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
-                  placeholder="Type a note for this plant..."
-                  style={{
-                    width: "100%",
-                    minHeight: 140,
-                    borderRadius: 16,
-                    border: "1px solid rgba(31,35,31,0.12)",
-                    padding: 12,
-                    resize: "vertical",
-                  }}
-                />
+                  <div className="notesSection">
+                    <div className="sectionHeader">
+                      <h3 className="subsectionTitle">Saved Notes</h3>
+                      <span className="sectionPill">{selectedPlantNotes.length}</span>
+                    </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-                  {editingIndex !== null && (
-                    <button
-                      className="primaryBtn"
-                      type="button"
-                      onClick={() => {
-                        setEditingIndex(null);
-                        setNoteDraft("");
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  )}
+                    {selectedPlantNotes.length > 0 ? (
+                      <div className="noteList">
+                        {selectedPlantNotes.map((n, idx) => {
+                          const text = typeof n === "string" ? n : n?.text || "";
+                          return (
+                            <div key={idx} className="noteCard">
+                              <div className="noteText">{text}</div>
 
-                  <button
-                    className="primaryBtn"
-                    type="button"
-                    onClick={() => {
-                      if (editingIndex === null) addNote(selectedPlant.id);
-                      else saveEdit(selectedPlant.id, editingIndex);
-                    }}
-                  >
-                    {editingIndex === null ? "Add note" : "Save changes"}
-                  </button>
-                </div>
-              </>
-            )}
+                              <div className="noteActions">
+                                <button
+                                  type="button"
+                                  className="secondaryBtn compactBtn"
+                                  onClick={() => {
+                                    setEditingIndex(idx);
+                                    setNoteDraft(text);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="dangerBtn compactBtn"
+                                  onClick={() => deleteNote(selectedPlant.id, idx)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="softCard">
+                        <p className="muted">No notes yet for this plant.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="editorCard">
+                    <h3 className="subsectionTitle">
+                      {editingIndex === null ? "Add a Note" : "Edit Note"}
+                    </h3>
+
+                    <textarea
+                      value={noteDraft}
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                      placeholder="Type a note for this plant..."
+                      className="dashboardTextarea"
+                    />
+
+                    <div className="actionRow">
+                      {editingIndex !== null && (
+                        <button
+                          className="secondaryBtn"
+                          type="button"
+                          onClick={() => {
+                            setEditingIndex(null);
+                            setNoteDraft("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      )}
+
+                      <button
+                        className="primaryBtn"
+                        type="button"
+                        onClick={() => {
+                          if (editingIndex === null) addNote(selectedPlant.id);
+                          else saveEdit(selectedPlant.id, editingIndex);
+                        }}
+                      >
+                        {editingIndex === null ? "Add Note" : "Save Changes"}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
           </section>
 
-          {/* RIGHT */}
-          <section className="panel">
-            <h2 className="panelTitle">Checklist</h2>
+          <section className="panel tasksPanel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Care Tasks</h2>
+              <span className="sectionPill">{pendingChecklistCount}</span>
+            </div>
 
             {!auth.currentUser ? (
               <p className="muted">Log in to view and edit your checklist.</p>
             ) : (
               <>
                 {checklistLoading && <p className="muted">Loading checklist…</p>}
-                {checklistError && <p style={{ color: "crimson" }}>{checklistError}</p>}
+                {checklistError && <p className="errorText">{checklistError}</p>}
 
-                {/* Add new item */}
-                <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
+                <div className="taskComposer">
+                  <h3 className="subsectionTitle">Add Task</h3>
+
                   <input
                     value={newChecklistText}
                     onChange={(e) => setNewChecklistText(e.target.value)}
-                    placeholder="Add a checklist item…"
-                    style={{
-                      width: "100%",
-                      borderRadius: 16,
-                      border: "1px solid rgba(31,35,31,0.12)",
-                      padding: 12,
-                    }}
+                    placeholder="Add a checklist item..."
+                    className="dashboardInput"
                   />
 
-                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <label className="muted" style={{ fontSize: 12 }}>
-                      Due:
-                    </label>
+                  <div className="taskDateRow">
+                    <label className="taskDateLabel">Due date</label>
                     <input
                       type="date"
                       value={newChecklistDue}
                       onChange={(e) => setNewChecklistDue(e.target.value)}
-                      style={{
-                        borderRadius: 14,
-                        border: "1px solid rgba(31,35,31,0.12)",
-                        padding: 10,
-                      }}
+                      className="dashboardDateInput"
                     />
-
-                    <button className="primaryBtn" type="button" onClick={addChecklistItem}>
-                      Add checklist item
-                    </button>
                   </div>
 
-                  <p className="muted" style={{ margin: 0 }}>
-                    {selectedPlantId ? "Adding for selected plant." : "No plant selected — item will be general."}
+                  <p className="muted taskPlantHint">
+                    {selectedPlantId
+                      ? "This task will be linked to the selected plant."
+                      : "No plant selected. This task will be general."}
                   </p>
+
+                  <button className="primaryBtn fullWidthBtn" type="button" onClick={addChecklistItem}>
+                    Add Checklist Item
+                  </button>
                 </div>
 
-                {/* List items */}
-                <div className="listBox">
+                <div className="taskStatsRow">
+                  <div className="miniStatCard">
+                    <span className="miniStatLabel">Completed</span>
+                    <span className="miniStatValue">{completedChecklistCount}</span>
+                  </div>
+                  <div className="miniStatCard">
+                    <span className="miniStatLabel">Pending</span>
+                    <span className="miniStatValue">{pendingChecklistCount}</span>
+                  </div>
+                </div>
+
+                <div className="sectionHeader">
+                  <h3 className="subsectionTitle">Upcoming Tasks</h3>
+                </div>
+
+                <div className="taskList">
                   {!checklistLoading && !checklistError && checklistItems.length === 0 && (
-                    <p className="muted" style={{ padding: 10 }}>
-                      No checklist items yet.
-                    </p>
+                    <div className="softCard">
+                      <p className="muted">No checklist items yet.</p>
+                    </div>
                   )}
 
                   {checklistItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="listItem"
-                      style={{ cursor: "default", display: "flex", gap: 10, alignItems: "flex-start" }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={!!item.done}
-                        onChange={(e) => toggleChecklistDone(item.id, e.target.checked)}
-                        style={{ marginTop: 4 }}
-                      />
+                    <div key={item.id} className={`taskCard ${item.done ? "done" : ""}`}>
+                      <div className="taskMain">
+                        <input
+                          type="checkbox"
+                          checked={!!item.done}
+                          onChange={(e) => toggleChecklistDone(item.id, e.target.checked)}
+                          className="taskCheckbox"
+                        />
 
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, textDecoration: item.done ? "line-through" : "none" }}>
-                          {item.text}
-                        </div>
-
-                        <div className="muted" style={{ marginTop: 4 }}>
-                          {item.dueDate ? `Due: ${item.dueDate}` : "No due date"}
+                        <div className="taskContent">
+                          <div className="taskText">{item.text}</div>
+                          <div className="taskMeta">
+                            {item.dueDate ? `Due: ${item.dueDate}` : "No due date"}
+                          </div>
                         </div>
                       </div>
 
                       <button
                         type="button"
-                        className="primaryBtn"
-                        style={{ padding: "8px 10px" }}
+                        className="dangerBtn compactBtn"
                         onClick={() => deleteChecklistItem(item.id)}
                       >
                         Delete
@@ -708,17 +1019,20 @@ export default function MyGardenPage() {
                     </div>
                   ))}
                 </div>
+
+                <div className="sidebarBlock">
+                  <div className="sectionHeader">
+                    <h3 className="subsectionTitle">Plant Identification</h3>
+                  </div>
+                  <div className="softCard">
+                    <PlantIdentifyUpload onAddToGarden={addToGarden} />
+                  </div>
+                </div>
               </>
             )}
           </section>
         </div>
-
-        {/* Calendar panel */}
-        <section className="panel" style={{ marginTop: 18, maxHeight: "520px", overflowY: "auto" }}>
-          <h2 className="panelTitle">Garden Calendar</h2>
-          <GardenCalendar />
-        </section>
-      </div>
+      </main>
     </div>
   );
 }

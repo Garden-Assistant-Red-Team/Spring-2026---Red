@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import "./ToolLayout.css";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function WeatherPage() {
   const [city, setCity] = useState("Norfolk");
@@ -7,7 +9,6 @@ export default function WeatherPage() {
   const [err, setErr] = useState("");
   const [data, setData] = useState(null);
 
-  // IMPORTANT: put your weather API key in a .env file (step 2)
   const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
   async function handleSearch(e) {
@@ -16,14 +17,15 @@ export default function WeatherPage() {
     setData(null);
 
     if (!API_KEY) {
-      setErr("Missing API key. Add REACT_APP_WEATHER_API_KEY to your .env file and restart npm start.");
+      setErr(
+        "Missing API key. Add REACT_APP_WEATHER_API_KEY to your .env file and restart npm start."
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-      // Example using OpenWeather (current weather)
       const q = `${city},${stateCode},US`;
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
         q
@@ -45,59 +47,76 @@ export default function WeatherPage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <h1 style={{ marginBottom: 8 }}>Weather</h1>
-      <p style={{ marginTop: 0, opacity: 0.8 }}>
-        Check current weather for a city.
-      </p>
+    <DashboardLayout
+      title="Weather"
+      subtitle="Check current weather conditions for your city."
+      badge={`${city}, ${stateCode}`}
+    >
+      <div className="container">
+        <div className="weatherGrid">
+          <section className="panel">
+            <h2 className="panelTitle">Search</h2>
 
-      <form onSubmit={handleSearch} style={{ display: "flex", gap: 12, marginTop: 16 }}>
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="City (e.g., Norfolk)"
-          style={{ flex: 1, padding: 10 }}
-        />
-        <input
-          value={stateCode}
-          onChange={(e) => setStateCode(e.target.value)}
-          placeholder="State (e.g., VA)"
-          style={{ width: 110, padding: 10 }}
-        />
-        <button type="submit" style={{ padding: "10px 16px" }}>
-          {loading ? "Loading..." : "Search"}
-        </button>
-      </form>
+            <form onSubmit={handleSearch} className="toolContentStack">
+              <label className="field">
+                <span>City</span>
+                <input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City (e.g., Norfolk)"
+                />
+              </label>
 
-      {err && (
-        <p style={{ marginTop: 16, color: "crimson" }}>
-          ❌ {err}
-        </p>
-      )}
+              <label className="field">
+                <span>State</span>
+                <input
+                  value={stateCode}
+                  onChange={(e) => setStateCode(e.target.value)}
+                  placeholder="State (e.g., VA)"
+                />
+              </label>
 
-      {data && (
-        <div
-          style={{
-            marginTop: 18,
-            padding: 16,
-            borderRadius: 12,
-            border: "1px solid rgba(0,0,0,0.1)",
-            background: "white",
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>
-            {data.name} — {Math.round(data.main.temp)}°F
-          </h2>
-          <p style={{ margin: 0 }}>
-            <strong>Conditions:</strong> {data.weather?.[0]?.description}
-          </p>
-          <p style={{ margin: "6px 0 0 0" }}>
-            <strong>Feels like:</strong> {Math.round(data.main.feels_like)}°F •{" "}
-            <strong>Humidity:</strong> {data.main.humidity}% •{" "}
-            <strong>Wind:</strong> {Math.round(data.wind.speed)} mph
-          </p>
+              <button type="submit" className="primaryBtn">
+                {loading ? "Loading..." : "Search"}
+              </button>
+            </form>
+          </section>
+
+          <section className="panel">
+            <h2 className="panelTitle">Current Conditions</h2>
+
+            {err && (
+              <p style={{ color: "crimson" }}>
+                ❌ {err}
+              </p>
+            )}
+
+            {!err && !data && (
+              <p className="muted">Search for a city to see the current weather.</p>
+            )}
+
+            {data && (
+              <div className="resultCard">
+                <h2 style={{ marginTop: 0 }}>
+                  {data.name} — {Math.round(data.main.temp)}°F
+                </h2>
+                <p>
+                  <strong>Conditions:</strong> {data.weather?.[0]?.description}
+                </p>
+                <p>
+                  <strong>Feels like:</strong> {Math.round(data.main.feels_like)}°F
+                </p>
+                <p>
+                  <strong>Humidity:</strong> {data.main.humidity}%
+                </p>
+                <p>
+                  <strong>Wind:</strong> {Math.round(data.wind.speed)} mph
+                </p>
+              </div>
+            )}
+          </section>
         </div>
-      )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

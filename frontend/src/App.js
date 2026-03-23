@@ -5,9 +5,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { ensureUserDoc } from "./utils/ensureUserDoc";
 
-import NavBar from "./components/NavBar";
-
-import Home from "./pages/Home";
+import LandingPage from "./pages/LandingPage";
+import DashboardHomePage from "./pages/DashboardHomePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -20,17 +19,7 @@ import RemindersPage from "./pages/RemindersPage";
 import WeatherPage from "./pages/WeatherPage";
 import PlantDictionaryPage from "./pages/PlantDictionaryPage";
 
-function WithNav({ children }) {
-  return (
-    <>
-      <NavBar />
-      {children}
-    </>
-  );
-}
-
 export default function App() {
-  //Ensure users/{uid} exists for anyone who logs in
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) await ensureUserDoc(user);
@@ -41,103 +30,24 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* PUBLIC PAGES (no NavBar) */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={<DashboardHomePage />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
-        {/* LOGGED-IN / APP PAGES (NavBar visible) */}
-        <Route
-          path="/garden"
-          element={
-            <WithNav>
-              <MyGardenPage />
-            </WithNav>
-          }
-        />
+        <Route path="/garden" element={<MyGardenPage />} />
+        <Route path="/tools/recommendations" element={<PlantRecommendationPage />} />
+        <Route path="/tools/symptoms" element={<SymptomAssessmentPage />} />
+        <Route path="/tools/reminders" element={<RemindersPage />} />
+        <Route path="/tools/weather" element={<WeatherPage />} />
+        <Route path="/weather" element={<WeatherPage />} />
 
-        <Route
-          path="/tools/recommendations"
-          element={
-            <WithNav>
-              <PlantRecommendationPage />
-            </WithNav>
-          }
-        />
+        <Route path="/resources" element={<PlantDictionaryPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/settings" element={<SettingsPage />} />
 
-        <Route
-          path="/tools/symptoms"
-          element={
-            <WithNav>
-              <SymptomAssessmentPage />
-            </WithNav>
-          }
-        />
-
-        <Route
-          path="/tools/reminders"
-          element={
-            <WithNav>
-              <RemindersPage />
-            </WithNav>
-          }
-        />
-
-        <Route
-          path="/weather"
-          element={
-            <WithNav>
-              <WeatherPage />
-            </WithNav>
-          }
-        />
-
-        <Route
-          path="/tools/weather"
-          element={
-            <WithNav>
-              <WeatherPage />
-            </WithNav>
-          }
-        />
-
-        {/* Resources */}
-        <Route
-          path="/resources"
-          element={
-            <WithNav>
-              <PlantDictionaryPage />
-            </WithNav>
-          }
-        />
-
-        {/* Profile */}
-        <Route
-          path="/profile"
-          element={
-            <WithNav>
-              <ProfilePage />
-            </WithNav>
-          }
-        />
-        <Route
-          path="/profile/settings"
-          element={
-            <WithNav>
-              <SettingsPage />
-            </WithNav>
-          }
-        />
-
-        {/* Other */}
-        <Route
-          path="/about"
-          element={
-            <WithNav>
-              <Home />
-            </WithNav>
-          }
-        />
+        <Route path="/about" element={<LandingPage />} />
       </Routes>
     </BrowserRouter>
   );

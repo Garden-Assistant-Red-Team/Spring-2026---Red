@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ToolLayout.css";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function SymptomAssessmentPage() {
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,6 @@ export default function SymptomAssessmentPage() {
   const [query, setQuery] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState(new Set());
 
-  // Keep V1 observations small + helpful
   const [observations, setObservations] = useState({
     soil_moisture: "",
     light_level: "",
@@ -24,7 +24,6 @@ export default function SymptomAssessmentPage() {
 
   const [results, setResults] = useState(null);
 
-  // For nicer "why" labels
   const labelMap = useMemo(() => {
     const map = new Map();
     for (const s of allSymptoms) map.set(s.id, s.label || s.id);
@@ -158,9 +157,11 @@ export default function SymptomAssessmentPage() {
   const canDiagnose = selectedSymptoms.size > 0 && !diagnosing;
 
   return (
-    <div className="toolPage">
-      <h1 className="toolTitle">Plant Symptom Assessment</h1>
-
+    <DashboardLayout
+      title="Plant Symptom Assessment"
+      subtitle="Choose symptoms, answer a few quick questions, and review likely issues."
+      badge={`${selectedSymptoms.size} selected`}
+    >
       <div className="container">
         {error ? (
           <div className="panel" style={{ marginBottom: 16 }}>
@@ -171,7 +172,6 @@ export default function SymptomAssessmentPage() {
         ) : null}
 
         <div className="toolGrid twoCol">
-          {/* LEFT: Inputs */}
           <section className="panel">
             <h2 className="panelTitle">1) Select symptoms</h2>
 
@@ -217,10 +217,18 @@ export default function SymptomAssessmentPage() {
 
             {selectedLabels.length > 0 ? (
               <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: 14,
+                  }}
+                >
                   <h2 className="panelTitle" style={{ margin: 0 }}>
                     Selected
                   </h2>
+
                   <button
                     type="button"
                     onClick={clearAll}
@@ -260,9 +268,9 @@ export default function SymptomAssessmentPage() {
                 value={observations.soil_moisture}
                 onChange={(e) => setObs("soil_moisture", e.target.value)}
               >
-                <option value="">Select…</option>
+                <option value="">Select</option>
                 <option value="dry">Dry</option>
-                <option value="moist">Moist</option>
+                <option value="normal">Normal</option>
                 <option value="wet">Wet</option>
               </select>
             </label>
@@ -273,30 +281,30 @@ export default function SymptomAssessmentPage() {
                 value={observations.light_level}
                 onChange={(e) => setObs("light_level", e.target.value)}
               >
-                <option value="">Select…</option>
+                <option value="">Select</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="bright">Bright</option>
               </select>
             </label>
 
             <Toggle
-              label="Fertilized recently?"
+              label="Fertilized recently"
               value={observations.fertilized_recently}
               onChange={(v) => setObs("fertilized_recently", v)}
             />
             <Toggle
-              label="Low humidity / dry indoor air?"
+              label="Humidity is low"
               value={observations.humidity_low}
               onChange={(v) => setObs("humidity_low", v)}
             />
             <Toggle
-              label="Drafts / vents / temp swings nearby?"
+              label="Drafts / temp fluctuations"
               value={observations.drafts_temp_fluctuations}
               onChange={(v) => setObs("drafts_temp_fluctuations", v)}
             />
             <Toggle
-              label="Poor drainage or water sits in saucer?"
+              label="Poor drainage / water sitting in saucer"
               value={observations.poor_drainage_or_saucer_water}
               onChange={(v) => setObs("poor_drainage_or_saucer_water", v)}
             />
@@ -306,7 +314,7 @@ export default function SymptomAssessmentPage() {
               type="button"
               onClick={runDiagnosis}
               disabled={!canDiagnose}
-              style={{ marginTop: 16, width: "100%" }}
+              style={{ marginTop: 14 }}
             >
               {diagnosing ? "Diagnosing…" : "Diagnose"}
             </button>
@@ -316,7 +324,6 @@ export default function SymptomAssessmentPage() {
             </p>
           </section>
 
-          {/* RIGHT: Results */}
           <section className="panel">
             <h2 className="panelTitle">3) Results</h2>
 
@@ -342,20 +349,21 @@ export default function SymptomAssessmentPage() {
                         <div className="confFill" style={{ width: `${pct}%` }} />
                       </div>
 
-                      {/* Explain "why" using labels instead of ids */}
                       <div className="pills" style={{ marginTop: 10 }}>
                         {(r.because?.matchedRequired || []).map((id) => (
-                          <div key={"req-" + id} className="pill">
+                          <div key={`req-${id}`} className="pill">
                             <span>Required: {labelMap.get(id) || id}</span>
                           </div>
                         ))}
+
                         {(r.because?.matchedSupporting || []).map((id) => (
-                          <div key={"sup-" + id} className="pill">
+                          <div key={`sup-${id}`} className="pill">
                             <span>Matched: {labelMap.get(id) || id}</span>
                           </div>
                         ))}
+
                         {(r.because?.matchedContradictions || []).map((id) => (
-                          <div key={"con-" + id} className="pill">
+                          <div key={`con-${id}`} className="pill">
                             <span>Contradiction: {labelMap.get(id) || id}</span>
                           </div>
                         ))}
@@ -390,7 +398,7 @@ export default function SymptomAssessmentPage() {
           </section>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 
