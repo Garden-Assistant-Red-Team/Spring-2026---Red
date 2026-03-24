@@ -7,7 +7,9 @@ const db = admin.firestore();
 // Weather adjustment helpers
 const {
   pauseOutdoorPlantsForFrost,
-  increaseWateringForHeat
+  increaseWateringForHeat,
+  // helper for heavy rain
+  adjustWateringRemindersForRain
 } = require('./autoReminders');
 const { saveWeatherAlerts, buildWeatherAlerts } = require('./alerts');
 
@@ -22,7 +24,6 @@ const THRESHOLDS = {
 router.get("/", async (req, res) => {
   const { city } = req.query;
 
-  // If no API key, return placeholder
   if (!process.env.OPENWEATHER_API_KEY) {
     return res.json({
       placeholder: true,
@@ -30,7 +31,8 @@ router.get("/", async (req, res) => {
       temp: 72,
       condition: "Clear",
       humidity: 50,
-message: "No OPENWEATHER_API_KEY set. Returning placeholder weather."    });
+      message: "No OPENWEATHER_API_KEY set. Returning placeholder weather."
+    });
   }
 
   try {
@@ -53,6 +55,37 @@ message: "No OPENWEATHER_API_KEY set. Returning placeholder weather."    });
   }
 });
 
+// helper: Adjust watering reminders for heavy rain
+async function adjustWateringRemindersForRain(uid) {
+  const now = admin.firestore.Timestamp.now();
+  const remindersSnap = await db
+    .collection('users').doc(uid)
+    .collection('reminders')
+    .where('type', '==', 'water')
+    .where('status', '==', 'pending')
+    .get();
+
+  if (remindersSnap.empty) return 0;
+
+  const batch = db.batch();
+  remindersSnap.docs.forEach(doc => {
+    const reminder = doc.data();
+    // Push due date by 1 day
+    const newDue = reminder.dueAt.toDate();
+    newDue.setDate(newDue.getDate() + 1);
+
+    batch.update(doc.ref, {
+      dueAt: admin.firestore.Timestamp.fromDate(newDue),
+      updatedAt: now,
+      skipReason: 'heavyRain'
+    });
+  });
+
+  await batch.commit();
+  return remindersSnap.size;
+}
+
+// USER WEATHER CHECK
 router.get("/users/:uid/check", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -67,77 +100,50 @@ router.get("/users/:uid/check", async (req, res) => {
     const settings = userData.settings;
     const weatherMeta = userData.weather;
 
-    // If weather is disabled, returned cached weather data
     if (!settings?.weatherEnabled) {
       return res.json({
         message: "Weather is disabled by user",
         weather: weatherMeta
       });
     }
-      const now = Date.now();
-      const nextAllowed = weatherMeta?.nextAllowedCheckAt?.toMillis?.() || 0;
 
-      // check TTL policy
-      if (settings.weatherRefreshPolicy === "ttl" && now < nextAllowed) {
-        return res.json({
-          message: "Using cached weather data",
-          weather: weatherMeta
-        });
-      }
+    const now = Date.now();
+    const nextAllowed = weatherMeta?.nextAllowedCheckAt?.toMillis?.() || 0;
 
-      // check if api key
-      if(!process.env.OPENWEATHER_API_KEY) {
-        return res.json({
-         error: "No OPENWEATHER_API_KEY set"
-        });
-      }
+    if (settings.weatherRefreshPolicy === "ttl" && now < nextAllowed) {
+      return res.json({
+        message: "Using cached weather data",
+        weather: weatherMeta
+      });
+    }
 
-      const zip = userData.zipCode || "Norfolk";
-      const apiKey = process.env.OPENWEATHER_API_KEY;
+    if(!process.env.OPENWEATHER_API_KEY) {
+      return res.json({ error: "No OPENWEATHER_API_KEY set" });
+    }
 
-      // Using forecast endpoint so we can calculate rain
-      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
+    const zip = userData.zipCode || "Norfolk";
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
+    const response = await axios.get(url);
+    const forecast = response.data;
 
-      const response = await axios.get(url);
-      const forecast = response.data;
+    const rainNext12hMm = forecast.list.slice(0, 4).reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+    const rainNext24hMm = forecast.list.slice(0, 8).reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+    const temp = forecast.list[0].main.temp;
 
-      // Calculate rain in next 12 hours (4 x 3-hour blocks)
-      const rainNext12hMm = forecast.list
-        .slice(0, 4)
-        .reduce((sum, entry) => {
-          return sum + (entry.rain?.["3h"] || 0);
-        }, 0);
+    const ttlMinutes = settings.weatherTTLMinutes || 180;
+    const ttlMs = ttlMinutes * 60 * 1000;
 
-      // Calculate rain in next 24 hours (8 x 3-hour blocks)
-      const rainNext24hMm = forecast.list
-      .slice(0, 8)
-      .reduce((sum, entry) => {
-        return sum + (entry.rain?.["3h"] || 0);
-      }, 0);
-
-      const temp = forecast.list[0].main.temp;
-
-      const ttlMinutes = settings.weatherTTLMinutes || 180;
-      const ttlMs = ttlMinutes * 60 * 1000;
-
-      const updatedWeather = {
+    const updatedWeather = {
       lastCheckedAt: admin.firestore.Timestamp.now(),
-      nextAllowedCheckAt:
-        admin.firestore.Timestamp.fromMillis(now + ttlMs),
-      lastResultSummary: {
-        rainNext12hMm,
-        rainNext24hMm,
-        temp
-      },
+      nextAllowedCheckAt: admin.firestore.Timestamp.fromMillis(now + ttlMs),
+      lastResultSummary: { rainNext12hMm, rainNext24hMm, temp },
       source: "openweather"
     };
 
     await userRef.update({ weather: updatedWeather });
 
-    return res.json({
-      message: "Weather refreshed",
-      weather: updatedWeather
-    });
+    return res.json({ message: "Weather refreshed", weather: updatedWeather });
 
   } catch (err) {
     console.error("Weather check error:", err);
@@ -145,21 +151,16 @@ router.get("/users/:uid/check", async (req, res) => {
   }
 });
 
-
+// LOGIN WEATHER CHECK
 router.post("/users/:uid/login-check", async (req, res) => {
   try {
     const { uid } = req.params;
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
-
-    if (!userSnap.exists) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
 
     const userData = userSnap.data();
     const settings = userData.settings;
-
-    // If weather or auto-adjust is disabled, do nothing
     if (!settings?.weatherEnabled || !settings?.careAutoAdjustEnabled) {
       return res.json({ message: "Weather or auto-adjust disabled, skipping" });
     }
@@ -169,33 +170,22 @@ router.post("/users/:uid/login-check", async (req, res) => {
     const nextAllowed = weatherMeta?.nextAllowedCheckAt?.toMillis?.() || 0;
 
     let weather;
-
-    // Use cached weather if still fresh
     if (settings.weatherRefreshPolicy === "ttl" && now < nextAllowed) {
       weather = weatherMeta.lastResultSummary;
-      console.log(`[Login Check] ${uid} — using cached weather`);
     } else {
-      // Fetch fresh weather
-      if (!process.env.OPENWEATHER_API_KEY) {
-        return res.json({ error: "No OPENWEATHER_API_KEY set" });
-      }
-
       const zip = userData.zipCode || "Norfolk";
       const apiKey = process.env.OPENWEATHER_API_KEY;
       const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
       const response = await axios.get(url);
       const forecast = response.data;
 
-      const rainNext12hMm = forecast.list.slice(0, 4)
-        .reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
-      const rainNext24hMm = forecast.list.slice(0, 8)
-        .reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+      const rainNext12hMm = forecast.list.slice(0, 4).reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
+      const rainNext24hMm = forecast.list.slice(0, 8).reduce((sum, e) => sum + (e.rain?.["3h"] || 0), 0);
       const temp = forecast.list[0].main.temp;
       const condition = forecast.list[0].weather?.[0]?.main || "Unknown";
 
       weather = { temp, condition, rainNext12hMm, rainNext24hMm };
 
-      // Cache result
       const ttlMs = (settings.weatherTTLMinutes || 180) * 60 * 1000;
       await userRef.update({
         "weather.lastCheckedAt": admin.firestore.Timestamp.now(),
@@ -203,106 +193,73 @@ router.post("/users/:uid/login-check", async (req, res) => {
         "weather.lastResultSummary": weather,
         "weather.source": "openweather"
       });
-
-      console.log(`[Login Check] ${uid} — fresh weather fetched`);
     }
 
-    // Evaluate conditions
     const conditions = {
       isFrost: weather.temp <= THRESHOLDS.frost,
       isHeat: weather.temp >= THRESHOLDS.heat,
       isHeavyRain: weather.rainNext12hMm >= THRESHOLDS.heavyRainMm
     };
 
-
-   // Adjust reminders
-// Heavy rain — alert only, user decides whether to skip
-const results = {};
-if (conditions.isFrost) {
-  results.pausedForFrost = await pauseOutdoorPlantsForFrost(uid);
-}
-if (conditions.isHeat) {
-  results.adjustedForHeat = await increaseWateringForHeat(uid);
-}
+    // Adjust reminders
+    const results = {};
+    if (conditions.isFrost) results.pausedForFrost = await pauseOutdoorPlantsForFrost(uid);
+    if (conditions.isHeat) results.adjustedForHeat = await increaseWateringForHeat(uid);
+    if (conditions.isHeavyRain) results.delayedForRain = await adjustWateringRemindersForRain(uid);
 
     // Save alerts
     const alerts = buildWeatherAlerts(conditions, weather);
     await saveWeatherAlerts(uid, alerts);
 
-    return res.json({
-      message: "Login weather check complete",
-      weather,
-      conditions,
-      adjustments: results
-    });
-
+    return res.json({ message: "Login weather check complete", weather, conditions, adjustments: results });
   } catch (err) {
     console.error("Login weather check error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
 
-
-// ── DAILY WEATHER CHECK — called by cron job in server.js ────
+// DAILY WEATHER CHECK
 async function runDailyWeatherCheck() {
   console.log('[Weather Job] Starting daily weather check...');
 
   const usersSnap = await db.collection('users').get();
-  if (usersSnap.empty) {
-    console.log('[Weather Job] No users found.');
-    return;
-  }
+  if (usersSnap.empty) return;
 
   await Promise.all(usersSnap.docs.map(async (userDoc) => {
     const uid = userDoc.id;
     const zip = userDoc.data().zipCode;
-
-    if (!zip) {
-      console.log(`[Weather Job] Skipping ${uid} — no zip code`);
-      return;
-    }
+    if (!zip) return;
 
     try {
       const apiKey = process.env.OPENWEATHER_API_KEY;
       if (!apiKey) throw new Error('OPENWEATHER_API_KEY not set');
 
-      // Fetch forecast
       const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(zip)}&appid=${apiKey}&units=imperial`;
       const response = await axios.get(url);
       const forecast = response.data;
 
-      // Calculate rain
-      const rainNext12hMm = forecast.list.slice(0, 4)
-        .reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
-      const rainNext24hMm = forecast.list.slice(0, 8)
-        .reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
+      const rainNext12hMm = forecast.list.slice(0, 4).reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
+      const rainNext24hMm = forecast.list.slice(0, 8).reduce((sum, e) => sum + (e.rain?.['3h'] || 0), 0);
       const temp = forecast.list[0].main.temp;
       const condition = forecast.list[0].weather?.[0]?.main || 'Unknown';
 
       const weather = { temp, condition, rainNext12hMm, rainNext24hMm };
-
-      // Evaluate conditions
       const conditions = {
         isFrost:     temp <= THRESHOLDS.frost,
         isHeat:      temp >= THRESHOLDS.heat,
         isHeavyRain: rainNext12hMm >= THRESHOLDS.heavyRainMm
       };
 
-      console.log(
-        `[Weather Job] ${uid} | ${zip} | ${temp}°F | ` +
-        `frost:${conditions.isFrost} heat:${conditions.isHeat} rain:${conditions.isHeavyRain}`
-      );
-
-      // Save alerts to Firestore
+      // Save alerts
       const alerts = buildWeatherAlerts(conditions, weather);
       await saveWeatherAlerts(uid, alerts);
 
-     // Adjust reminders based on conditions
-// Heavy rain — alert only, user decides whether to skip
-if (conditions.isFrost) await pauseOutdoorPlantsForFrost(uid);
-if (conditions.isHeat)  await increaseWateringForHeat(uid);
+      // Adjust reminders
+      if (conditions.isFrost) await pauseOutdoorPlantsForFrost(uid);
+      if (conditions.isHeat) await increaseWateringForHeat(uid);
+      if (conditions.isHeavyRain) await adjustWateringRemindersForRain(uid);
 
-      // Cache result on user doc
+      // Cache result
       await db.collection('users').doc(uid).update({
         'weather.lastCheckedAt': admin.firestore.Timestamp.now(),
         'weather.lastResultSummary': {
