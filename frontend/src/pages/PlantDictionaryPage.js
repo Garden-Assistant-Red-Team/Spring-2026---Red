@@ -156,38 +156,51 @@ export default function PlantDictionaryPage() {
     .filter(Boolean)
     .join(" ");
 
+  const budgetQuery = [selected?.commonName, "live plant"]
+    .filter(Boolean)
+    .join(" ");
+
+  const treeQuery = [selected?.commonName || selected?.scientificName, "tree"]
+    .filter(Boolean)
+    .join(" ");
+
   const encodedCommonQuery = encodeURIComponent(commonQuery);
   const encodedBroadQuery = encodeURIComponent(broadQuery || commonQuery);
+  const encodedBudgetQuery = encodeURIComponent(budgetQuery || commonQuery);
+  const encodedTreeQuery = encodeURIComponent(treeQuery || commonQuery);
 
-  const shoppingLinks = commonQuery
+  const shoppingCards = commonQuery
     ? [
       {
-        label: "Home Depot",
-        url: `https://www.homedepot.com/s/${encodedCommonQuery}`,
-      },
-      {
-        label: "Lowe's",
-        url: `https://www.lowes.com/search?searchTerm=${encodedCommonQuery}`,
-      },
-      {
-        label: "Google Shopping",
+        label: "Best Overall",
+        store: "Google Shopping",
+        description: "Compare results across multiple stores first.",
+        tag: "Compare prices",
         url: `https://www.google.com/search?tbm=shop&q=${encodedBroadQuery}`,
       },
       {
-        label: "Bloomscape",
-        url: `https://bloomscape.com/search?type=product&q=${encodedCommonQuery}`,
+        label: "Budget Pick",
+        store: "Home Depot",
+        description: "Good for common plants and practical pricing.",
+        tag: "Budget friendly",
+        url: `https://www.homedepot.com/s/${encodedBudgetQuery}`,
       },
       {
-        label: "FastGrowingTrees",
-        url: `https://www.fast-growing-trees.com/search?type=product&q=${encodedCommonQuery}`,
+        label: "Also Check",
+        store: "Lowe's",
+        description: "Another solid big-store option for common plants.",
+        tag: "Big box store",
+        url: `https://www.lowes.com/search?searchTerm=${encodedBudgetQuery}`,
       },
       {
-        label: "Costa Farms",
-        url: `https://costafarms.com/search?q=${encodedCommonQuery}&type=product`,
+        label: "Trees & Shrubs",
+        store: "FastGrowingTrees",
+        description: "Usually better for outdoor plants, trees, and shrubs.",
+        tag: "Outdoor focus",
+        url: `https://www.fast-growing-trees.com/collections/shop?type=collection&q=${encodedTreeQuery}`,
       },
     ]
     : [];
-
   return (
     <DashboardLayout
       title="Resources"
@@ -420,45 +433,26 @@ export default function PlantDictionaryPage() {
                       borderTop: "1px solid #d9e4d7",
                     }}
                   >
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        marginBottom: 6,
-                      }}
-                    >
-                      Where to Buy
-                    </div>
+                    <div style={{ fontWeight: 700, marginBottom: 6 }}>Buy This Plant</div>
 
-                    <div
-                      className="muted"
-                      style={{ marginBottom: 10, fontSize: 13 }}
-                    >
-                      Search this plant across a few popular stores.
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 10,
-                      }}
-                    >
-                      {shoppingLinks.map((link) => (
+                    <div className="shoppingCardGrid">
+                      {shoppingCards.map((card) => (
                         <a
-                          key={link.label}
-                          href={link.url}
+                          key={card.store}
+                          href={card.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="secondaryBtn"
-                          style={{
-                            textDecoration: "none",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            minWidth: 140,
-                          }}
+                          className="shoppingCard"
                         >
-                          {link.label}
+                          <div className="shoppingCardTop">
+                            <span className="shoppingCardLabel">{card.label}</span>
+                            <span className="shoppingCardTag">{card.tag}</span>
+                          </div>
+
+                          <div className="shoppingCardStore">{card.store}</div>
+                          <div className="shoppingCardDescription">{card.description}</div>
+
+                          <div className="shoppingCardAction">Search store ↗</div>
                         </a>
                       ))}
                     </div>

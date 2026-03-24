@@ -1786,3 +1786,78 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+.shoppingCardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.shoppingCard {
+  display: block;
+  text-decoration: none;
+  background: #f8fbf7;
+  border: 1px solid #d9e4d7;
+  border-radius: 14px;
+  padding: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  color: inherit;
+}
+
+.shoppingCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border-color: #bdd3bb;
+}
+
+.shoppingCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.shoppingCardLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2f5d3a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.shoppingCardTag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #5f6f60;
+  background: #e9f3e8;
+  border: 1px solid #d2e3d0;
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.shoppingCardStore {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #213126;
+  margin-bottom: 6px;
+}
+
+.shoppingCardDescription {
+  font-size: 0.92rem;
+  color: #55645a;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.shoppingCardAction {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2f5d3a;
+}
+
+@media (min-width: 700px) {
+  .shoppingCardGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
