@@ -19,6 +19,19 @@ export default function RemindersPage() {
   const [plantId, setPlantId] = useState("");
   const [frequency, setFrequency] = useState("weekly");
 
+
+  async function authFetch(url, options = {}) {
+    const token = await auth.currentUser.getIdToken();
+    return fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+        "Authorization": `Bearer ${token}`
+      }
+    });
+  }
+
   function toDate(dueAtValue) {
     if (!dueAtValue) return null;
     if (dueAtValue instanceof Date) return dueAtValue;
@@ -110,7 +123,7 @@ export default function RemindersPage() {
     setError("");
     try {
       const uid = auth.currentUser.uid;
-      const res = await fetch(`${API_BASE}/api/reminders/${uid}`);
+      const res = await authFetch(`${API_BASE}/api/reminders/${uid}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to load reminders");
       setReminders(Array.isArray(data) ? data : []);
@@ -126,7 +139,7 @@ export default function RemindersPage() {
 
     try {
       const uid = auth.currentUser.uid;
-      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`);
+      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to load plants");
       setPlants(Array.isArray(data) ? data : []);
@@ -159,7 +172,7 @@ export default function RemindersPage() {
     try {
       const uid = auth.currentUser.uid;
 
-      const res = await fetch(`${API_BASE}/api/reminders/${uid}`, {
+      const res = await authFetch(`${API_BASE}/api/reminders/${uid}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,7 +208,7 @@ export default function RemindersPage() {
     const body = { status };
     if (occurrenceDueAtISO) body.occurrenceDueAt = occurrenceDueAtISO;
 
-    const res = await fetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
+    const res = await authFetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -211,7 +224,7 @@ export default function RemindersPage() {
     if (!auth.currentUser) return;
 
     const uid = auth.currentUser.uid;
-    const res = await fetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
+    const res = await authFetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
       method: "DELETE",
     });
 

@@ -11,6 +11,18 @@ import { auth, db } from "../firebase";
 const API_BASE = "http://localhost:5000";
 const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
+async function authFetch(url, options = {}) {
+  const token = await auth.currentUser.getIdToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+      "Authorization": `Bearer ${token}`
+    }
+  });
+}
+
 function formatDayLabel(date) {
   return date.toLocaleDateString("en-US", { weekday: "short" });
 }
@@ -123,7 +135,7 @@ export default function MyGardenPage() {
       setSavedError("");
 
       const uid = auth.currentUser.uid;
-      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`);
+      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -151,7 +163,7 @@ export default function MyGardenPage() {
       setChecklistError("");
 
       const uid = auth.currentUser.uid;
-      const res = await fetch(`${API_BASE}/api/checklist/${uid}`);
+      const res = await authFetch(`${API_BASE}/api/checklist/${uid}`);
       const data = await res.json();
 
       if (!res.ok) throw new Error(data?.error || "Failed to load checklist");
@@ -193,7 +205,7 @@ export default function MyGardenPage() {
       `${zipCode},US`
     )}&appid=${WEATHER_API_KEY}&units=imperial`;
 
-    const res = await fetch(url);
+    const res = await authFetch(url);
     const json = await res.json();
 
     if (!res.ok) {
@@ -226,7 +238,7 @@ export default function MyGardenPage() {
       plantInstanceId: selectedPlantId || null,
     };
 
-    const res = await fetch(`${API_BASE}/api/checklist/${uid}`, {
+    const res = await authFetch(`${API_BASE}/api/checklist/${uid}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -246,7 +258,7 @@ export default function MyGardenPage() {
     if (!auth.currentUser) return;
 
     const uid = auth.currentUser.uid;
-    const res = await fetch(`${API_BASE}/api/checklist/${uid}/${itemId}`, {
+    const res = await authFetch(`${API_BASE}/api/checklist/${uid}/${itemId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ done }),
@@ -265,7 +277,7 @@ export default function MyGardenPage() {
     if (!auth.currentUser) return;
 
     const uid = auth.currentUser.uid;
-    const res = await fetch(`${API_BASE}/api/checklist/${uid}/${itemId}`, {
+    const res = await authFetch(`${API_BASE}/api/checklist/${uid}/${itemId}`, {
       method: "DELETE",
     });
 
@@ -310,7 +322,7 @@ export default function MyGardenPage() {
 
       try {
         const uid = auth.currentUser.uid;
-        const res = await fetch(`${API_BASE}/api/recommendations?uid=${uid}`);
+        const res = await authFetch(`${API_BASE}/api/recommendations?uid=${uid}`);
         const data = await res.json();
 
         if (!res.ok) throw new Error(data?.error || "Failed to load recommendations");
@@ -357,7 +369,7 @@ export default function MyGardenPage() {
         photoUrl: p.photoUrl || null,
       };
 
-      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`, {
+      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -391,7 +403,7 @@ export default function MyGardenPage() {
     try {
       const uid = auth.currentUser.uid;
 
-      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}`, {
+      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}`, {
         method: "DELETE",
       });
 
@@ -424,7 +436,7 @@ export default function MyGardenPage() {
 
     const uid = auth.currentUser.uid;
 
-    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes`, {
+    const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -451,7 +463,7 @@ export default function MyGardenPage() {
 
     const uid = auth.currentUser.uid;
 
-    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+    const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -476,7 +488,7 @@ export default function MyGardenPage() {
 
     const uid = auth.currentUser.uid;
 
-    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
+    const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}/notes/${index}`, {
       method: "DELETE",
     });
 
@@ -829,7 +841,11 @@ export default function MyGardenPage() {
                         <span className="tag">
                           Zones {selectedPlant.minZone ?? "?"}–{selectedPlant.maxZone ?? "?"}
                         </span>
-                        {selectedPlant.sunlight && <span className="tag">{selectedPlant.sunlight}</span>}
+                        {selectedPlant.sunlight && <span className="tag">
+                          {typeof selectedPlant.sunlight === "object"
+                            ? selectedPlant.sunlight.light
+                            : selectedPlant.sunlight}
+                        </span>}
                         {selectedPlant.wateringFrequency && (
                           <span className="tag">{selectedPlant.wateringFrequency}</span>
                         )}
