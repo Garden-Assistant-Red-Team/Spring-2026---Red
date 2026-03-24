@@ -56,6 +56,7 @@ router.get("/", async (req, res) => {
 });
 
 // helper: Adjust watering reminders for heavy rain
+/*
 async function adjustWateringRemindersForRain(uid) {
   const now = admin.firestore.Timestamp.now();
   const remindersSnap = await db
@@ -84,6 +85,7 @@ async function adjustWateringRemindersForRain(uid) {
   await batch.commit();
   return remindersSnap.size;
 }
+*/
 
 // USER WEATHER CHECK
 router.get("/users/:uid/check", async (req, res) => {
