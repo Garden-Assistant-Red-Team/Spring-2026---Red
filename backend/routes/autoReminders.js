@@ -2,7 +2,6 @@ const admin = require('firebase-admin');
 
 const db = admin.firestore();
 
-
 // Auto-create care reminders when a plant is added to a user's garden
 async function createPlantReminders(uid, plantInstanceId, catalogData) {
   const now = admin.firestore.FieldValue.serverTimestamp();
@@ -61,7 +60,11 @@ async function createPlantReminders(uid, plantInstanceId, catalogData) {
 
   await batch.commit();
 }
-// Skip today's watering reminders (heavy rain)
+
+// ── USER-TRIGGERED ONLY: Skip a watering reminder ────────────
+// Not called automatically by the weather job.
+// The weather job sends a heavy rain ALERT instead,
+// and the user decides whether to skip using this function.
 async function skipTodayWateringReminders(uid) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -83,7 +86,7 @@ async function skipTodayWateringReminders(uid) {
   snap.docs.forEach(doc => {
     batch.update(doc.ref, {
       status: 'skipped',
-      skipReason: 'heavyRain',
+      skipReason: 'userDecision',
       updatedAt: admin.firestore.Timestamp.now()
     });
   });
@@ -91,7 +94,7 @@ async function skipTodayWateringReminders(uid) {
   return snap.size;
 }
 
-// NEW: Pause outdoor plants + reminders (frost)
+// Pause outdoor plants + reminders (frost)
 async function pauseOutdoorPlantsForFrost(uid) {
   const now = admin.firestore.Timestamp.now();
 
@@ -135,7 +138,7 @@ async function pauseOutdoorPlantsForFrost(uid) {
   return plantsSnap.size;
 }
 
-//  Shorten watering interval by 1 day (heat)
+// Shorten watering interval by 1 day (heat)
 async function increaseWateringForHeat(uid) {
   const now = admin.firestore.Timestamp.now();
 

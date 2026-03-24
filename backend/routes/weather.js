@@ -6,7 +6,6 @@ const db = admin.firestore();
 
 // Weather adjustment helpers
 const {
-  skipTodayWateringReminders,
   pauseOutdoorPlantsForFrost,
   increaseWateringForHeat
 } = require('./autoReminders');
@@ -215,17 +214,16 @@ router.post("/users/:uid/login-check", async (req, res) => {
       isHeavyRain: weather.rainNext12hMm >= THRESHOLDS.heavyRainMm
     };
 
-    // Adjust reminders
-    const results = {};
-    if (conditions.isHeavyRain) {
-      results.skippedWatering = await skipTodayWateringReminders(uid);
-    }
-    if (conditions.isFrost) {
-      results.pausedForFrost = await pauseOutdoorPlantsForFrost(uid);
-    }
-    if (conditions.isHeat) {
-      results.adjustedForHeat = await increaseWateringForHeat(uid);
-    }
+
+   // Adjust reminders
+// Heavy rain — alert only, user decides whether to skip
+const results = {};
+if (conditions.isFrost) {
+  results.pausedForFrost = await pauseOutdoorPlantsForFrost(uid);
+}
+if (conditions.isHeat) {
+  results.adjustedForHeat = await increaseWateringForHeat(uid);
+}
 
     // Save alerts
     const alerts = buildWeatherAlerts(conditions, weather);
@@ -299,10 +297,10 @@ async function runDailyWeatherCheck() {
       const alerts = buildWeatherAlerts(conditions, weather);
       await saveWeatherAlerts(uid, alerts);
 
-      // Adjust reminders based on conditions
-      if (conditions.isHeavyRain) await skipTodayWateringReminders(uid);
-      if (conditions.isFrost)     await pauseOutdoorPlantsForFrost(uid);
-      if (conditions.isHeat)      await increaseWateringForHeat(uid);
+     // Adjust reminders based on conditions
+// Heavy rain — alert only, user decides whether to skip
+if (conditions.isFrost) await pauseOutdoorPlantsForFrost(uid);
+if (conditions.isHeat)  await increaseWateringForHeat(uid);
 
       // Cache result on user doc
       await db.collection('users').doc(uid).update({

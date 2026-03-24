@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
-
+const { requireAuth } = require('../middleware/auth');
+const { skipTodayWateringReminders } = require('./autoReminders');
 const db = admin.firestore();
 
 // GET /api/reminders/:uid — get all reminders for a user
-router.get('/:uid', async (req, res) => {
+router.get('/:uid', requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const snapshot = await db
       .collection('users')
@@ -25,7 +29,10 @@ router.get('/:uid', async (req, res) => {
 });
 
 // POST /api/reminders/:uid — create a manual reminder
-router.post('/:uid', async (req, res) => {
+router.post('/:uid', requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const {
       plantInstanceId,
@@ -33,7 +40,7 @@ router.post('/:uid', async (req, res) => {
       title,
       dueAt,
       recurrence,
-      frequency, 
+      frequency,
     } = req.body;
 
    
@@ -93,12 +100,15 @@ router.post('/:uid', async (req, res) => {
 });
 
 // PATCH /api/reminders/:uid/:reminderId — update reminder status / occurrence completion
-router.patch('/:uid/:reminderId', async (req, res) => {
+router.patch('/:uid/:reminderId', requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { status, occurrenceDueAt } = req.body;
 
-    if (!['pending', 'done', 'skipped'].includes(status)) {
-      return res.status(400).json({ error: 'status must be pending, done, or skipped' });
+    if (!['pending', 'done', 'skipped', 'paused'].includes(status)) {
+      return res.status(400).json({ error: 'status must be pending, done, skipped, or paused' });
     }
 
     const uid = req.params.uid;
@@ -138,6 +148,7 @@ router.patch('/:uid/:reminderId', async (req, res) => {
         patch.lastCompletedAt = admin.firestore.Timestamp.fromDate(occDate);
       } else if (status === "skipped") {
         patch.lastSkippedAt = admin.firestore.Timestamp.fromDate(occDate);
+        patch.skipReason = 'userDecision';
       }
 
       await ref.update(patch);
@@ -159,7 +170,10 @@ router.patch('/:uid/:reminderId', async (req, res) => {
 });
 
 // DELETE /api/reminders/:uid/:reminderId — delete a reminder
-router.delete('/:uid/:reminderId', async (req, res) => {
+router.delete('/:uid/:reminderId', requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     await db
       .collection('users')
@@ -175,4 +189,20 @@ router.delete('/:uid/:reminderId', async (req, res) => {
   }
 });
 
+// PATCH /api/reminders/:uid/skip-watering-today
+// User-triggered skip after seeing heavy rain alert
+router.patch('/:uid/skip-watering-today', requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const skipped = await skipTodayWateringReminders(req.params.uid);
+    return res.json({
+      message: `Skipped ${skipped} watering reminder(s) for today`,
+      skipped
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = router;
