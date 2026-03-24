@@ -47,12 +47,14 @@ function buildSearchTokens(obj, q) {
     const s = norm(str);
     if (!s) return;
     tokens.add(s);
-    s.split(/[^a-z0-9]+/g).forEach(w => w && tokens.add(w));
+    s.split(/[^a-z0-9]+/g).forEach((w) => {
+      if (w) tokens.add(w);
+    });
   };
 
-  add(obj.common_name);
-  add(obj.scientific_name);
-  add(obj.slug);
+  add(obj?.common_name);
+  add(obj?.scientific_name);
+  add(obj?.slug);
   if (q) add(q);
 
   return Array.from(tokens).slice(0, 60);
@@ -62,6 +64,15 @@ function getToken() {
   const t = process.env.TREFLE_TOKEN;
   if (!t) throw new Error("Missing TREFLE_TOKEN");
   return t;
+}
+
+function isQuotaExceededError(err) {
+  const msg = String(err?.message || err || "");
+  return (
+    err?.code === 8 ||
+    msg.includes("RESOURCE_EXHAUSTED") ||
+    msg.includes("Quota exceeded")
+  );
 }
 
 async function trefleGET(pathOrUrl) {
@@ -75,7 +86,11 @@ async function trefleGET(pathOrUrl) {
   url.searchParams.set("token", token);
 
   const r = await fetch(url.toString());
-  if (!r.ok) throw new Error(`Trefle error ${r.status}`);
+  if (!r.ok) {
+    const txt = await r.text().catch(() => "");
+    throw new Error(`Trefle error ${r.status}${txt ? `: ${txt}` : ""}`);
+  }
+
   return r.json();
 }
 
@@ -111,39 +126,79 @@ async function getCareOverride(docId) {
   return snap.exists ? snap.data() : null;
 }
 
-// GET /api/catalog/search?q=basil&limit=1
 router.get("/search", async (req, res) => {
   try {
     const q = norm(req.query.q);
-    if (!q) return res.json([]);
-
-    const limit = Math.min(parseInt(req.query.limit || "10"), 15);
-
-    // DB-first lookup
-    let snap = await db.collection("plantCatalog")
-      .where("searchTokens", "array-contains", q)
-      .limit(20)
-      .get();
-
-    if (!snap.empty) {
-      return res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    if (!q) {
+      return res.json([]);
     }
 
-    // Prefer species search
+    const parsedLimit = parseInt(req.query.limit || "10", 10);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), 15)
+      : 10;
+
+    let firestoreQuotaExceeded = false;
+
+    console.log("[catalog/search] start", { q, limit });
+
+    // 1) Try Firestore cache first
+    if (!firestoreQuotaExceeded) {
+      try {
+        console.log("[catalog/search] trying Firestore cache lookup");
+        const snap = await db
+          .collection("plantCatalog")
+          .where("searchTokens", "array-contains", q)
+          .limit(20)
+          .get();
+
+        if (!snap.empty) {
+          console.log("[catalog/search] returning cached Firestore results");
+          return res.json(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        }
+
+        console.log("[catalog/search] no cached Firestore results");
+      } catch (err) {
+        if (isQuotaExceededError(err)) {
+          firestoreQuotaExceeded = true;
+          console.warn(
+            "[catalog/search] Firestore quota exceeded during initial lookup; switching to live mode"
+          );
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    // 2) Search Trefle
+    console.log("[catalog/search] searching Trefle species");
     let resp = await speciesSearch(q);
     let items = resp?.data || [];
 
     if (!items.length) {
+      console.log("[catalog/search] species empty, searching Trefle plants");
       resp = await plantSearch(q);
       items = resp?.data || [];
     }
 
     const toImport = items.slice(0, limit);
+    const importedResults = [];
 
+    console.log("[catalog/search] Trefle items selected", toImport.length);
+
+    // 3) Build in-memory results
     for (const item of toImport) {
       const docId = `trefle_${item.id}`;
 
-      const details = await fetchDetails(item);
+      let details = null;
+      try {
+        details = await fetchDetails(item);
+      } catch (err) {
+        console.warn(
+          `[catalog/search] failed to fetch details for ${docId}: ${err.message}`
+        );
+        details = null;
+      }
 
       const growth = details?.growth || null;
       const specs = details?.specifications || null;
@@ -152,7 +207,7 @@ router.get("/search", async (req, res) => {
       const soilHumidity = growth?.soil_humidity ?? null;
 
       const wateringDerived = wateringFromSoilHumidity(soilHumidity);
-      const wateringDays = wateringDerived?.days ?? 5; // fallback
+      const wateringDays = wateringDerived?.days ?? 5;
 
       const minZone = minZoneFromMinTempF(
         growth?.minimum_temperature?.deg_f ?? null
@@ -205,44 +260,76 @@ router.get("/search", async (req, res) => {
         updatedAt: new Date().toISOString(),
       };
 
-      // Apply optional override
-      const override = await getCareOverride(docId);
+      // 4) Optional care override, only while Firestore is usable
+      let override = null;
+      if (!firestoreQuotaExceeded) {
+        try {
+          override = await getCareOverride(docId);
+        } catch (err) {
+          if (isQuotaExceededError(err)) {
+            firestoreQuotaExceeded = true;
+            console.warn(
+              "[catalog/search] Firestore quota exceeded during care override lookup; continuing without override"
+            );
+          } else {
+            throw err;
+          }
+        }
+      }
 
       catalogDoc.careEffective = {
         sunlightCategory:
           override?.sunlightCategory ??
-          catalogDoc.sunlight.category ??
+          catalogDoc?.sunlight?.category ??
           "partial",
 
         wateringEveryDays:
           override?.wateringEveryDays ??
-          catalogDoc.watering.defaultEveryDays ??
+          catalogDoc?.watering?.defaultEveryDays ??
           5,
 
         minZone:
           override?.minZone ??
-          catalogDoc.hardiness.minZone ??
+          catalogDoc?.hardiness?.minZone ??
           null,
 
         source: override ? "override" : "trefle/fallback",
       };
 
-      await db.collection("plantCatalog")
-        .doc(docId)
-        .set(catalogDoc, { merge: true });
+      importedResults.push({
+        id: docId,
+        ...catalogDoc,
+      });
+
+      // 5) Cache write only if Firestore is still usable
+      if (!firestoreQuotaExceeded) {
+        try {
+          await db.collection("plantCatalog").doc(docId).set(catalogDoc, {
+            merge: true,
+          });
+        } catch (err) {
+          if (isQuotaExceededError(err)) {
+            firestoreQuotaExceeded = true;
+            console.warn(
+              "[catalog/search] Firestore quota exceeded during catalog write; returning uncached live results"
+            );
+          } else {
+            throw err;
+          }
+        }
+      }
     }
 
-    // Return newly imported results
-    snap = await db.collection("plantCatalog")
-      .where("searchTokens", "array-contains", q)
-      .limit(20)
-      .get();
-
-    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-
+    console.log("[catalog/search] returning live results", {
+      count: importedResults.length,
+      firestoreQuotaExceeded,
+    });
+    return res.json(importedResults);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("[catalog/search] fatal error:", err);
+    return res.status(500).json({
+      error: err?.message || "Catalog search failed.",
+    });
   }
 });
 

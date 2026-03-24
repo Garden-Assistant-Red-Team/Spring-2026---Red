@@ -20,11 +20,7 @@ function displayName(p) {
 }
 
 function badge(text) {
-  return (
-    <span className="dictionaryBadge">
-      {text}
-    </span>
-  );
+  return <span className="dictionaryBadge">{text}</span>;
 }
 
 async function addToMyGarden(selected) {
@@ -102,7 +98,9 @@ export default function PlantDictionaryPage() {
 
       setStatus("loading");
       try {
-        const url = `/api/catalog/search?q=${encodeURIComponent(q)}&limit=${limit}&details=1`;
+        const url = `/api/catalog/search?q=${encodeURIComponent(
+          q
+        )}&limit=${limit}&details=1`;
         const resp = await fetch(url);
 
         if (!resp.ok) {
@@ -134,7 +132,8 @@ export default function PlantDictionaryPage() {
   const filtered = useMemo(() => {
     return plants.filter((p) => {
       if (sunFilter !== "any") {
-        const s = p?.careEffective?.sunlightCategory || p?.sunlight?.category || null;
+        const s =
+          p?.careEffective?.sunlightCategory || p?.sunlight?.category || null;
         if (s !== sunFilter) return false;
       }
 
@@ -146,6 +145,48 @@ export default function PlantDictionaryPage() {
       return true;
     });
   }, [plants, sunFilter, edibleFilter]);
+
+  const commonQuery =
+    selected?.commonName || selected?.name || selected?.scientificName || "";
+
+  const scientificQuery =
+    selected?.scientificName || selected?.commonName || selected?.name || "";
+
+  const broadQuery = [selected?.commonName, selected?.scientificName]
+    .filter(Boolean)
+    .join(" ");
+
+  const encodedCommonQuery = encodeURIComponent(commonQuery);
+  const encodedBroadQuery = encodeURIComponent(broadQuery || commonQuery);
+
+  const shoppingLinks = commonQuery
+    ? [
+      {
+        label: "Home Depot",
+        url: `https://www.homedepot.com/s/${encodedCommonQuery}`,
+      },
+      {
+        label: "Lowe's",
+        url: `https://www.lowes.com/search?searchTerm=${encodedCommonQuery}`,
+      },
+      {
+        label: "Google Shopping",
+        url: `https://www.google.com/search?tbm=shop&q=${encodedBroadQuery}`,
+      },
+      {
+        label: "Bloomscape",
+        url: `https://bloomscape.com/search?type=product&q=${encodedCommonQuery}`,
+      },
+      {
+        label: "FastGrowingTrees",
+        url: `https://www.fast-growing-trees.com/search?type=product&q=${encodedCommonQuery}`,
+      },
+      {
+        label: "Costa Farms",
+        url: `https://costafarms.com/search?q=${encodedCommonQuery}&type=product`,
+      },
+    ]
+    : [];
 
   return (
     <DashboardLayout
@@ -167,7 +208,10 @@ export default function PlantDictionaryPage() {
 
             <label className="field">
               <span>Sunlight</span>
-              <select value={sunFilter} onChange={(e) => setSunFilter(e.target.value)}>
+              <select
+                value={sunFilter}
+                onChange={(e) => setSunFilter(e.target.value)}
+              >
                 <option value="any">Any</option>
                 <option value="full">Full sun</option>
                 <option value="partial">Partial</option>
@@ -177,7 +221,10 @@ export default function PlantDictionaryPage() {
 
             <label className="field">
               <span>Edible</span>
-              <select value={edibleFilter} onChange={(e) => setEdibleFilter(e.target.value)}>
+              <select
+                value={edibleFilter}
+                onChange={(e) => setEdibleFilter(e.target.value)}
+              >
                 <option value="any">Any</option>
                 <option value="edibleOnly">Edible only</option>
               </select>
@@ -185,7 +232,10 @@ export default function PlantDictionaryPage() {
 
             <label className="field">
               <span>Import limit</span>
-              <select value={limit} onChange={(e) => setLimit(parseInt(e.target.value, 10))}>
+              <select
+                value={limit}
+                onChange={(e) => setLimit(parseInt(e.target.value, 10))}
+              >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
@@ -194,11 +244,13 @@ export default function PlantDictionaryPage() {
           </div>
 
           {status === "loading" && <div className="muted">Loading…</div>}
+
           {status === "error" && (
             <div className="errorText">
               <b>Error:</b> {error}
             </div>
           )}
+
           {status !== "loading" && q && (
             <div className="muted" style={{ marginTop: 10 }}>
               Showing <b>{filtered.length}</b> result(s)
@@ -217,15 +269,17 @@ export default function PlantDictionaryPage() {
               {filtered.map((p) => {
                 const name = displayName(p);
                 const sun =
-                  p?.careEffective?.sunlightCategory || p?.sunlight?.category || "unknown";
-                const water =
-                  p?.careEffective?.wateringEveryDays || p?.watering?.defaultEveryDays || null;
+                  p?.careEffective?.sunlightCategory ||
+                  p?.sunlight?.category ||
+                  "unknown";
+                const water = p?.careEffective?.wateringEveryDays ?? null;
 
                 return (
                   <button
                     key={p.id}
                     onClick={() => setSelected(p)}
-                    className={`dictionaryPlantCard ${selected?.id === p.id ? "active" : ""}`}
+                    className={`dictionaryPlantCard ${selected?.id === p.id ? "active" : ""
+                      }`}
                     type="button"
                   >
                     <div className="dictionaryPlantRow">
@@ -249,7 +303,11 @@ export default function PlantDictionaryPage() {
                         </div>
                         <div className="dictionaryBadgeWrap">
                           {badge(`Sun: ${sun}`)}
-                          {badge(water ? `Water: every ${water} days` : "Water: unknown")}
+                          {badge(
+                            water
+                              ? `Water: every ${water} days`
+                              : "Water: unknown"
+                          )}
                         </div>
                       </div>
                     </div>
@@ -269,11 +327,15 @@ export default function PlantDictionaryPage() {
             {!selected ? (
               <div className="muted">
                 <b>Plant details</b>
-                <p style={{ marginTop: 8 }}>Click a plant card to see details.</p>
+                <p style={{ marginTop: 8 }}>
+                  Click a plant card to see details.
+                </p>
               </div>
             ) : (
               <div>
-                <div className="dictionaryDetailsTitle">{displayName(selected)}</div>
+                <div className="dictionaryDetailsTitle">
+                  {displayName(selected)}
+                </div>
                 <div className="dictionaryDetailsMeta">
                   {selected.scientificName || selected.slug || ""}
                 </div>
@@ -287,7 +349,9 @@ export default function PlantDictionaryPage() {
                 )}
 
                 <div className="dictionaryDetailsBody">
-                  <div><b>Family:</b> {selected.family || "Unknown"}</div>
+                  <div>
+                    <b>Family:</b> {selected.family || "Unknown"}
+                  </div>
                   <div>
                     <b>Edible:</b>{" "}
                     {selected.edible === true
@@ -299,22 +363,31 @@ export default function PlantDictionaryPage() {
 
                   <div style={{ marginTop: 10 }}>
                     <b>Care (effective):</b>
-                    <div>Sunlight: {selected?.careEffective?.sunlightCategory || "Unknown"}</div>
+                    <div>
+                      Sunlight:{" "}
+                      {selected?.careEffective?.sunlightCategory || "Unknown"}
+                    </div>
                     <div>
                       Watering:{" "}
                       {selected?.careEffective?.wateringEveryDays
                         ? `Every ${selected.careEffective.wateringEveryDays} days`
                         : "Unknown"}
                     </div>
-                    <div>Min zone: {selected?.careEffective?.minZone ?? "Unknown"}</div>
+                    <div>
+                      Min zone: {selected?.careEffective?.minZone ?? "Unknown"}
+                    </div>
                     <div className="muted" style={{ fontSize: 12 }}>
                       Source: {selected?.careEffective?.source || "Unknown"}
                     </div>
                   </div>
 
                   <div style={{ marginTop: 12 }} className="muted">
-                    <div><b>Catalog ID:</b> {selected.id}</div>
-                    <div><b>Trefle ID:</b> {selected.trefleId}</div>
+                    <div>
+                      <b>Catalog ID:</b> {selected.id}
+                    </div>
+                    <div>
+                      <b>Trefle ID:</b> {selected.trefleId}
+                    </div>
                   </div>
                 </div>
 
@@ -337,6 +410,60 @@ export default function PlantDictionaryPage() {
                     Clear selection
                   </button>
                 </div>
+
+                {selected && commonQuery && (
+                  <div
+                    className="plantShoppingSection"
+                    style={{
+                      marginTop: 18,
+                      paddingTop: 14,
+                      borderTop: "1px solid #d9e4d7",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Where to Buy
+                    </div>
+
+                    <div
+                      className="muted"
+                      style={{ marginBottom: 10, fontSize: 13 }}
+                    >
+                      Search this plant across a few popular stores.
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 10,
+                      }}
+                    >
+                      {shoppingLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="secondaryBtn"
+                          style={{
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            minWidth: 140,
+                          }}
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>
