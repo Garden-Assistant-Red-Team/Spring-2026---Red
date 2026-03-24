@@ -2,6 +2,7 @@
 const express = require("express");
 const admin = require("firebase-admin");
 const { FieldValue } = admin.firestore;
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 const db = admin.firestore();
