@@ -11,7 +11,10 @@ const { createPlantReminders } = require('./autoReminders');
  * POST /api/garden/:uid/plants
  * Accepts plants from recommendations or photo-id.
  */
-router.post("/:uid/plants", async (req, res) => {
+router.post("/:uid/plants", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { uid } = req.params;
 
@@ -91,8 +94,11 @@ router.post("/:uid/plants", async (req, res) => {
       }
     });
 
-    router.get("/:uid/plants", async (req, res) => {
-      try {
+    router.get("/:uid/plants", requireAuth, async (req, res) => {
+      if (req.user.uid !== req.params.uid) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+        try {
         const { uid } = req.params;
         const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
         const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -225,6 +231,117 @@ router.delete("/:uid/plants/:plantId", async (req, res) => {
     console.error("Failed to delete plant:", err);
     return res.status(500).json({ error: err.message });
   }
+  // ── GARDEN LAYOUT ─────────────────────────────────────────────
+
+// PATCH /api/garden/:uid/plants/:plantId/placement
+// Save or update where a plant is placed in the garden
+router.patch("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { uid, plantId } = req.params;
+    const { placement, startDate } = req.body;
+
+    if (!placement) {
+      return res.status(400).json({ error: 'placement is required' });
+    }
+
+    const ref = db
+      .collection('users').doc(uid)
+      .collection('gardenPlants').doc(plantId);
+
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+
+    await ref.update({
+      'layout.placement': placement,
+      'layout.startDate': startDate || new Date().toISOString(),
+      'layout.updatedAt': new Date().toISOString()
+    });
+
+    return res.json({
+      message: 'Plant placement saved',
+      plantId,
+      placement,
+      startDate: startDate || new Date().toISOString()
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/garden/:uid/layout
+// Get full garden layout — all plants with their placements
+router.get("/:uid/layout", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { uid } = req.params;
+
+    const snap = await db
+      .collection('users').doc(uid)
+      .collection('gardenPlants')
+      .get();
+
+    const layout = snap.docs
+      .filter(doc => doc.data().layout?.placement) // only plants with placement set
+      .map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        commonName: doc.data().commonName,
+        placement: doc.data().layout?.placement,
+        startDate: doc.data().layout?.startDate,
+        updatedAt: doc.data().layout?.updatedAt,
+        sunlight: doc.data().sunlight,
+        wateringFrequency: doc.data().wateringFrequency
+      }));
+
+    return res.json({
+      count: layout.length,
+      layout
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/garden/:uid/plants/:plantId/placement
+// Remove placement from a plant without deleting the plant
+router.delete("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { uid, plantId } = req.params;
+
+    const ref = db
+      .collection('users').doc(uid)
+      .collection('gardenPlants').doc(plantId);
+
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+
+    await ref.update({
+      layout: FieldValue.delete()
+    });
+
+    return res.json({ message: 'Plant placement removed', plantId });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 });
 
 module.exports = router;
