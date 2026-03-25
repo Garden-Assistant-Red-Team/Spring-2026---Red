@@ -1,0 +1,3411 @@
+{
+  "generatedAt": "2026-03-25T20:42:42.156Z",
+  "totalDocsScanned": 186,
+  "incompleteCount": 181,
+  "records": [
+    {
+      "docId": "trefle_105361",
+      "scientificName": "Phedimus hybridus",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_126178",
+      "scientificName": "Pseudotsuga japonica",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_265309",
+      "scientificName": "Amelanchier humilis",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_284306",
+      "scientificName": "Mollinedia clavigera",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298210",
+      "scientificName": "Hydrangea radiata",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_359006",
+      "scientificName": "Hydrangea barbara",
+      "commonName": null,
+      "dataSource": "trefle_enriched",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates",
+        "imageUrl"
+      ],
+      "completenessScore": 0.1,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105342",
+      "scientificName": "Phedimus aizoon",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105355",
+      "scientificName": "Phedimus spurius",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105360",
+      "scientificName": "Phedimus kamtschaticus",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_113893",
+      "scientificName": "Sinapis pubescens",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_115356",
+      "scientificName": "Sedum fragrans",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_117551",
+      "scientificName": "Mollinedia viridiflora",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_124385",
+      "scientificName": "Paypayrola grandiflora",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_125147",
+      "scientificName": "Picramnia latifolia",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_158365",
+      "scientificName": "Cedrela oaxacensis",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_163604",
+      "scientificName": "Coincya richeri",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_175913",
+      "scientificName": "Dombeya acutangula",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_242889",
+      "scientificName": "Casearia nitida",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_253191",
+      "scientificName": "Eucalyptus celastroides",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_261610",
+      "scientificName": "Hieronyma oblonga",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_266161",
+      "scientificName": "Spiraea pubescens",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_2675",
+      "scientificName": "Saussurea laniceps",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_38381",
+      "scientificName": "Dimorphandra gardneriana",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_40048",
+      "scientificName": "Tachigali aurea",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_40442",
+      "scientificName": "Cenostigma macrophyllum",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_52632",
+      "scientificName": "Hymenocardia acida",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_61388",
+      "scientificName": "Melaleuca glomerata",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_75879",
+      "scientificName": "Aa leucantha",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77419",
+      "scientificName": "Raphia vinifera",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_85276",
+      "scientificName": "Aa maderoi",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_92037",
+      "scientificName": "Aa matthewsii",
+      "commonName": null,
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "commonName",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.2,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_100065",
+      "scientificName": "Moehringia trinervia",
+      "commonName": "Apetalous sandwort",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_101228",
+      "scientificName": "Nandina domestica",
+      "commonName": "Chinese-bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105337",
+      "scientificName": "Pseudotsuga macrocarpa",
+      "commonName": "Big-cone douglas-fir",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105572",
+      "scientificName": "Pentaglottis sempervirens",
+      "commonName": "Evergreen bugloss",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_105591",
+      "scientificName": "Pachira glabra",
+      "commonName": "Moneytree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_107142",
+      "scientificName": "Rhododendron simsii",
+      "commonName": "Rhododendron",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_107159",
+      "scientificName": "Eleocharis palustris",
+      "commonName": "Creeping spike-rush",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_107887",
+      "scientificName": "Torreya nucifera",
+      "commonName": "Japanese torreya",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_118208",
+      "scientificName": "Misopates orontium",
+      "commonName": "Corn snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_121255",
+      "scientificName": "Ranunculus acris",
+      "commonName": "Meadow buttercup",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_12367",
+      "scientificName": "Centaurea nigra",
+      "commonName": "Common knapweed",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_126173",
+      "scientificName": "Pseudotsuga menziesii",
+      "commonName": "Douglas-fir",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_126174",
+      "scientificName": "Pseudotsuga sinensis",
+      "commonName": "Chinese douglas-fir",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127253",
+      "scientificName": "Pinus contorta",
+      "commonName": "Lodgepole pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127258",
+      "scientificName": "Pinus halepensis",
+      "commonName": "Jerusalem pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127300",
+      "scientificName": "Pinus sylvestris",
+      "commonName": "Scotch pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127307",
+      "scientificName": "Pinus nigra",
+      "commonName": "Australian pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127331",
+      "scientificName": "Pinus radiata",
+      "commonName": "Insignis pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127340",
+      "scientificName": "Pinus pinea",
+      "commonName": "Umbrella pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127341",
+      "scientificName": "Pinus ponderosa",
+      "commonName": "Ponderosa pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127342",
+      "scientificName": "Pinus pinaster",
+      "commonName": "Cluster pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_127365",
+      "scientificName": "Phyllocladus trichomanoides",
+      "commonName": "Celery pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_12849",
+      "scientificName": "Santolina chamaecyparissus",
+      "commonName": "Lavender cotton",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_128945",
+      "scientificName": "Prumnopitys ferruginea",
+      "commonName": "Brown pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_128990",
+      "scientificName": "Plantago sempervirens",
+      "commonName": "Evergreen plantain",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_131124",
+      "scientificName": "Saxifraga rivularis",
+      "commonName": "Weak saxifrage",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_139138",
+      "scientificName": "Adansonia za",
+      "commonName": "Za baobab",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_144349",
+      "scientificName": "Antirrhinum latifolium",
+      "commonName": "Yellow snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_144350",
+      "scientificName": "Antirrhinum majus",
+      "commonName": "Snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_144361",
+      "scientificName": "Antirrhinum siculum",
+      "commonName": "Sicilian snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_144807",
+      "scientificName": "Aquilaria sinensis",
+      "commonName": "Chinese agarwood",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_145116",
+      "scientificName": "Arceuthobium douglasii",
+      "commonName": "Douglas-fir dwarf mistletoe",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_147313",
+      "scientificName": "Asarina procumbens",
+      "commonName": "Trailing-snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_151574",
+      "scientificName": "Bergenia crassifolia",
+      "commonName": "Siberian-tea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_153840",
+      "scientificName": "Buckinghamia celsissima",
+      "commonName": "Buckinghamia silky-oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_155743",
+      "scientificName": "Callitris columellaris",
+      "commonName": "Bribie island pine",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_157875",
+      "scientificName": "Casuarina equisetifolia",
+      "commonName": "Australian beefwood",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_158531",
+      "scientificName": "Celtis australis",
+      "commonName": "European hackberry",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_159660",
+      "scientificName": "Chaenorhinum minus",
+      "commonName": "Dwarf-snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_163509",
+      "scientificName": "Cochlearia micacea",
+      "commonName": "Mountain scurvygrass",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_173810",
+      "scientificName": "Haemanthus coccineus",
+      "commonName": "Cape-tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_179016",
+      "scientificName": "Elatine triandra",
+      "commonName": "Threestamen waterwort",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_182823",
+      "scientificName": "Eryngium planum",
+      "commonName": "Blue eryngo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_186887",
+      "scientificName": "Garcinia morella",
+      "commonName": "Indian gamboge-tree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_187380",
+      "scientificName": "Geijera parviflora",
+      "commonName": "Lavender-bush",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_190696",
+      "scientificName": "Grevillea lavandulacea",
+      "commonName": "Lavender grevillea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_190794",
+      "scientificName": "Grevillea pteridifolia",
+      "commonName": "Golden grevillea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_192712",
+      "scientificName": "Harpullia arborea",
+      "commonName": "Tulip-wood tree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_193217",
+      "scientificName": "Helinus integrifolius",
+      "commonName": "Soap bush",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_193877",
+      "scientificName": "Heritiera littoralis",
+      "commonName": "Looking-glass mangrove",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_194783",
+      "scientificName": "Hibiscus trionum",
+      "commonName": "Flower-of-an-hour",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_19566",
+      "scientificName": "Tragopogon pratensis",
+      "commonName": "Johnny-go-to-bed-at-noon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_195814",
+      "scientificName": "Hydrangea macrophylla",
+      "commonName": "Hortensia",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_199169",
+      "scientificName": "Tulipa kaufmanniana",
+      "commonName": "Water-lily tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_199264",
+      "scientificName": "Tulipa gesneriana",
+      "commonName": "Gesner's tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_199480",
+      "scientificName": "Tulipa saxatilis",
+      "commonName": "Cretan tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_199647",
+      "scientificName": "Tulipa orphanidea",
+      "commonName": "Orange wild tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_199909",
+      "scientificName": "Tulipa clusiana",
+      "commonName": "Lady tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_200705",
+      "scientificName": "Tulipa sylvestris",
+      "commonName": "Wild tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_205614",
+      "scientificName": "Calochortus monophyllus",
+      "commonName": "Yellow star-tulip",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_205691",
+      "scientificName": "Chlorogalum angustifolium",
+      "commonName": "Narrowleaf soap plant",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_208708",
+      "scientificName": "Juncus conglomeratus",
+      "commonName": "Compact rush",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_209498",
+      "scientificName": "Tecomella undulata",
+      "commonName": "Rohida-tree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_221420",
+      "scientificName": "Fraxinus floribunda",
+      "commonName": "Himalayan manna ash",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_223541",
+      "scientificName": "Chamaedorea seifrizii",
+      "commonName": "Bamboo palm",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_225553",
+      "scientificName": "Bambusa bambos",
+      "commonName": "Indian thorny bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_225620",
+      "scientificName": "Bambusa multiplex",
+      "commonName": "Hedge bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_225664",
+      "scientificName": "Bambusa tuldoides",
+      "commonName": "Verdant bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_227212",
+      "scientificName": "Dendrocalamus latiflorus",
+      "commonName": "Ma bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_233352",
+      "scientificName": "Phyllostachys aurea",
+      "commonName": "Golden bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_233378",
+      "scientificName": "Clinopodium acinos",
+      "commonName": "Basil thyme",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_233388",
+      "scientificName": "Phyllostachys reticulata",
+      "commonName": "Castillon bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_233520",
+      "scientificName": "Pleioblastus simonii",
+      "commonName": "Simon bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_233639",
+      "scientificName": "Clinopodium gracile",
+      "commonName": "Slender wild basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_234802",
+      "scientificName": "Sasa palmata",
+      "commonName": "Palmata bamboo",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_242809",
+      "scientificName": "Casearia decandra",
+      "commonName": "Wild honeytree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_253379",
+      "scientificName": "Eucalyptus gracilis",
+      "commonName": "Yorell mallee",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_253571",
+      "scientificName": "Eucalyptus obliqua",
+      "commonName": "Messmate",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_254823",
+      "scientificName": "Eugenia uniflora",
+      "commonName": "Brazil-cherry",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_263656",
+      "scientificName": "Rosa sempervirens",
+      "commonName": "Evergreen rose",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_274547",
+      "scientificName": "Rhododendron catawbiense",
+      "commonName": "Catawba rhododendron",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_274577",
+      "scientificName": "Vaccinium myrsinites",
+      "commonName": "Evergreen blueberry",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_275292",
+      "scientificName": "Rhus virens",
+      "commonName": "Evergreen sumac",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_277534",
+      "scientificName": "Hamamelis virginiana",
+      "commonName": "Witch-hazel",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_28023",
+      "scientificName": "Lactuca sativa",
+      "commonName": "Garden lettuce",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_290474",
+      "scientificName": "Stenocarpus sinuatus",
+      "commonName": "Firewheel tree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_290894",
+      "scientificName": "Dryopteris intermedia",
+      "commonName": "Evergreen wood fern",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298208",
+      "scientificName": "Hydrangea arborescens",
+      "commonName": "Sevenbark",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298209",
+      "scientificName": "Hydrangea cinerea",
+      "commonName": "Ashy hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298297",
+      "scientificName": "Hydrangea paniculata",
+      "commonName": "Peegee hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298298",
+      "scientificName": "Hydrangea quercifolia",
+      "commonName": "Oak-leaf hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298423",
+      "scientificName": "Hydrangea petiolaris",
+      "commonName": "Japanese climbing hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298438",
+      "scientificName": "Hydrangea anomala",
+      "commonName": "Climbing hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298770",
+      "scientificName": "Keckiella antirrhinoides",
+      "commonName": "Snapdragon penstemon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_298797",
+      "scientificName": "Mohavea breviflora",
+      "commonName": "Golden desert-snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_299057",
+      "scientificName": "Neogaerrhinum filipes",
+      "commonName": "Yellow twining snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_299090",
+      "scientificName": "Nemesia denticulata",
+      "commonName": "Snapdragon",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_335260",
+      "scientificName": "Hydrangea aspera",
+      "commonName": "Rough-leaf hydrangea",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_351752",
+      "scientificName": "Heptacodium miconioides",
+      "commonName": "Seven son flower",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_361243",
+      "scientificName": "Condea emoryi",
+      "commonName": "Desert lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_38437",
+      "scientificName": "Pterogyne nitens",
+      "commonName": "Guiraro",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_38467",
+      "scientificName": "Tamarindus indica",
+      "commonName": "Tamarind",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_38593",
+      "scientificName": "Prosopis juliflora",
+      "commonName": "Algarroba-bean",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_41962",
+      "scientificName": "Acacia confusa",
+      "commonName": "Formosan koa",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_446176",
+      "scientificName": "Lagunaria patersonia",
+      "commonName": "Cow-itch-tree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_51477",
+      "scientificName": "Vicia disperma",
+      "commonName": "Two-seed vetch",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55246",
+      "scientificName": "Lavandula angustifolia",
+      "commonName": "Lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55259",
+      "scientificName": "Lavandula dentata",
+      "commonName": "French lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55268",
+      "scientificName": "Lavandula lanata",
+      "commonName": "Woolly lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55269",
+      "scientificName": "Lavandula latifolia",
+      "commonName": "Broadleaf lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55277",
+      "scientificName": "Lavandula multifida",
+      "commonName": "Fern-leaf lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_55289",
+      "scientificName": "Lavandula stoechas",
+      "commonName": "Topped lavender",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_57638",
+      "scientificName": "Liriodendron tulipifera",
+      "commonName": "Tulip-poplar",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_61312",
+      "scientificName": "Melaleuca bracteata",
+      "commonName": "Black teatree",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_62362",
+      "scientificName": "Monarda clinopodia",
+      "commonName": "Basil beebalm",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64843",
+      "scientificName": "Ocimum americanum",
+      "commonName": "American basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64847",
+      "scientificName": "Ocimum basilicum",
+      "commonName": "Basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64850",
+      "scientificName": "Ocimum campechianum",
+      "commonName": "Least basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64875",
+      "scientificName": "Ocimum gratissimum",
+      "commonName": "African basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64888",
+      "scientificName": "Ocimum minimum",
+      "commonName": "Bush basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_64905",
+      "scientificName": "Ocimum tenuiflorum",
+      "commonName": "Sacred basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_69901",
+      "scientificName": "Phyllanthus amarus",
+      "commonName": "Carry me seed",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_70013",
+      "scientificName": "Phyllanthus caroliniensis",
+      "commonName": "Carolina leaf-flower",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_70441",
+      "scientificName": "Phyllanthus niruri",
+      "commonName": "Niruri",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_70747",
+      "scientificName": "Phyllanthus urinaria",
+      "commonName": "Chamber bitter",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_72540",
+      "scientificName": "Plumeria obtusa",
+      "commonName": "Singapore graveyard flower",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_73517",
+      "scientificName": "Arundina graminifolia",
+      "commonName": "Bamboo orchid",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_76744",
+      "scientificName": "Quercus faginea",
+      "commonName": "Honeydew oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_76843",
+      "scientificName": "Quercus ilex",
+      "commonName": "Evergreen oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77107",
+      "scientificName": "Quercus robur",
+      "commonName": "Pedunculate oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77116",
+      "scientificName": "Quercus rotundifolia",
+      "commonName": "Evergreen oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77153",
+      "scientificName": "Quercus serrata",
+      "commonName": "Bao li",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77191",
+      "scientificName": "Quercus suber",
+      "commonName": "Cork oak",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_77497",
+      "scientificName": "Rauvolfia vomitoria",
+      "commonName": "African serpentwood",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_80016",
+      "scientificName": "Avicennia germinans",
+      "commonName": "Black mangrove",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_84611",
+      "scientificName": "Syngonium podophyllum",
+      "commonName": "African evergreen",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_84766",
+      "scientificName": "Basilicum polystachyon",
+      "commonName": "Musk-basil",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "trefle_94854",
+      "scientificName": "Carex sempervirens",
+      "commonName": "Evergreen sedge",
+      "dataSource": "unknown",
+      "missingFields": [
+        "canonicalKey",
+        "minZone",
+        "maxZone",
+        "sunlight",
+        "wateringProfile",
+        "duration",
+        "nativeStates"
+      ],
+      "completenessScore": 0.3,
+      "needsTrefleEnrichment": false,
+      "needsManualReview": true,
+      "needsNormalization": true
+    },
+    {
+      "docId": "amelanchier_canadensis",
+      "scientificName": "Amelanchier canadensis",
+      "commonName": "Serviceberry",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "asclepias_tuberosa",
+      "scientificName": "Asclepias tuberosa",
+      "commonName": "Butterfly Weed",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "baptisia_australis",
+      "scientificName": "Baptisia australis",
+      "commonName": "Blue False Indigo",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "callicarpa_americana",
+      "scientificName": "Callicarpa americana",
+      "commonName": "American Beautyberry",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "cercis_canadensis",
+      "scientificName": "Cercis canadensis",
+      "commonName": "Eastern Redbud",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "coreopsis_lanceolata",
+      "scientificName": "Coreopsis lanceolata",
+      "commonName": "Lanceleaf Coreopsis",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "echinacea_purpurea",
+      "scientificName": "Echinacea purpurea",
+      "commonName": "Purple Coneflower",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "itea_virginica",
+      "scientificName": "Itea virginica",
+      "commonName": "Virginia Sweetspire",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "lobelia_cardinalis",
+      "scientificName": "Lobelia cardinalis",
+      "commonName": "Cardinal Flower",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "monarda_didyma",
+      "scientificName": "Monarda didyma",
+      "commonName": "Bee Balm",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "panicum_virgatum",
+      "scientificName": "Panicum virgatum",
+      "commonName": "Switchgrass",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    },
+    {
+      "docId": "rudbeckia_hirta",
+      "scientificName": "Rudbeckia hirta",
+      "commonName": "Black-Eyed Susan",
+      "dataSource": "seed",
+      "missingFields": [
+        "imageUrl"
+      ],
+      "completenessScore": 0.9,
+      "needsTrefleEnrichment": true,
+      "needsManualReview": false,
+      "needsNormalization": false
+    }
+  ]
+}
