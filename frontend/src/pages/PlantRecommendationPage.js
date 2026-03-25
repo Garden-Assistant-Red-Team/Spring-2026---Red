@@ -160,41 +160,47 @@ export default function PlantRecommendationPage() {
     }
   }
 
-  async function addToGarden(plant) {
-    if (!auth.currentUser) return alert("You must be logged in.");
+async function addToGarden(plant) {
+  if (!auth.currentUser) return alert("You must be logged in.");
 
-    const uid = auth.currentUser.uid;
+  const user = auth.currentUser;
+  const uid = user.uid;
 
-    try {
-      const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: plant.commonName || plant.scientificName,
-          commonName: plant.commonName || null,
-          scientificName: plant.scientificName || null,
-          minZone: plant.minZone ?? null,
-          maxZone: plant.maxZone ?? null,
-          sunlight: plant.sunlight || [],
-          wateringProfile: plant.wateringProfile || null,
-          wateringEveryDays: plant.wateringEveryDays ?? null,
-          wateringFrequency: plant.wateringEveryDays ?? null,
-          duration: plant.duration || null,
-          imageUrl: plant.imageUrl || null,
-          source: "recommendations",
-          plantId: plant.id,
-        }),
-      });
+  try {
+    const token = await user.getIdToken();
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to add plant");
+    const res = await fetch(`${API_BASE}/api/garden/${uid}/plants`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: plant.commonName || plant.scientificName,
+        commonName: plant.commonName || null,
+        scientificName: plant.scientificName || null,
+        minZone: plant.minZone ?? null,
+        maxZone: plant.maxZone ?? null,
+        sunlight: plant.sunlight || [],
+        wateringProfile: plant.wateringProfile || null,
+        wateringEveryDays: plant.wateringEveryDays ?? null,
+        wateringFrequency: plant.wateringEveryDays ?? null,
+        duration: plant.duration || null,
+        imageUrl: plant.imageUrl || null,
+        source: "recommendations",
+        plantId: plant.id,
+      }),
+    });
 
-      setAddedIds((prev) => new Set(prev).add(plant.id));
-      alert(`${plant.commonName || plant.scientificName} added to your garden! 🌿`);
-    } catch (e) {
-      alert(e.message);
-    }
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error || "Failed to add plant");
+
+    setAddedIds((prev) => new Set(prev).add(plant.id));
+    alert(`${plant.commonName || plant.scientificName} added to your garden! 🌿`);
+  } catch (e) {
+    alert(e.message);
   }
+}
 
   function toggleFilter(key) {
     setFilters((prev) => ({

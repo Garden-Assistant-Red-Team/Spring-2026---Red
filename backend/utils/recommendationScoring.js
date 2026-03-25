@@ -30,18 +30,6 @@ function normalizeUserSunlight(value) {
   return v;
 }
 
-function normalizeUserWatering(value) {
-  if (!value) return null;
-
-  const v = String(value).trim().toLowerCase();
-
-  if (["low", "dry"].includes(v)) return "low";
-  if (["medium", "moderate"].includes(v)) return "moderate";
-  if (["high", "wet"].includes(v)) return "high";
-
-  return v;
-}
-
 function getPlantMinZone(plant) {
   return plant.minZone ?? plant.hardiness?.minZone ?? plant.careEffective?.minZone ?? null;
 }
@@ -64,22 +52,6 @@ function getPlantSunlightArray(plant) {
   if (category === "shade") return ["shade"];
 
   return [];
-}
-
-function getPlantWateringProfile(plant) {
-  if (plant.wateringProfile) return plant.wateringProfile;
-
-  const days =
-    plant.wateringEveryDays ??
-    plant?.watering?.defaultEveryDays ??
-    plant?.careEffective?.wateringEveryDays ??
-    null;
-
-  if (typeof days !== "number") return null;
-
-  if (days >= 6) return "low";
-  if (days >= 3) return "moderate";
-  return "high";
 }
 
 function matchesZone(userZone, plant) {
@@ -127,34 +99,10 @@ function scoreSunlight(user, plant) {
   }
 
   if (plantSunlight.includes(userSunlight)) {
-    return { points: 25, reason: "Matches your sunlight needs" };
+    return { points: 20, reason: "Matches your sunlight needs" };
   }
 
-  return { points: -10, reason: "Sunlight may not be ideal" };
-}
-
-function scoreWatering(user, plant) {
-  const userWatering = normalizeUserWatering(user.wateringPreference);
-  const plantWatering = getPlantWateringProfile(plant);
-
-  if (!userWatering || !plantWatering) {
-    return { points: 0, reason: null };
-  }
-
-  if (userWatering === plantWatering) {
-    return { points: 20, reason: "Matches your watering preference" };
-  }
-
-  const adjacent =
-    (userWatering === "low" && plantWatering === "moderate") ||
-    (userWatering === "moderate" && (plantWatering === "low" || plantWatering === "high")) ||
-    (userWatering === "high" && plantWatering === "moderate");
-
-  if (adjacent) {
-    return { points: 8, reason: "Close to your watering preference" };
-  }
-
-  return { points: -10, reason: "Watering needs may not be ideal" };
+  return { points: -8, reason: "Sunlight may not be ideal" };
 }
 
 function scoreNative(user, plant) {
@@ -216,10 +164,6 @@ function scorePlant(plant, user, filters = {}) {
   score += sunlight.points;
   if (sunlight.reason) reasons.push(sunlight.reason);
 
-  const watering = scoreWatering(user, plant);
-  score += watering.points;
-  if (watering.reason) reasons.push(watering.reason);
-
   const native = scoreNative(user, plant);
   score += native.points;
   if (native.reason) reasons.push(native.reason);
@@ -230,8 +174,6 @@ function scorePlant(plant, user, filters = {}) {
 
   let missingPenalty = 0;
   if (getPlantMinZone(plant) == null && getPlantMaxZone(plant) == null) missingPenalty -= 4;
-  if (getPlantSunlightArray(plant).length === 0) missingPenalty -= 3;
-  if (!getPlantWateringProfile(plant)) missingPenalty -= 3;
   if (!Array.isArray(plant.nativeStates) || plant.nativeStates.length === 0) missingPenalty -= 2;
 
   score += missingPenalty;
@@ -253,5 +195,4 @@ module.exports = {
   getPlantMinZone,
   getPlantMaxZone,
   getPlantSunlightArray,
-  getPlantWateringProfile,
 };
