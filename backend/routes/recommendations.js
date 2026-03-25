@@ -1,20 +1,23 @@
-/* 
-This file provides plant recommendations based on the user's garden zone and optional sunlight preferences.
+/*
+This file provides plant recommendations based on the user's garden zone,
+sunlight, watering preferences, and optional filter tags.
+
 If the user doesn't have a zone saved yet, we try to figure it out from their ZIP code
-and then save it back to Firestore so next time it's faster.
+and save it back to Firestore so next time it's faster.
 */
 
-// External dependencies
 const express = require("express");
 const admin = require("firebase-admin");
 const router = express.Router();
 
+const {
+  scorePlant,
+  matchesZone,
+  nativeToState,
+} = require("../utils/recommendationScoring");
+
 const db = admin.firestore();
 
-/*
-   This function converts a zone string like "8a" or "8b" to a number (8.0 or 8.5) for easier comparison.
-   * Returns null if the input is invalid.
-   */
 function zoneToNumber(zoneStr) {
   if (!zoneStr) return null;
 
@@ -27,9 +30,6 @@ function zoneToNumber(zoneStr) {
   return letter === "b" ? base + 0.5 : base;
 }
 
-/* This function takes a ZIP code input and normalizes it to the first 5 digits.
-    * Returns null if the input is missing or doesn't contain at least 5 digits.  
-  */
 function normalizeZip(zip) {
   if (!zip) return null;
   const digits = String(zip).replace(/[^\d]/g, "");
@@ -37,10 +37,6 @@ function normalizeZip(zip) {
   return digits.slice(0, 5);
 }
 
-/* This function looks up the garden zone for a given 5-digit ZIP code using the phzmapi.org API.
-   * Returns the zone string (e.g. "8a") if successful.
-   * Throws an error if the lookup fails or returns invalid data.
-  */
 async function getZoneFromZip(zip5) {
   const url = `https://phzmapi.org/${zip5}.json`;
   const res = await fetch(url);
@@ -57,16 +53,98 @@ async function getZoneFromZip(zip5) {
   return zone;
 }
 
-// Main route: GET /api/recommendations?uid=...&sun=...
+async function getStateFromZip(zip5) {
+  const url = `https://api.zippopotam.us/us/${zip5}`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`State lookup failed (${res.status})`);
+  }
+
+  const data = await res.json();
+  const place = Array.isArray(data?.places) ? data.places[0] : null;
+  const stateCode = place?.["state abbreviation"]
+    ? String(place["state abbreviation"]).trim().toUpperCase()
+    : null;
+
+  if (!stateCode) {
+    throw new Error("State lookup returned something invalid");
+  }
+
+  return stateCode;
+}
+
+function parseBoolean(value) {
+  return String(value).toLowerCase() === "true";
+}
+
+function buildFilters(query) {
+  return {
+    flower: parseBoolean(query.flower),
+    tree: parseBoolean(query.tree),
+    shrub: parseBoolean(query.shrub),
+    edible: parseBoolean(query.edible),
+    pollinatorFriendly: parseBoolean(query.pollinatorFriendly),
+    nativeOnly: parseBoolean(query.nativeOnly),
+  };
+}
+
+function applyFilters(plants, user, filters) {
+  return plants.filter((plant) => {
+    if (filters.flower && !plant.flower) return false;
+    if (filters.tree && !plant.tree) return false;
+    if (filters.shrub && !plant.shrub) return false;
+    if (filters.edible && !plant.edible) return false;
+    if (filters.pollinatorFriendly && !plant.pollinatorFriendly) return false;
+    if (filters.nativeOnly && !nativeToState(plant, user.stateCode)) return false;
+
+    return true;
+  });
+}
+
+function serializePlant(plant) {
+  return {
+    id: plant.id,
+    canonicalKey: plant.canonicalKey || null,
+    commonName: plant.commonName || null,
+    scientificName: plant.scientificName || null,
+    imageUrl: plant.imageUrl || null,
+    family: plant.family || null,
+    flower: !!plant.flower,
+    tree: !!plant.tree,
+    shrub: !!plant.shrub,
+    herb: !!plant.herb,
+    edible: !!plant.edible,
+    pollinatorFriendly: !!plant.pollinatorFriendly,
+    nativeStates: Array.isArray(plant.nativeStates) ? plant.nativeStates : [],
+    minZone: plant.minZone ?? null,
+    maxZone: plant.maxZone ?? null,
+    sunlight: Array.isArray(plant.sunlight) ? plant.sunlight : [],
+    wateringProfile: plant.wateringProfile || null,
+    wateringEveryDays: plant.wateringEveryDays ?? null,
+    duration: plant.duration || null,
+    sources: plant.sources || {},
+    recommendation: plant.recommendation || null,
+  };
+}
+
+// GET /api/recommendations?uid=...&flower=true&pollinatorFriendly=true
 router.get("/", async (req, res) => {
   try {
-    const { uid, sun } = req.query;
-    if (!uid) return res.status(400).json({ error: "Missing uid" });
+    const { uid } = req.query;
+    if (!uid) {
+      return res.status(400).json({ error: "Missing uid" });
+    }
+
+    const filters = buildFilters(req.query);
 
     // 1) Load user
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
-    if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
+
+    if (!userSnap.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     const user = userSnap.data() || {};
 
@@ -74,9 +152,9 @@ router.get("/", async (req, res) => {
     let zone = user.gardenZone || user.zone || null;
     let zoneNum = zoneToNumber(zone);
 
-    // If they don't have a zone saved, try to create it from their ZIP code and save it back to Firestore for next time
     if (zoneNum === null) {
       const zip5 = normalizeZip(user.zipCode || user.zip);
+
       if (!zip5) {
         return res.status(400).json({
           error: "No gardenZone saved and zipCode is missing/invalid",
@@ -87,7 +165,6 @@ router.get("/", async (req, res) => {
       zone = await getZoneFromZip(zip5);
       zoneNum = zoneToNumber(zone);
 
-      // Save back to Firestore for next time so we don't have to do the lookup again
       await userRef.set(
         {
           gardenZone: zone,
@@ -98,35 +175,91 @@ router.get("/", async (req, res) => {
       );
     }
 
-    // 3) Load the plant catalog
-    const snap = await db.collection("plantCatalog").get();
-    const allPlants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // 3) Build normalized user context for scoring
+    let stateCode = user.stateCode || null;
 
-    // 4) Filter by zone 
-    let matches = allPlants.filter((p) => {
-      if (typeof p.minZone !== "number" || typeof p.maxZone !== "number") return false;
-      return p.minZone <= zoneNum && zoneNum <= p.maxZone;
-    });
+    if (!stateCode) {
+      const zip5 = normalizeZip(user.zipCode || user.zip);
+      if (zip5) {
+        try {
+          stateCode = await getStateFromZip(zip5);
 
-    // 5) Return top 10 matches with a reason field explaining why they were recommended
-    const recommendations = matches.slice(0, 10).map((p) => ({
-      id: p.id,
-      commonName: p.commonName || null,
-      scientificName: p.scientificName || null,
-      trefle_id: p.trefle_id ?? null,
-      sunlight: p.sunlight || null,
-      wateringFrequency: p.wateringFrequency || null,
-      minZone: p.minZone,
-      maxZone: p.maxZone,
-      reason: `Matches your zone (${zone}).`,
+          await userRef.set(
+            {
+              stateCode,
+              stateSource: "zip",
+              stateUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch (err) {
+          console.warn("State lookup failed:", err.message);
+        }
+      }
+    }
+
+    const userContext = {
+      stateCode,
+      gardenZone: zone,
+      sunlight: user.sunlight || null,
+      wateringPreference: user.wateringPreference || null,
+    };
+
+    // 4) Load plant catalog
+    // For v1, prefer clean seeded records only
+    const snap = await db
+      .collection("plantCatalog")
+      .where("dataSource", "==", "seed")
+      .get();
+
+    let plants = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
     }));
 
+    // 5) Apply optional filters
+    plants = applyFilters(plants, userContext, filters);
+
+    // 6) Score plants
+    const scoredPlants = plants
+      .map((plant) => {
+        const recommendation = scorePlant(plant, userContext, filters);
+        return {
+          ...plant,
+          recommendation,
+        };
+      })
+      .sort((a, b) => b.recommendation.score - a.recommendation.score);
+
+    // 7) Build sections
+    const bestSuited = scoredPlants.slice(0, 10).map(serializePlant);
+
+    const nativePlants = scoredPlants
+      .filter((plant) => nativeToState(plant, userContext.stateCode))
+      .slice(0, 10)
+      .map(serializePlant);
+
+    const zoneMatches = scoredPlants
+      .filter((plant) => matchesZone(userContext.gardenZone, plant))
+      .slice(0, 10)
+      .map(serializePlant);
+
     return res.json({
-      zone,
-      count: recommendations.length,
-      recommendations,
+      userContext: {
+        stateCode: userContext.stateCode,
+        gardenZone: userContext.gardenZone,
+        sunlight: userContext.sunlight,
+        wateringPreference: userContext.wateringPreference,
+      },
+      filters,
+      sections: {
+        bestSuited,
+        nativePlants,
+        zoneMatches,
+      },
     });
   } catch (err) {
+    console.error("recommendations route error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
