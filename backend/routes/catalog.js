@@ -24,7 +24,7 @@ function sunlightCategory(light) {
 function wateringFromSoilHumidity(h) {
   if (typeof h !== "number") return null;
   if (h <= 3) return { profile: "low", days: 7 };
-  if (h <= 6) return { profile: "medium", days: 4 };
+  if (h <= 6) return { profile: "moderate", days: 4 };
   return { profile: "high", days: 2 };
 }
 
@@ -55,6 +55,8 @@ function buildSearchTokens(obj, q) {
   add(obj?.common_name);
   add(obj?.scientific_name);
   add(obj?.slug);
+  add(obj?.commonName);
+  add(obj?.scientificName);
   if (q) add(q);
 
   return Array.from(tokens).slice(0, 60);
@@ -126,6 +128,156 @@ async function getCareOverride(docId) {
   return snap.exists ? snap.data() : null;
 }
 
+function displayNameFromDoc(p) {
+  return p?.commonName || p?.scientificName || p?.slug || "Unknown plant";
+}
+
+function normalizeCatalogDoc(doc) {
+  const isNormalizedSunlightArray =
+    Array.isArray(doc?.sunlight) && doc.sunlight.length > 0;
+
+  const sunlightCategoryFromArray = isNormalizedSunlightArray
+    ? doc.sunlight.includes("full_sun")
+      ? "full"
+      : doc.sunlight.includes("part_sun")
+      ? "partial"
+      : doc.sunlight.includes("shade")
+      ? "shade"
+      : null
+    : null;
+
+  const sunlightCategoryFromObject =
+    typeof doc?.sunlight === "object" && doc?.sunlight !== null && !Array.isArray(doc.sunlight)
+      ? doc?.sunlight?.category
+      : null;
+
+  const careSun =
+    doc?.careEffective?.sunlightCategory ||
+    sunlightCategoryFromArray ||
+    sunlightCategoryFromObject ||
+    null;
+
+  const careWater =
+    doc?.careEffective?.wateringEveryDays ??
+    doc?.wateringEveryDays ??
+    doc?.watering?.defaultEveryDays ??
+    null;
+
+  const careMinZone =
+    doc?.careEffective?.minZone ??
+    doc?.minZone ??
+    doc?.hardiness?.minZone ??
+    null;
+
+  const normalizedSunlight = isNormalizedSunlightArray
+    ? doc.sunlight
+    : careSun === "full"
+    ? ["full_sun"]
+    : careSun === "partial"
+    ? ["part_sun"]
+    : careSun === "shade"
+    ? ["shade"]
+    : [];
+
+  return {
+    ...doc,
+    sunlight: normalizedSunlight,
+    wateringEveryDays: doc?.wateringEveryDays ?? careWater ?? null,
+    minZone: doc?.minZone ?? careMinZone ?? null,
+    careEffective: {
+      sunlightCategory: careSun,
+      wateringEveryDays: careWater,
+      minZone: careMinZone,
+      source: doc?.careEffective?.source || "catalog",
+    },
+  };
+}
+
+function serializeCatalogPlant(doc) {
+  const p = normalizeCatalogDoc(doc);
+
+  return {
+    id: p.id,
+    canonicalKey: p.canonicalKey || null,
+    commonName: p.commonName || null,
+    scientificName: p.scientificName || null,
+    imageUrl: p.imageUrl || null,
+    family: p.family || null,
+    flower: p.flower === true,
+    tree: p.tree === true,
+    shrub: p.shrub === true,
+    herb: p.herb === true,
+    edible: p.edible === true,
+    pollinatorFriendly: p.pollinatorFriendly === true,
+    nativeStates: Array.isArray(p.nativeStates) ? p.nativeStates : [],
+    minZone: typeof p.minZone === "number" ? p.minZone : null,
+    maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
+    sunlight: Array.isArray(p.sunlight) ? p.sunlight : [],
+    wateringProfile: p.wateringProfile || null,
+    wateringEveryDays:
+      typeof p.wateringEveryDays === "number" ? p.wateringEveryDays : null,
+    duration: p.duration || null,
+    sources:
+      p.sources && typeof p.sources === "object" && !Array.isArray(p.sources)
+        ? p.sources
+        : {},
+    slug: p.slug || null,
+    trefleId: typeof p.trefleId === "number" ? p.trefleId : null,
+    dataSource: p.dataSource || null,
+    careEffective: p.careEffective || null,
+  };
+}
+
+router.get("/browse", async (req, res) => {
+  try {
+    const parsedPage = parseInt(req.query.page || "1", 10);
+    const parsedPageSize = parseInt(req.query.pageSize || "12", 10);
+
+    const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const pageSize =
+      Number.isFinite(parsedPageSize) && parsedPageSize > 0
+        ? Math.min(parsedPageSize, 24)
+        : 12;
+
+    const sortBy =
+      req.query.sortBy === "scientificName" ? "scientificName" : "commonName";
+
+    const snap = await db.collection("plantCatalog").get();
+
+    let plants = snap.docs
+      .map((d) => serializeCatalogPlant({ id: d.id, ...d.data() }))
+      .filter((p) => p.commonName || p.scientificName);
+
+    plants.sort((a, b) => {
+      const aVal = norm(a?.[sortBy] || a?.scientificName || a?.commonName || "");
+      const bVal = norm(b?.[sortBy] || b?.scientificName || b?.commonName || "");
+      return aVal.localeCompare(bVal);
+    });
+
+    const total = plants.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const safePage = Math.min(page, totalPages);
+    const start = (safePage - 1) * pageSize;
+    const paged = plants.slice(start, start + pageSize);
+
+    return res.json({
+      items: paged,
+      pagination: {
+        page: safePage,
+        pageSize,
+        total,
+        totalPages,
+        sortBy,
+      },
+    });
+  } catch (err) {
+    console.error("[catalog/browse] error:", err);
+    return res.status(500).json({
+      error: err?.message || "Catalog browse failed.",
+    });
+  }
+});
+
 router.get("/search", async (req, res) => {
   try {
     const q = norm(req.query.q);
@@ -142,27 +294,42 @@ router.get("/search", async (req, res) => {
 
     console.log("[catalog/search] start", { q, limit });
 
-    // 1) Try Firestore cache first
+    let localResults = [];
+
     if (!firestoreQuotaExceeded) {
       try {
-        console.log("[catalog/search] trying Firestore cache lookup");
-        const snap = await db
-          .collection("plantCatalog")
-          .where("searchTokens", "array-contains", q)
-          .limit(20)
-          .get();
+        const snap = await db.collection("plantCatalog").get();
 
-        if (!snap.empty) {
-          console.log("[catalog/search] returning cached Firestore results");
-          return res.json(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        }
+        localResults = snap.docs
+          .map((d) => serializeCatalogPlant({ id: d.id, ...d.data() }))
+          .filter((p) => {
+            const haystack = [
+              p.commonName,
+              p.scientificName,
+              p.slug,
+              ...(Array.isArray(p.searchTokens) ? p.searchTokens : []),
+            ]
+              .filter(Boolean)
+              .map((x) => norm(x));
 
-        console.log("[catalog/search] no cached Firestore results");
+            return haystack.some((x) => x.includes(q));
+          })
+          .sort((a, b) => {
+            const aName = norm(displayNameFromDoc(a));
+            const bName = norm(displayNameFromDoc(b));
+
+            const aStarts = aName.startsWith(q) ? 1 : 0;
+            const bStarts = bName.startsWith(q) ? 1 : 0;
+
+            if (aStarts !== bStarts) return bStarts - aStarts;
+            return aName.localeCompare(bName);
+          })
+          .slice(0, limit);
       } catch (err) {
         if (isQuotaExceededError(err)) {
           firestoreQuotaExceeded = true;
           console.warn(
-            "[catalog/search] Firestore quota exceeded during initial lookup; switching to live mode"
+            "[catalog/search] Firestore quota exceeded during local lookup; switching to live mode"
           );
         } else {
           throw err;
@@ -170,13 +337,10 @@ router.get("/search", async (req, res) => {
       }
     }
 
-    // 2) Search Trefle
-    console.log("[catalog/search] searching Trefle species");
     let resp = await speciesSearch(q);
     let items = resp?.data || [];
 
     if (!items.length) {
-      console.log("[catalog/search] species empty, searching Trefle plants");
       resp = await plantSearch(q);
       items = resp?.data || [];
     }
@@ -184,9 +348,6 @@ router.get("/search", async (req, res) => {
     const toImport = items.slice(0, limit);
     const importedResults = [];
 
-    console.log("[catalog/search] Trefle items selected", toImport.length);
-
-    // 3) Build in-memory results
     for (const item of toImport) {
       const docId = `trefle_${item.id}`;
 
@@ -260,7 +421,6 @@ router.get("/search", async (req, res) => {
         updatedAt: new Date().toISOString(),
       };
 
-      // 4) Optional care override, only while Firestore is usable
       let override = null;
       if (!firestoreQuotaExceeded) {
         try {
@@ -296,12 +456,13 @@ router.get("/search", async (req, res) => {
         source: override ? "override" : "trefle/fallback",
       };
 
-      importedResults.push({
-        id: docId,
-        ...catalogDoc,
-      });
+      importedResults.push(
+        serializeCatalogPlant({
+          id: docId,
+          ...catalogDoc,
+        })
+      );
 
-      // 5) Cache write only if Firestore is still usable
       if (!firestoreQuotaExceeded) {
         try {
           await db.collection("plantCatalog").doc(docId).set(catalogDoc, {
@@ -320,11 +481,20 @@ router.get("/search", async (req, res) => {
       }
     }
 
-    console.log("[catalog/search] returning live results", {
-      count: importedResults.length,
+    const localIds = new Set(localResults.map((p) => p.id));
+    const merged = [
+      ...localResults,
+      ...importedResults.filter((p) => !localIds.has(p.id)),
+    ];
+
+    console.log("[catalog/search] returning merged results", {
+      localCount: localResults.length,
+      liveCount: importedResults.length,
+      finalCount: merged.length,
       firestoreQuotaExceeded,
     });
-    return res.json(importedResults);
+
+    return res.json(merged);
   } catch (err) {
     console.error("[catalog/search] fatal error:", err);
     return res.status(500).json({

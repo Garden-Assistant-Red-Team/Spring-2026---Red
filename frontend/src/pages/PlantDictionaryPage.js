@@ -19,8 +19,93 @@ function displayName(p) {
   return p?.commonName || p?.scientificName || p?.slug || "Unknown plant";
 }
 
-function badge(text) {
-  return <span className="dictionaryBadge">{text}</span>;
+function prettySunlight(values) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+
+  return values
+    .map((v) => {
+      if (v === "full_sun") return "Full Sun";
+      if (v === "part_sun") return "Part Sun";
+      if (v === "shade") return "Shade";
+      return v;
+    })
+    .join(", ");
+}
+
+function getSunlightLabel(p) {
+  if (Array.isArray(p?.sunlight) && p.sunlight.length) {
+    return prettySunlight(p.sunlight) || "Unknown";
+  }
+
+  const cat = p?.careEffective?.sunlightCategory || p?.sunlight?.category || null;
+  if (cat === "full") return "Full Sun";
+  if (cat === "partial") return "Part Sun";
+  if (cat === "shade") return "Shade";
+  return "Unknown";
+}
+
+function getWateringDays(p) {
+  return (
+    p?.careEffective?.wateringEveryDays ??
+    p?.wateringEveryDays ??
+    p?.watering?.defaultEveryDays ??
+    null
+  );
+}
+
+function getMinZone(p) {
+  return p?.careEffective?.minZone ?? p?.minZone ?? p?.hardiness?.minZone ?? null;
+}
+
+function getMaxZone(p) {
+  return p?.maxZone ?? p?.careEffective?.maxZone ?? p?.hardiness?.maxZone ?? null;
+}
+
+function recBadge(text) {
+  return <span className="recBadge">{text}</span>;
+}
+
+function PlantCard({ plant, selected, onSelect }) {
+  const minZone = getMinZone(plant);
+  const maxZone = getMaxZone(plant);
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(plant)}
+      className={`recCard ${selected?.id === plant.id ? "active" : ""}`}
+    >
+      <div className="recCardImageWrap">
+        {plant.imageUrl ? (
+          <img
+            src={plant.imageUrl}
+            alt={plant.commonName || plant.scientificName}
+            className="recCardImage"
+            loading="lazy"
+          />
+        ) : (
+          <div className="recCardNoImage">No image</div>
+        )}
+      </div>
+
+      <div className="recCardBody">
+        <div className="recCardTitle">{plant.commonName || plant.scientificName}</div>
+
+        {plant.scientificName && (
+          <div className="recCardMeta">{plant.scientificName}</div>
+        )}
+
+        <div className="recCardBadges">
+          {minZone != null && maxZone != null && (
+            <span className="recBadge">Zones {minZone}–{maxZone}</span>
+          )}
+          {plant.duration && <span className="recBadge">{plant.duration}</span>}
+          {plant.pollinatorFriendly && <span className="recBadge">Pollinator</span>}
+          {plant.edible && <span className="recBadge">Edible</span>}
+        </div>
+      </div>
+    </button>
+  );
 }
 
 async function addToMyGarden(selected) {
@@ -35,21 +120,18 @@ async function addToMyGarden(selected) {
   const uid = user.uid;
 
   const body = {
-    name: selected.scientificName || selected.commonName || selected.id,
+    name: selected.commonName || selected.scientificName || selected.id,
     commonName: selected.commonName ?? null,
     scientificName: selected.scientificName ?? null,
     plantId: selected.id,
     trefle_id: typeof selected.trefleId === "number" ? selected.trefleId : null,
-    minZone:
-      typeof selected?.careEffective?.minZone === "number"
-        ? selected.careEffective.minZone
-        : null,
-    maxZone:
-      typeof selected?.careEffective?.maxZone === "number"
-        ? selected.careEffective.maxZone
-        : null,
-    sunlight: selected?.careEffective?.sunlightCategory ?? null,
-    wateringFrequency: selected?.careEffective?.wateringEveryDays ?? null,
+    minZone: getMinZone(selected),
+    maxZone: getMaxZone(selected),
+    sunlight:
+      Array.isArray(selected?.sunlight) && selected.sunlight.length
+        ? selected.sunlight
+        : selected?.careEffective?.sunlightCategory ?? null,
+    wateringFrequency: getWateringDays(selected),
     reason: "Added from dictionary",
     source: "dictionary",
     confidence: null,
@@ -77,27 +159,50 @@ export default function PlantDictionaryPage() {
 
   const [limit, setLimit] = useState(10);
   const [sunFilter, setSunFilter] = useState("any");
-  const [edibleFilter, setEdibleFilter] = useState("any");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(12);
+  const [sortBy, setSortBy] = useState("commonName");
 
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [plants, setPlants] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [pagination, setPagination] = useState(null);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, sortBy]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function run() {
       setError(null);
-
-      if (!q) {
-        setPlants([]);
-        setStatus("idle");
-        return;
-      }
-
       setStatus("loading");
+
       try {
+        if (!q) {
+          const url = `/api/catalog/browse?page=${page}&pageSize=${pageSize}&sortBy=${encodeURIComponent(
+            sortBy
+          )}`;
+          const resp = await fetch(url);
+
+          if (!resp.ok) {
+            const txt = await resp.text();
+            throw new Error(`Request failed (${resp.status}): ${txt}`);
+          }
+
+          const data = await resp.json();
+
+          if (!cancelled) {
+            setPlants(Array.isArray(data?.items) ? data.items : []);
+            setPagination(data?.pagination || null);
+            setStatus("done");
+          }
+
+          return;
+        }
+
         const url = `/api/catalog/search?q=${encodeURIComponent(
           q
         )}&limit=${limit}&details=1`;
@@ -112,6 +217,7 @@ export default function PlantDictionaryPage() {
 
         if (!cancelled) {
           setPlants(Array.isArray(data) ? data : []);
+          setPagination(null);
           setStatus("done");
         }
       } catch (e) {
@@ -127,30 +233,28 @@ export default function PlantDictionaryPage() {
     return () => {
       cancelled = true;
     };
-  }, [q, limit]);
+  }, [q, limit, page, pageSize, sortBy]);
 
   const filtered = useMemo(() => {
     return plants.filter((p) => {
       if (sunFilter !== "any") {
-        const s =
-          p?.careEffective?.sunlightCategory || p?.sunlight?.category || null;
-        if (s !== sunFilter) return false;
-      }
+        const s = getSunlightLabel(p).toLowerCase();
 
-      if (edibleFilter === "edibleOnly") {
-        const edible = p?.edible === true;
-        if (!edible) return false;
+        if (
+          (sunFilter === "full" && !s.includes("full")) ||
+          (sunFilter === "partial" && !s.includes("part")) ||
+          (sunFilter === "shade" && !s.includes("shade"))
+        ) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [plants, sunFilter, edibleFilter]);
+  }, [plants, sunFilter]);
 
   const commonQuery =
     selected?.commonName || selected?.name || selected?.scientificName || "";
-
-  const scientificQuery =
-    selected?.scientificName || selected?.commonName || selected?.name || "";
 
   const broadQuery = [selected?.commonName, selected?.scientificName]
     .filter(Boolean)
@@ -171,258 +275,304 @@ export default function PlantDictionaryPage() {
 
   const shoppingCards = commonQuery
     ? [
-      {
-        label: "Best Overall",
-        store: "Google Shopping",
-        description: "Compare results across multiple stores first.",
-        tag: "Compare prices",
-        url: `https://www.google.com/search?tbm=shop&q=${encodedBroadQuery}`,
-      },
-      {
-        label: "Budget Pick",
-        store: "Home Depot",
-        description: "Good for common plants and practical pricing.",
-        tag: "Budget friendly",
-        url: `https://www.homedepot.com/s/${encodedBudgetQuery}`,
-      },
-      {
-        label: "Also Check",
-        store: "Lowe's",
-        description: "Another solid big-store option for common plants.",
-        tag: "Big box store",
-        url: `https://www.lowes.com/search?searchTerm=${encodedBudgetQuery}`,
-      },
-      {
-        label: "Trees & Shrubs",
-        store: "FastGrowingTrees",
-        description: "Usually better for outdoor plants, trees, and shrubs.",
-        tag: "Outdoor focus",
-        url: `https://www.fast-growing-trees.com/collections/shop?type=collection&q=${encodedTreeQuery}`,
-      },
-    ]
+        {
+          store: "Home Depot",
+          label: "Big Box",
+          tag: "Popular",
+          description: "Search this plant on Home Depot.",
+          url: `https://www.homedepot.com/s/${encodedCommonQuery}`,
+        },
+        {
+          store: "Lowe's",
+          label: "Big Box",
+          tag: "Compare",
+          description: "Search this plant on Lowe's.",
+          url: `https://www.lowes.com/search?searchTerm=${encodedCommonQuery}`,
+        },
+        {
+          store: "Amazon",
+          label: "Fast",
+          tag: "Seeds + kits",
+          description: "Search broad listings for seeds and starter plants.",
+          url: `https://www.amazon.com/s?k=${encodedBroadQuery}`,
+        },
+        {
+          store: "Etsy",
+          label: "Specialty",
+          tag: "Unique",
+          description: "Find niche or smaller seller listings.",
+          url: `https://www.etsy.com/search?q=${encodedBroadQuery}`,
+        },
+        {
+          store: "Walmart",
+          label: "Budget",
+          tag: "Low cost",
+          description: "Search budget-friendly plant listings.",
+          url: `https://www.walmart.com/search?q=${encodedBudgetQuery}`,
+        },
+        {
+          store: "FastGrowingTrees",
+          label: "Trees",
+          tag: "If relevant",
+          description: "Good if this plant is sold as a shrub or tree.",
+          url: `https://www.fast-growing-trees.com/search?q=${encodedTreeQuery}`,
+        },
+      ]
     : [];
+
   return (
-    <DashboardLayout
-      title="Resources"
-      subtitle="Search the plant dictionary, browse details, and save plants to My Garden."
-      badge={selected ? displayName(selected) : "Plant Dictionary"}
+    <DashboardLayout>
+      <div className="toolPageWrap">
+        <header className="toolHero">
+          <div>
+            <div className="toolEyebrow">Plant tools</div>
+            <h1 className="toolTitle">Plant Dictionary</h1>
+            <p className="toolSubtitle">
+              Browse the catalog, search your database first, and compare the most
+              important care details without all the extra clutter.
+            </p>
+          </div>
+        </header>
+
+        <section className="panel recHeroPanel" style={{ marginBottom: 18 }}>
+          <div className="recHeroTop" style={{ alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <h2 className="panelTitle" style={{ marginBottom: 8 }}>
+                Search & browse plants
+              </h2>
+              <p className="muted" style={{ marginBottom: 14 }}>
+                Search by common or scientific name. When the search is empty, the
+                full catalog loads below as paginated cards.
+              </p>
+
+<div className="dictionaryToolbar">
+  <label className="dictionaryField dictionaryFieldSearch">
+    <span>Search plant catalog</span>
+    <input
+      type="text"
+      placeholder="Try hydrangea, basil, serviceberry..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+    />
+  </label>
+
+  {q && (
+    <label className="dictionaryField">
+      <span>Results</span>
+      <select
+        value={limit}
+        onChange={(e) => setLimit(Number(e.target.value))}
+      >
+        <option value={5}>5</option>
+        <option value={10}>10</option>
+        <option value={15}>15</option>
+      </select>
+    </label>
+  )}
+
+  <label className="dictionaryField">
+    <span>Sort by</span>
+    <select
+      value={sortBy}
+      onChange={(e) => setSortBy(e.target.value)}
     >
-      <div className="container">
-        <section className="panel" style={{ marginBottom: 20 }}>
-          <div className="dictionaryControlsGrid">
-            <label className="field">
-              <span>Search by common name or scientific name</span>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., basil, tulipa gesneriana, solanum lycopersicum"
-              />
-            </label>
+      <option value="commonName">Common name</option>
+      <option value="scientificName">Scientific name</option>
+    </select>
+  </label>
 
-            <label className="field">
-              <span>Sunlight</span>
-              <select
-                value={sunFilter}
-                onChange={(e) => setSunFilter(e.target.value)}
-              >
-                <option value="any">Any</option>
-                <option value="full">Full sun</option>
-                <option value="partial">Partial</option>
-                <option value="shade">Shade</option>
-              </select>
-            </label>
+  <label className="dictionaryField">
+    <span>Sunlight</span>
+    <select
+      value={sunFilter}
+      onChange={(e) => setSunFilter(e.target.value)}
+    >
+      <option value="any">Any</option>
+      <option value="full">Full sun</option>
+      <option value="partial">Part sun</option>
+      <option value="shade">Shade</option>
+    </select>
+  </label>
+</div>
 
-            <label className="field">
-              <span>Edible</span>
-              <select
-                value={edibleFilter}
-                onChange={(e) => setEdibleFilter(e.target.value)}
-              >
-                <option value="any">Any</option>
-                <option value="edibleOnly">Edible only</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Import limit</span>
-              <select
-                value={limit}
-                onChange={(e) => setLimit(parseInt(e.target.value, 10))}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-              </select>
-            </label>
+              {status !== "loading" && (
+                <div className="muted" style={{ marginTop: 12 }}>
+                  {q ? (
+                    <>
+                      Showing <b>{filtered.length}</b> result(s)
+                    </>
+                  ) : (
+                    <>
+                      Showing page <b>{pagination?.page || 1}</b> of{" "}
+                      <b>{pagination?.totalPages || 1}</b> (
+                      {pagination?.total || filtered.length} total plants)
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {status === "loading" && <div className="muted">Loading…</div>}
-
-          {status === "error" && (
-            <div className="errorText">
-              <b>Error:</b> {error}
-            </div>
-          )}
-
-          {status !== "loading" && q && (
-            <div className="muted" style={{ marginTop: 10 }}>
-              Showing <b>{filtered.length}</b> result(s)
-            </div>
+          {error && <p style={{ color: "crimson", marginTop: 10 }}>{error}</p>}
+          {status === "loading" && (
+            <p className="muted" style={{ marginTop: 10 }}>
+              Loading plant data...
+            </p>
           )}
         </section>
 
-        <div className="dictionaryMainGrid">
-          <section className="panel">
-            <div className="sectionHeader">
-              <h2 className="panelTitle">Plant Results</h2>
-              <span className="sectionPill">{filtered.length}</span>
-            </div>
+        <div className="recLayout">
+          <div className="recMain">
+            <section className="panel recPanel">
+              <div className="recSectionHeader">
+                <h2 className="panelTitle">{q ? "Search Results" : "Plant Catalog"}</h2>
+              </div>
 
-            <div className="dictionaryResultsGrid">
-              {filtered.map((p) => {
-                const name = displayName(p);
-                const sun =
-                  p?.careEffective?.sunlightCategory ||
-                  p?.sunlight?.category ||
-                  "unknown";
-                const water = p?.careEffective?.wateringEveryDays ?? null;
+              {status === "done" && filtered.length > 0 ? (
+                <div className="recGrid">
+                  {filtered.map((plant) => (
+                    <PlantCard
+                      key={plant.id}
+                      plant={plant}
+                      selected={selected}
+                      onSelect={setSelected}
+                    />
+                  ))}
+                </div>
+              ) : status === "done" ? (
+                <p className="muted">No plants matched your current search or filters.</p>
+              ) : null}
 
-                return (
+              {!q && pagination && pagination.totalPages > 1 && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginTop: 16,
+                  }}
+                >
                   <button
-                    key={p.id}
-                    onClick={() => setSelected(p)}
-                    className={`dictionaryPlantCard ${selected?.id === p.id ? "active" : ""
-                      }`}
                     type="button"
+                    className="secondaryBtn"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={pagination.page <= 1}
                   >
-                    <div className="dictionaryPlantRow">
-                      <div className="dictionaryPlantThumb">
-                        {p.imageUrl ? (
-                          <img
-                            src={p.imageUrl}
-                            alt={name}
-                            className="dictionaryThumbImage"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="dictionaryNoImage">No image</div>
-                        )}
-                      </div>
-
-                      <div className="dictionaryPlantInfo">
-                        <div className="dictionaryPlantName">{name}</div>
-                        <div className="dictionaryPlantMeta">
-                          {p.scientificName || p.slug || ""}
-                        </div>
-                        <div className="dictionaryBadgeWrap">
-                          {badge(`Sun: ${sun}`)}
-                          {badge(
-                            water
-                              ? `Water: every ${water} days`
-                              : "Water: unknown"
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    Previous
                   </button>
-                );
-              })}
-            </div>
 
-            {q && status !== "loading" && filtered.length === 0 && (
-              <div className="muted" style={{ marginTop: 16 }}>
-                No results yet. Try a different search.
-              </div>
-            )}
-          </section>
+                  <div className="muted" style={{ alignSelf: "center" }}>
+                    Page {pagination.page} of {pagination.totalPages}
+                  </div>
 
-          <section className="panel dictionaryDetailsPanel">
+                  <button
+                    type="button"
+                    className="secondaryBtn"
+                    onClick={() =>
+                      setPage((p) => Math.min(pagination.totalPages, p + 1))
+                    }
+                    disabled={pagination.page >= pagination.totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="panel recDetailsPanel">
+            <h2 className="panelTitle">Selected Plant</h2>
+
             {!selected ? (
-              <div className="muted">
-                <b>Plant details</b>
-                <p style={{ marginTop: 8 }}>
-                  Click a plant card to see details.
-                </p>
-              </div>
+              <p className="muted">Click a plant card to see details.</p>
             ) : (
               <div>
-                <div className="dictionaryDetailsTitle">
-                  {displayName(selected)}
-                </div>
-                <div className="dictionaryDetailsMeta">
-                  {selected.scientificName || selected.slug || ""}
+                <div className="recDetailsTitle">
+                  {selected.commonName || selected.scientificName}
                 </div>
 
-                {selected.imageUrl && (
-                  <img
-                    src={selected.imageUrl}
-                    alt={displayName(selected)}
-                    className="dictionaryDetailImage"
-                  />
+                {selected.scientificName && (
+                  <div className="recDetailsMeta">{selected.scientificName}</div>
                 )}
 
-                <div className="dictionaryDetailsBody">
-                  <div>
-                    <b>Family:</b> {selected.family || "Unknown"}
+                {selected.imageUrl && (
+                  <div className="recDetailsImageWrap">
+                    <img
+                      src={selected.imageUrl}
+                      alt={selected.commonName || selected.scientificName}
+                      className="recDetailsImage"
+                    />
                   </div>
+                )}
+
+                <div className="recDetailsFacts">
                   <div>
-                    <b>Edible:</b>{" "}
-                    {selected.edible === true
-                      ? "Yes"
-                      : selected.edible === false
-                        ? "No"
-                        : "Unknown"}
+                    <strong>Zones:</strong>{" "}
+                    {getMinZone(selected) != null && getMaxZone(selected) != null
+                      ? `${getMinZone(selected)}–${getMaxZone(selected)}`
+                      : "Unknown"}
                   </div>
 
-                  <div style={{ marginTop: 10 }}>
-                    <b>Care (effective):</b>
+                  {getSunlightLabel(selected) && (
                     <div>
-                      Sunlight:{" "}
-                      {selected?.careEffective?.sunlightCategory || "Unknown"}
+                      <strong>Sunlight:</strong> {getSunlightLabel(selected)}
                     </div>
-                    <div>
-                      Watering:{" "}
-                      {selected?.careEffective?.wateringEveryDays
-                        ? `Every ${selected.careEffective.wateringEveryDays} days`
-                        : "Unknown"}
-                    </div>
-                    <div>
-                      Min zone: {selected?.careEffective?.minZone ?? "Unknown"}
-                    </div>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      Source: {selected?.careEffective?.source || "Unknown"}
-                    </div>
-                  </div>
+                  )}
 
-                  <div style={{ marginTop: 12 }} className="muted">
+                  {selected.duration && (
                     <div>
-                      <b>Catalog ID:</b> {selected.id}
+                      <strong>Duration:</strong> {selected.duration}
                     </div>
+                  )}
+
+                  {getWateringDays(selected) && (
                     <div>
-                      <b>Trefle ID:</b> {selected.trefleId}
+                      <strong>Watering:</strong> Every {getWateringDays(selected)} days
                     </div>
-                  </div>
+                  )}
+
+                  {selected.family && (
+                    <div>
+                      <strong>Family:</strong> {selected.family}
+                    </div>
+                  )}
+
+                  {selected.nativeStates?.length > 0 && (
+                    <div>
+                      <strong>Native States:</strong> {selected.nativeStates.join(", ")}
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ marginTop: 14 }}>
-                  <button
-                    onClick={() => addToMyGarden(selected)}
-                    className="primaryBtn"
-                    type="button"
-                    style={{ width: "100%" }}
-                  >
-                    Add to My Garden
-                  </button>
-
-                  <button
-                    onClick={() => setSelected(null)}
-                    className="secondaryBtn"
-                    type="button"
-                    style={{ width: "100%", marginTop: 10 }}
-                  >
-                    Clear selection
-                  </button>
+                <div className="recCardBadges" style={{ marginTop: 12 }}>
+                  {selected.pollinatorFriendly && recBadge("Pollinator Friendly")}
+                  {selected.edible && recBadge("Edible")}
+                  {selected.tree && recBadge("Tree")}
+                  {selected.shrub && recBadge("Shrub")}
+                  {selected.herb && recBadge("Herb")}
+                  {selected.flower && recBadge("Flower")}
                 </div>
+
+                {selected.sources && (
+                  <div className="recSourceLinks">
+                    {Object.entries(selected.sources)
+                      .filter(([, url]) => !!url)
+                      .map(([label, url]) => (
+                        <a key={label} href={url} target="_blank" rel="noreferrer">
+                          {label}
+                        </a>
+                      ))}
+                  </div>
+                )}
+
+                <button
+                  className="primaryBtn"
+                  type="button"
+                  onClick={() => addToMyGarden(selected)}
+                  style={{ marginTop: 14, width: "100%" }}
+                >
+                  Add to My Garden
+                </button>
 
                 {selected && commonQuery && (
                   <div
@@ -433,7 +583,9 @@ export default function PlantDictionaryPage() {
                       borderTop: "1px solid #d9e4d7",
                     }}
                   >
-                    <div style={{ fontWeight: 700, marginBottom: 6 }}>Buy This Plant</div>
+                    <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                      Buy This Plant
+                    </div>
 
                     <div className="shoppingCardGrid">
                       {shoppingCards.map((card) => (
@@ -450,7 +602,9 @@ export default function PlantDictionaryPage() {
                           </div>
 
                           <div className="shoppingCardStore">{card.store}</div>
-                          <div className="shoppingCardDescription">{card.description}</div>
+                          <div className="shoppingCardDescription">
+                            {card.description}
+                          </div>
 
                           <div className="shoppingCardAction">Search store ↗</div>
                         </a>
@@ -460,11 +614,11 @@ export default function PlantDictionaryPage() {
                 )}
               </div>
             )}
-          </section>
+          </aside>
         </div>
 
         <div className="muted" style={{ marginTop: 20, fontSize: 12 }}>
-          Plant data is cached from Trefle and its aggregated sources.
+          Plant data is loaded from your catalog first, then Trefle results after.
         </div>
       </div>
     </DashboardLayout>
