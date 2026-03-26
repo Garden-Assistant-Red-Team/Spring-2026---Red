@@ -206,16 +206,37 @@ router.get("/", async (req, res) => {
     };
 
     // 4) Load plant catalog
-    // For v1, prefer clean seeded records only
-    const snap = await db
-      .collection("plantCatalog")
-      .where("dataSource", "==", "seed")
-      .get();
+    // Load all docs, then keep only recommendation-safe ones in code
+    const snap = await db.collection("plantCatalog").get();
 
-    let plants = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    let plants = snap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((plant) => {
+        // Must have basic usable structure
+        if (!plant.commonName || !plant.scientificName) return false;
+        if (typeof plant.minZone !== "number" || typeof plant.maxZone !== "number") return false;
+        if (!Array.isArray(plant.sunlight) || plant.sunlight.length === 0) return false;
+
+        // Optional future flag if you add it later
+        if (plant.recommendationEligible === false) return false;
+
+        return true;
+      });
+
+    console.log("recommendations: total catalog docs =", snap.size);
+    console.log("recommendations: usable docs after filter =", plants.length);
+    console.log(
+      "recommendations: sample plants =",
+      plants.slice(0, 10).map((p) => ({
+        id: p.id,
+        scientificName: p.scientificName,
+        commonName: p.commonName,
+        dataSource: p.dataSource || null,
+      }))
+    );
 
     // 5) Apply optional filters
     plants = applyFilters(plants, userContext, filters);
@@ -232,17 +253,77 @@ router.get("/", async (req, res) => {
       .sort((a, b) => b.recommendation.score - a.recommendation.score);
 
     // 7) Build sections
-    const bestSuited = scoredPlants.slice(0, 10).map(serializePlant);
+    function getPrimaryType(plant) {
+      if (plant.tree) return "tree";
+      if (plant.shrub) return "shrub";
+      if (plant.herb) return "herb";
+      if (plant.flower) return "flower";
+      if (plant.edible) return "edible";
+      return "other";
+    }
 
-    const nativePlants = scoredPlants
-      .filter((plant) => nativeToState(plant, userContext.stateCode))
-      .slice(0, 10)
-      .map(serializePlant);
+    function pickDiversePlants(plants, limit = 10, excludedIds = new Set()) {
+      const picked = [];
+      const usedIds = new Set(excludedIds);
+      const typeCounts = {};
 
-    const zoneMatches = scoredPlants
-      .filter((plant) => matchesZone(userContext.gardenZone, plant))
-      .slice(0, 10)
-      .map(serializePlant);
+      // first pass: try to balance types
+      for (const plant of plants) {
+        if (picked.length >= limit) break;
+        if (usedIds.has(plant.id)) continue;
+
+        const type = getPrimaryType(plant);
+        const count = typeCounts[type] || 0;
+
+        // soft cap: don't let one type dominate too early
+        if (count >= 3 && picked.length < limit - 2) continue;
+
+        picked.push(plant);
+        usedIds.add(plant.id);
+        typeCounts[type] = count + 1;
+      }
+
+      // second pass: fill remaining slots if needed
+      if (picked.length < limit) {
+        for (const plant of plants) {
+          if (picked.length >= limit) break;
+          if (usedIds.has(plant.id)) continue;
+
+          picked.push(plant);
+          usedIds.add(plant.id);
+
+          const type = getPrimaryType(plant);
+          typeCounts[type] = (typeCounts[type] || 0) + 1;
+        }
+      }
+
+      return picked;
+    }
+
+    // 7) Build sections with some diversity
+    const bestSuitedBase = scoredPlants;
+    const nativePlantsBase = scoredPlants.filter((plant) =>
+      nativeToState(plant, userContext.stateCode)
+    );
+    const zoneMatchesBase = scoredPlants.filter((plant) =>
+      matchesZone(userContext.gardenZone, plant)
+    );
+
+    const bestSuitedPicked = pickDiversePlants(bestSuitedBase, 10);
+    const bestSuitedIds = new Set(bestSuitedPicked.map((p) => p.id));
+
+    const nativePlantsPicked = pickDiversePlants(nativePlantsBase, 10, bestSuitedIds);
+    const nativePlantsIds = new Set(nativePlantsPicked.map((p) => p.id));
+
+    const zoneMatchesPicked = pickDiversePlants(
+      zoneMatchesBase,
+      10,
+      new Set([...bestSuitedIds, ...nativePlantsIds])
+    );
+
+    const bestSuited = bestSuitedPicked.map(serializePlant);
+    const nativePlants = nativePlantsPicked.map(serializePlant);
+    const zoneMatches = zoneMatchesPicked.map(serializePlant);
 
     return res.json({
       userContext: {

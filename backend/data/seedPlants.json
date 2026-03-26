@@ -1,284 +1,159 @@
 [
-  {
-    "commonName": "Purple Coneflower",
-    "scientificName": "Echinacea purpurea",
-    "slug": "echinacea-purpurea",
-    "family": "Asteraceae",
-    "flower": true,
-    "tree": false,
-    "shrub": false,
-    "herb": true,
-    "edible": false,
-    "pollinatorFriendly": true,
-    "nativeStates": ["GA", "NC", "OH", "IL", "IA", "TX"],
-    "minZone": 3.0,
-    "maxZone": 8.5,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 4,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Echinacea_purpurea",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=ECPU",
-      "ncState": "https://plants.ces.ncsu.edu/plants/echinacea-purpurea/"
-    }
-  },
-  {
-    "commonName": "Butterfly Weed",
-    "scientificName": "Asclepias tuberosa",
-    "slug": "asclepias-tuberosa",
-    "family": "Apocynaceae",
-    "flower": true,
-    "herb": true,
-    "tree": false,
-    "shrub": false,
-    "edible": false,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TX", "IL"],
-    "minZone": 3,
-    "maxZone": 9,
-    "sunlight": ["full_sun"],
-    "wateringProfile": "low",
-    "wateringEveryDays": 7,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Asclepias_tuberosa",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=ASTU",
-      "ncState": "https://plants.ces.ncsu.edu/plants/asclepias-tuberosa/"
-    }
-  },
-  {
-    "commonName": "Black-Eyed Susan",
-    "scientificName": "Rudbeckia hirta",
-    "slug": "rudbeckia-hirta",
-    "family": "Asteraceae",
-    "flower": true,
-    "herb": true,
-    "tree": false,
-    "shrub": false,
-    "edible": false,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TX", "IL", "OH"],
-    "minZone": 3,
-    "maxZone": 9,
-    "sunlight": ["full_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 4,
-    "duration": "annual",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Rudbeckia_hirta",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=RUHI",
-      "ncState": "https://plants.ces.ncsu.edu/plants/rudbeckia-hirta/"
-    }
-  },
-  {
-    "commonName": "Eastern Redbud",
-    "scientificName": "Cercis canadensis",
-    "slug": "cercis-canadensis",
-    "family": "Fabaceae",
-    "tree": true,
-    "flower": false,
-    "shrub": false,
-    "herb": false,
-    "edible": false,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TN", "KY"],
-    "minZone": 4,
-    "maxZone": 9,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 5,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Cercis_canadensis",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=CECA",
-      "ncState": "https://plants.ces.ncsu.edu/plants/cercis-canadensis/"
-    }
-  },
-  {
-    "commonName": "American Beautyberry",
-    "scientificName": "Callicarpa americana",
-    "slug": "callicarpa-americana",
-    "family": "Lamiaceae",
-    "shrub": true,
-    "tree": false,
-    "flower": false,
-    "herb": false,
-    "edible": false,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "FL", "TX"],
-    "minZone": 6,
-    "maxZone": 10,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 5,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Callicarpa_americana",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=CAAM2",
-      "ncState": "https://plants.ces.ncsu.edu/plants/callicarpa-americana/"
-    }
-  },
-
-  {
-    "commonName": "Bee Balm",
-    "scientificName": "Monarda didyma",
-    "slug": "monarda-didyma",
-    "family": "Lamiaceae",
-    "flower": true,
-    "herb": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["NC", "SC", "GA", "TN", "PA", "NY"],
-    "minZone": 4,
-    "maxZone": 9,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 4,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Monarda_didyma",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=MODI",
-      "ncState": "https://plants.ces.ncsu.edu/plants/monarda-didyma/"
-    }
-  },
-  {
-    "commonName": "Cardinal Flower",
-    "scientificName": "Lobelia cardinalis",
-    "slug": "lobelia-cardinalis",
-    "family": "Campanulaceae",
-    "flower": true,
-    "herb": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TN", "KY"],
-    "minZone": 3,
-    "maxZone": 9,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "high",
-    "wateringEveryDays": 2,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Lobelia_cardinalis",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=LOCA2",
-      "ncState": "https://plants.ces.ncsu.edu/plants/lobelia-cardinalis/"
-    }
-  },
-
-  {
-    "commonName": "Blue False Indigo",
-    "scientificName": "Baptisia australis",
-    "slug": "baptisia-australis",
-    "family": "Fabaceae",
-    "flower": true,
-    "herb": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TN", "KY", "IL"],
-    "minZone": 3,
-    "maxZone": 9,
-    "sunlight": ["full_sun"],
-    "wateringProfile": "low",
-    "wateringEveryDays": 7,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Baptisia_australis",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=BAAU",
-      "ncState": "https://plants.ces.ncsu.edu/plants/baptisia-australis/"
-    }
-  },
-
-  {
-    "commonName": "Serviceberry",
-    "scientificName": "Amelanchier canadensis",
-    "slug": "amelanchier-canadensis",
-    "family": "Rosaceae",
-    "tree": true,
-    "shrub": true,
-    "edible": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "MD", "PA", "NY"],
-    "minZone": 4,
-    "maxZone": 9,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 5,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Amelanchier_canadensis",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=AMCA4",
-      "ncState": "https://plants.ces.ncsu.edu/plants/amelanchier-canadensis/"
-    }
-  },
-
-  {
-    "commonName": "Virginia Sweetspire",
-    "scientificName": "Itea virginica",
-    "slug": "itea-virginica",
-    "family": "Iteaceae",
-    "shrub": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "FL", "AL"],
-    "minZone": 5,
-    "maxZone": 9,
-    "sunlight": ["full_sun", "part_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 4,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Itea_virginica",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=ITVI",
-      "ncState": "https://plants.ces.ncsu.edu/plants/itea-virginica/"
-    }
-  },
-
-  {
-    "commonName": "Lanceleaf Coreopsis",
-    "scientificName": "Coreopsis lanceolata",
-    "slug": "coreopsis-lanceolata",
-    "family": "Asteraceae",
-    "flower": true,
-    "pollinatorFriendly": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "FL", "TX"],
-    "minZone": 4,
-    "maxZone": 9,
-    "sunlight": ["full_sun"],
-    "wateringProfile": "low",
-    "wateringEveryDays": 6,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Coreopsis_lanceolata",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=COLA5",
-      "ncState": "https://plants.ces.ncsu.edu/plants/coreopsis-lanceolata/"
-    }
-  },
-
-  {
-    "commonName": "Switchgrass",
-    "scientificName": "Panicum virgatum",
-    "slug": "panicum-virgatum",
-    "family": "Poaceae",
-    "herb": true,
-    "nativeStates": ["VA", "NC", "SC", "GA", "TX", "OH", "IL"],
-    "minZone": 4,
-    "maxZone": 9,
-    "sunlight": ["full_sun"],
-    "wateringProfile": "moderate",
-    "wateringEveryDays": 4,
-    "duration": "perennial",
-    "imageUrl": null,
-    "sources": {
-      "wikipedia": "https://en.wikipedia.org/wiki/Panicum_virgatum",
-      "wildflower": "https://www.wildflower.org/plants/result.php?id_plant=PAVI2",
-      "ncState": "https://plants.ces.ncsu.edu/plants/panicum-virgatum/"
-    }
+{
+  "scientificName": "Petroselinum crispum",
+  "commonName": "Parsley",
+  "family": "Apiaceae",
+  "herb": true,
+  "edible": true,
+  "minZone": 4,
+  "maxZone": 9,
+  "sunlight": ["full_sun", "part_sun"],
+  "wateringEveryDays": 3,
+  "wateringProfile": "moderate",
+  "duration": "biennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/petroselinum-crispum/"
   }
+},
+
+{
+  "scientificName": "Solanum lycopersicum",
+  "commonName": "Tomato",
+  "family": "Solanaceae",
+  "edible": true,
+  "minZone": 10,
+  "maxZone": 11,
+  "sunlight": ["full_sun"],
+  "wateringEveryDays": 2,
+  "wateringProfile": "high",
+  "duration": "annual",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/solanum-lycopersicum/"
+  }
+},
+{
+  "scientificName": "Capsicum annuum",
+  "commonName": "Bell pepper",
+  "family": "Solanaceae",
+  "edible": true,
+  "minZone": 10,
+  "maxZone": 11,
+  "sunlight": ["full_sun"],
+  "wateringEveryDays": 2,
+  "wateringProfile": "high",
+  "duration": "annual",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/capsicum-annuum/"
+  }
+},
+{
+  "scientificName": "Lactuca sativa",
+  "commonName": "Lettuce",
+  "family": "Asteraceae",
+  "edible": true,
+  "minZone": 4,
+  "maxZone": 9,
+  "sunlight": ["full_sun", "part_sun"],
+  "wateringEveryDays": 2,
+  "wateringProfile": "high",
+  "duration": "annual",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/lactuca-sativa/"
+  }
+},
+{
+  "scientificName": "Daucus carota",
+  "commonName": "Carrot",
+  "family": "Apiaceae",
+  "edible": true,
+  "minZone": 3,
+  "maxZone": 9,
+  "sunlight": ["full_sun"],
+  "wateringEveryDays": 3,
+  "wateringProfile": "moderate",
+  "duration": "biennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/daucus-carota/"
+  }
+},
+{
+  "scientificName": "Cucumis sativus",
+  "commonName": "Cucumber",
+  "family": "Cucurbitaceae",
+  "edible": true,
+  "minZone": 10,
+  "maxZone": 11,
+  "sunlight": ["full_sun"],
+  "wateringEveryDays": 2,
+  "wateringProfile": "high",
+  "duration": "annual",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/cucumis-sativus/"
+  }
+},
+
+{
+  "scientificName": "Hydrangea macrophylla",
+  "commonName": "Bigleaf hydrangea",
+  "family": "Hydrangeaceae",
+  "flower": true,
+  "shrub": true,
+  "minZone": 5,
+  "maxZone": 9,
+  "sunlight": ["part_sun"],
+  "wateringEveryDays": 3,
+  "wateringProfile": "moderate",
+  "duration": "perennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/hydrangea-macrophylla/"
+  }
+},
+{
+  "scientificName": "Rosa spp.",
+  "commonName": "Rose",
+  "family": "Rosaceae",
+  "flower": true,
+  "shrub": true,
+  "minZone": 4,
+  "maxZone": 9,
+  "sunlight": ["full_sun"],
+  "wateringEveryDays": 3,
+  "wateringProfile": "moderate",
+  "duration": "perennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/rosa/"
+  }
+},
+{
+  "scientificName": "Acer rubrum",
+  "commonName": "Red maple",
+  "family": "Sapindaceae",
+  "tree": true,
+  "minZone": 3,
+  "maxZone": 9,
+  "sunlight": ["full_sun", "part_sun"],
+  "wateringEveryDays": 5,
+  "wateringProfile": "moderate",
+  "duration": "perennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/acer-rubrum/",
+    "usda": "https://plants.usda.gov/home/plantProfile?symbol=ACRU"
+  }
+},
+{
+  "scientificName": "Ilex opaca",
+  "commonName": "American holly",
+  "family": "Aquifoliaceae",
+  "tree": true,
+  "minZone": 5,
+  "maxZone": 9,
+  "sunlight": ["full_sun", "part_sun"],
+  "wateringEveryDays": 5,
+  "wateringProfile": "moderate",
+  "duration": "perennial",
+  "sources": {
+    "ncState": "https://plants.ces.ncsu.edu/plants/ilex-opaca/",
+    "usda": "https://plants.usda.gov/home/plantProfile?symbol=ILOP"
+  }
+}
 ]
