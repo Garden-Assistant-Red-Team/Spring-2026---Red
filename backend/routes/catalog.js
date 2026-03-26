@@ -14,11 +14,20 @@ function norm(s) {
   return (s || "").toString().trim().toLowerCase();
 }
 
+function canonical(s) {
+  return (s || "").toString().trim().toLowerCase().replaceAll(" ", "_");
+}
+
 function sunlightCategory(light) {
+  const sunlightSet = new Set();
+
   if (typeof light !== "number") return null;
-  if (light <= 3) return "shade";
-  if (light <= 6) return "partial";
-  return "full";
+  if (light <= 3) sunlightSet.add("shade");
+  if (light <= 6) sunlightSet.add("part_sun");
+  if (6 < light) sunlightSet.add("full_sun");
+
+  return sunlightSet;
+
 }
 
 function wateringFromSoilHumidity(h) {
@@ -27,6 +36,7 @@ function wateringFromSoilHumidity(h) {
   if (h <= 6) return { profile: "moderate", days: 4 };
   return { profile: "high", days: 2 };
 }
+
 
 function minZoneFromMinTempF(minF) {
   if (typeof minF !== "number") return null;
@@ -39,6 +49,7 @@ function minZoneFromMinTempF(minF) {
   if (minF <= 30) return 10;
   return 11;
 }
+
 
 function buildSearchTokens(obj, q) {
   const tokens = new Set();
@@ -375,50 +386,57 @@ router.get("/search", async (req, res) => {
       );
 
       const catalogDoc = {
-        trefleId: item.id,
-        slug: item.slug ?? null,
+
+        canonicalKey: canonical(item.scientific_name ?? "unknown_plant"),
         commonName: item.common_name ?? null,
         scientificName: item.scientific_name ?? null,
-        imageUrl: item.image_url ?? null,
 
         family: details?.family?.name ?? details?.family ?? null,
-        familySlug: details?.family?.slug ?? null,
-
+        dataSource: null,
+        
+        flower: details?.flower === true ?? null,
+        herb: null,
+        shrub: null,
+        tree: null,
         edible: details?.edible ?? null,
+        pollinatorFriendly: null,
+        
+        minZone: minZone,
+        maxZone: null,
+
+        sunlight: sunlightCategory(light),
+
+        wateringEveryDays: wateringDays,
+        wateringProfile: wateringDerived?.profile ?? "moderate",
+
+        nativeStates: [],
+
+        imageUrl: item.image_url ?? null,
+
+        slug: item.slug ?? null,
+
+        searchTokens: buildSearchTokens(item, q),
+
+        trefleId: item.id,
+
+        updatedAt: new Date().toISOString(),
+
+        toxicity: specs?.toxicity ?? null,
+        familySlug: details?.family?.slug ?? null,
         vegetable: details?.vegetable ?? null,
-
-        sunlight: {
-          light,
-          category: sunlightCategory(light),
-        },
-
-        watering: {
-          soilHumidity,
-          defaultEveryDays: wateringDays,
-        },
-
-        hardiness: {
-          minZone,
-        },
-
+        soilHumidity: soilHumidity,
         soilPH: {
           min: growth?.ph_minimum ?? null,
           max: growth?.ph_maximum ?? null,
         },
-
         temperatureF: {
           min: growth?.minimum_temperature?.deg_f ?? null,
           max: growth?.maximum_temperature?.deg_f ?? null,
         },
 
-        toxicity: specs?.toxicity ?? null,
-
-        searchTokens: buildSearchTokens(item, q),
-
         growthRaw: growth,
         specificationsRaw: specs,
-
-        updatedAt: new Date().toISOString(),
+        
       };
 
       let override = null;
