@@ -19,12 +19,12 @@ function canonical(s) {
 }
 
 function sunlightCategory(light) {
-  const sunlightSet = new Set();
+  const sunlightSet = new Array();
 
   if (typeof light !== "number") return null;
-  if (light <= 3) sunlightSet.add("shade");
-  if (light <= 6) sunlightSet.add("part_sun");
-  if (6 < light) sunlightSet.add("full_sun");
+  if (light <= 3) sunlightSet.push("shade");
+  if (light <= 6) sunlightSet.push("part_sun");
+  if (6 < light) sunlightSet.push("full_sun");
 
   return sunlightSet;
 
