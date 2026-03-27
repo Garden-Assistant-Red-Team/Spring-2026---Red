@@ -101,10 +101,48 @@ router.post('/register', async (req, res) => {
   }
 });
 
-/**
- * The following routes use req.user.uid from requireAuth to ensure
- * the user can only access their own plants.
- */
+// Update user settings
+router.patch('/:id/settings', requireAuth, async (req, res) => {
+  try {
+    if (req.user.uid !== req.params.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const allowed = [
+      'weatherEnabled',
+      'careAutoAdjustEnabled',
+      'units',
+      'locationMode',
+      'weatherRefreshPolicy',
+      'weatherTTLMinutes'
+    ];
+
+    const settingsUpdates = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) {
+        settingsUpdates[`settings.${key}`] = req.body[key];
+      }
+    }
+
+    // Handle sunlightPreference separately (it's not inside settings map)
+    const updates = { ...settingsUpdates };
+    if (req.body.sunlightPreference !== undefined) {
+      updates.sunlightPreference = req.body.sunlightPreference;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields provided' });
+    }
+
+    updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+
+    await db.collection('users').doc(req.params.id).update(updates);
+
+    return res.json({ message: 'Settings updated!', updates });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 // Get current user's plants
 router.get('/me/plants', requireAuth, async (req, res) => {
