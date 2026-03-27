@@ -327,8 +327,8 @@ export default function MyGardenPage() {
 
         if (!res.ok) throw new Error(data?.error || "Failed to load recommendations");
 
-        setRecZone(data.zone || "");
-        setRecommendations(data.recommendations || []);
+        setRecZone(data.userContext?.gardenZone || "");
+        setRecommendations(data.sections?.bestSuited || []);
       } catch (e) {
         setRecError(String(e.message || e));
       } finally {
