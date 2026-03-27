@@ -6,6 +6,17 @@ const { createPlantReminders } = require('./autoReminders');
 
 const db = admin.firestore();
 
+async function getStateFromZip(zip) {
+  try {
+    const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data?.places?.[0]?.['state abbreviation'] || '';
+  } catch {
+    return '';
+  }
+}
+
 // Register a new user
 router.post('/register', async (req, res) => {
   try {
@@ -25,12 +36,18 @@ router.post('/register', async (req, res) => {
 
     const now = admin.firestore.FieldValue.serverTimestamp();
 
+    // Auto-derive state code from zip
+    const stateCode = zipCode ? await getStateFromZip(zipCode) : '';
+
     await db.collection('users').doc(userRecord.uid).set({
       fullName: fullName,
       email: email,
       zipCode: zipCode || '',
+      stateCode: stateCode,
       gardenZone: gardenZone || 'Unknown',
       phoneNumber: phoneNumber || '',
+      sunlightPreference: [],
+      isAdmin: false,
       createdAt: now,
 
       settings: {
@@ -65,7 +82,8 @@ router.post('/register', async (req, res) => {
       user: {
         id: userRecord.uid,
         fullName: fullName,
-        email: email
+        email: email,
+        stateCode: stateCode
       }
     });
 
