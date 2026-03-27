@@ -11,6 +11,8 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminCatalogPage from "./pages/AdminCatalogPage";
+import AdminReviewPage from "./pages/AdminReviewPage";
 
 import PlantRecommendationPage from "./pages/PlantRecommendationPage";
 import SymptomAssessmentPage from "./pages/SymptomAssessmentPage";
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="/resources" element={<PlantDictionaryPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/settings" element={<SettingsPage />} />
+        <Route path="/admin/catalog" element={<AdminCatalogPage />} />
+        <Route path="/admin/review" element={<AdminReviewPage />} />
 
         <Route path="/about" element={<LandingPage />} />
       </Routes>

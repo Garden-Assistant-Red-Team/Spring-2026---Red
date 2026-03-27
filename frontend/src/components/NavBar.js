@@ -48,7 +48,7 @@ export default function NavBar() {
         <Link to="/" className="brand">Garden Assistant</Link>
 
         <Link to="/" className="navLink">Home</Link>
-       {/* <Link to="/about" className="navLink">About</Link>*/}
+        {/* <Link to="/about" className="navLink">About</Link>*/}
         <Link to="/garden" className="navLink">My Garden</Link>
 
 
@@ -99,16 +99,16 @@ export default function NavBar() {
           </button>
 
           {resourcesOpen && (
-  <div className="dropdownMenu">
-    <Link
-      to="/resources"
-      className="dropdownItem"
-      onClick={() => setResourcesOpen(false)}
-    >
-      Plant Dictionary
-    </Link>
-  </div>
-)}
+            <div className="dropdownMenu">
+              <Link
+                to="/resources"
+                className="dropdownItem"
+                onClick={() => setResourcesOpen(false)}
+              >
+                Plant Dictionary
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
@@ -148,6 +148,9 @@ export default function NavBar() {
                 </Link>
                 <Link to="/profile/notifications" className="dropdownItem" onClick={() => setProfileOpen(false)}>
                   Notifications
+                </Link>
+                <Link to="/admin/catalog" className="dropdownItem" onClick={() => setProfileOpen(false)}>
+                  Admin Catalog
                 </Link>
 
                 <button className="dropdownItem logoutItem" onClick={handleLogout} type="button">

@@ -2188,3 +2188,146 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+/*     ADMIN STYLING STUFF */
+.adminCatalogPage {
+  display: grid;
+  gap: 20px;
+}
+
+.adminCatalogGrid {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.adminListPanel {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.adminEditorPanel {
+  min-width: 0;
+}
+
+.adminEditorGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.adminFullWidth {
+  grid-column: 1 / -1;
+}
+
+.adminBooleanGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.adminCheckboxCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(31, 35, 31, 0.08);
+  background: rgba(247, 249, 246, 0.92);
+  font-weight: 700;
+  color: #22372a;
+}
+
+.adminCheckboxCard input {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1100px) {
+  .adminCatalogGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminListPanel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .adminEditorGrid,
+  .adminBooleanGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.adminCatalogPage {
+  display: grid;
+  gap: 20px;
+}
+
+.adminCatalogGrid {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.adminListPanel {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.adminEditorPanel {
+  min-width: 0;
+}
+
+.adminEditorGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.adminFullWidth {
+  grid-column: 1 / -1;
+}
+
+.adminBooleanGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adminCheckboxCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(31, 35, 31, 0.08);
+  background: rgba(247, 249, 246, 0.92);
+  font-weight: 700;
+  color: #22372a;
+}
+
+.errorText {
+  color: #b42318;
+  font-size: 0.92rem;
+  margin-top: 8px;
+}
+
+@media (max-width: 1100px) {
+  .adminCatalogGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminListPanel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .adminEditorGrid,
+  .adminBooleanGrid {
+    grid-template-columns: 1fr;
+  }
+}

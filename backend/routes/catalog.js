@@ -151,10 +151,10 @@ function normalizeCatalogDoc(doc) {
     ? doc.sunlight.includes("full_sun")
       ? "full"
       : doc.sunlight.includes("part_sun")
-      ? "partial"
-      : doc.sunlight.includes("shade")
-      ? "shade"
-      : null
+        ? "partial"
+        : doc.sunlight.includes("shade")
+          ? "shade"
+          : null
     : null;
 
   const sunlightCategoryFromObject =
@@ -183,12 +183,12 @@ function normalizeCatalogDoc(doc) {
   const normalizedSunlight = isNormalizedSunlightArray
     ? doc.sunlight
     : careSun === "full"
-    ? ["full_sun"]
-    : careSun === "partial"
-    ? ["part_sun"]
-    : careSun === "shade"
-    ? ["shade"]
-    : [];
+      ? ["full_sun"]
+      : careSun === "partial"
+        ? ["part_sun"]
+        : careSun === "shade"
+          ? ["shade"]
+          : [];
 
   return {
     ...doc,
@@ -393,14 +393,14 @@ router.get("/search", async (req, res) => {
 
         family: details?.family?.name ?? details?.family ?? null,
         dataSource: null,
-        
+
         flower: details?.flower === true ?? null,
         herb: null,
         shrub: null,
         tree: null,
         edible: details?.edible ?? null,
         pollinatorFriendly: null,
-        
+
         minZone: minZone,
         maxZone: null,
 
@@ -436,7 +436,7 @@ router.get("/search", async (req, res) => {
 
         growthRaw: growth,
         specificationsRaw: specs,
-        
+
       };
 
       let override = null;
@@ -483,7 +483,12 @@ router.get("/search", async (req, res) => {
 
       if (!firestoreQuotaExceeded) {
         try {
-          await db.collection("plantCatalog").doc(docId).set(catalogDoc, {
+          const normalizedDoc = serializeCatalogPlant({
+            id: docId,
+            ...catalogDoc,
+          });
+
+          await db.collection("plantCatalog").doc(docId).set(normalizedDoc, {
             merge: true,
           });
         } catch (err) {

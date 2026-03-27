@@ -118,6 +118,7 @@ async function addToMyGarden(selected) {
   await ensureUserDoc(user);
 
   const uid = user.uid;
+  const token = await user.getIdToken();
 
   const body = {
     name: selected.commonName || selected.scientificName || selected.id,
@@ -138,9 +139,13 @@ async function addToMyGarden(selected) {
     photoUrl: selected.imageUrl ?? null,
   };
 
+
   const res = await fetch(`http://localhost:5000/api/garden/${uid}/plants`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(body),
   });
 
@@ -275,49 +280,49 @@ export default function PlantDictionaryPage() {
 
   const shoppingCards = commonQuery
     ? [
-        {
-          store: "Home Depot",
-          label: "Big Box",
-          tag: "Popular",
-          description: "Search this plant on Home Depot.",
-          url: `https://www.homedepot.com/s/${encodedCommonQuery}`,
-        },
-        {
-          store: "Lowe's",
-          label: "Big Box",
-          tag: "Compare",
-          description: "Search this plant on Lowe's.",
-          url: `https://www.lowes.com/search?searchTerm=${encodedCommonQuery}`,
-        },
-        {
-          store: "Amazon",
-          label: "Fast",
-          tag: "Seeds + kits",
-          description: "Search broad listings for seeds and starter plants.",
-          url: `https://www.amazon.com/s?k=${encodedBroadQuery}`,
-        },
-        {
-          store: "Etsy",
-          label: "Specialty",
-          tag: "Unique",
-          description: "Find niche or smaller seller listings.",
-          url: `https://www.etsy.com/search?q=${encodedBroadQuery}`,
-        },
-        {
-          store: "Walmart",
-          label: "Budget",
-          tag: "Low cost",
-          description: "Search budget-friendly plant listings.",
-          url: `https://www.walmart.com/search?q=${encodedBudgetQuery}`,
-        },
-        {
-          store: "FastGrowingTrees",
-          label: "Trees",
-          tag: "If relevant",
-          description: "Good if this plant is sold as a shrub or tree.",
-          url: `https://www.fast-growing-trees.com/search?q=${encodedTreeQuery}`,
-        },
-      ]
+      {
+        store: "Home Depot",
+        label: "Big Box",
+        tag: "Popular",
+        description: "Search this plant on Home Depot.",
+        url: `https://www.homedepot.com/s/${encodedCommonQuery}`,
+      },
+      {
+        store: "Lowe's",
+        label: "Big Box",
+        tag: "Compare",
+        description: "Search this plant on Lowe's.",
+        url: `https://www.lowes.com/search?searchTerm=${encodedCommonQuery}`,
+      },
+      {
+        store: "Amazon",
+        label: "Fast",
+        tag: "Seeds + kits",
+        description: "Search broad listings for seeds and starter plants.",
+        url: `https://www.amazon.com/s?k=${encodedBroadQuery}`,
+      },
+      {
+        store: "Etsy",
+        label: "Specialty",
+        tag: "Unique",
+        description: "Find niche or smaller seller listings.",
+        url: `https://www.etsy.com/search?q=${encodedBroadQuery}`,
+      },
+      {
+        store: "Walmart",
+        label: "Budget",
+        tag: "Low cost",
+        description: "Search budget-friendly plant listings.",
+        url: `https://www.walmart.com/search?q=${encodedBudgetQuery}`,
+      },
+      {
+        store: "FastGrowingTrees",
+        label: "Trees",
+        tag: "If relevant",
+        description: "Good if this plant is sold as a shrub or tree.",
+        url: `https://www.fast-growing-trees.com/search?q=${encodedTreeQuery}`,
+      },
+    ]
     : [];
 
   return (
@@ -345,55 +350,55 @@ export default function PlantDictionaryPage() {
                 full catalog loads below as paginated cards.
               </p>
 
-<div className="dictionaryToolbar">
-  <label className="dictionaryField dictionaryFieldSearch">
-    <span>Search plant catalog</span>
-    <input
-      type="text"
-      placeholder="Try hydrangea, basil, serviceberry..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-    />
-  </label>
+              <div className="dictionaryToolbar">
+                <label className="dictionaryField dictionaryFieldSearch">
+                  <span>Search plant catalog</span>
+                  <input
+                    type="text"
+                    placeholder="Try hydrangea, basil, serviceberry..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </label>
 
-  {q && (
-    <label className="dictionaryField">
-      <span>Results</span>
-      <select
-        value={limit}
-        onChange={(e) => setLimit(Number(e.target.value))}
-      >
-        <option value={5}>5</option>
-        <option value={10}>10</option>
-        <option value={15}>15</option>
-      </select>
-    </label>
-  )}
+                {q && (
+                  <label className="dictionaryField">
+                    <span>Results</span>
+                    <select
+                      value={limit}
+                      onChange={(e) => setLimit(Number(e.target.value))}
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                    </select>
+                  </label>
+                )}
 
-  <label className="dictionaryField">
-    <span>Sort by</span>
-    <select
-      value={sortBy}
-      onChange={(e) => setSortBy(e.target.value)}
-    >
-      <option value="commonName">Common name</option>
-      <option value="scientificName">Scientific name</option>
-    </select>
-  </label>
+                <label className="dictionaryField">
+                  <span>Sort by</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="commonName">Common name</option>
+                    <option value="scientificName">Scientific name</option>
+                  </select>
+                </label>
 
-  <label className="dictionaryField">
-    <span>Sunlight</span>
-    <select
-      value={sunFilter}
-      onChange={(e) => setSunFilter(e.target.value)}
-    >
-      <option value="any">Any</option>
-      <option value="full">Full sun</option>
-      <option value="partial">Part sun</option>
-      <option value="shade">Shade</option>
-    </select>
-  </label>
-</div>
+                <label className="dictionaryField">
+                  <span>Sunlight</span>
+                  <select
+                    value={sunFilter}
+                    onChange={(e) => setSunFilter(e.target.value)}
+                  >
+                    <option value="any">Any</option>
+                    <option value="full">Full sun</option>
+                    <option value="partial">Part sun</option>
+                    <option value="shade">Shade</option>
+                  </select>
+                </label>
+              </div>
 
               {status !== "loading" && (
                 <div className="muted" style={{ marginTop: 12 }}>
