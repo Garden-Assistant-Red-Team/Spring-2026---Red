@@ -45,6 +45,7 @@ export default function MyGardenPage() {
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState("");
 
+  const [reminders, setReminders] = useState([]);
   const [checklistItems, setChecklistItems] = useState([]);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [checklistError, setChecklistError] = useState("");
@@ -99,14 +100,24 @@ export default function MyGardenPage() {
 
       const itemsForDay = checklistItems.filter((item) => item.dueDate === iso);
 
+      const remindersForDay = reminders.filter((r) => {
+        if (r.status !== 'pending') return false;
+        const date = r.dueAt?._seconds
+          ? new Date(r.dueAt._seconds * 1000)
+          : new Date(r.dueAt);
+        return date.toISOString().split("T")[0] === iso;
+      });
+
       return {
         iso,
         date: d,
         tasks: itemsForDay.length,
-        pending: itemsForDay.filter((item) => !item.done).length,
+        pendingTasks: itemsForDay.filter((item) => !item.done).length,
+        pendingReminders: remindersForDay.length,
+        reminders: remindersForDay,
       };
     });
-  }, [checklistItems]);
+  }, [checklistItems, reminders]);
 
   useEffect(() => {
     async function setupNotifications() {
@@ -174,6 +185,21 @@ export default function MyGardenPage() {
       setChecklistItems([]);
     } finally {
       setChecklistLoading(false);
+    }
+  }
+
+  async function loadReminders() {
+    if (!auth.currentUser) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const uid = auth.currentUser.uid;
+      const res = await fetch(`${API_BASE}/api/reminders/${uid}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) setReminders(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("Failed to load reminders:", e.message);
     }
   }
 
@@ -293,6 +319,7 @@ export default function MyGardenPage() {
   useEffect(() => {
     loadSavedPlants();
     loadChecklist();
+    loadReminders();
     loadSidebarWeather();
 
     const interval = setInterval(() => {
@@ -651,7 +678,16 @@ export default function MyGardenPage() {
         <section className="panel weekStripPanel">
           <div className="sectionHeader">
             <h2 className="panelTitle">This Week</h2>
-            <span className="sectionPill">{upcomingWeek.length} days</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span className="sectionPill">{upcomingWeek.length} days</span>
+              <button
+                className="secondaryBtn compactBtn"
+                type="button"
+                onClick={loadReminders}
+              >
+                Refresh
+              </button>
+            </div>
           </div>
 
           <div className="weekStripScroller">
@@ -670,11 +706,11 @@ export default function MyGardenPage() {
                   <div className="weekDayStats">
                     <div className="weekDayStat">
                       <span className="weekDayStatLabel">Tasks</span>
-                      <strong>{day.tasks}</strong>
+                      <strong>{day.pendingTasks}</strong>
                     </div>
                     <div className="weekDayStat">
-                      <span className="weekDayStatLabel">Pending</span>
-                      <strong>{day.pending}</strong>
+                      <span className="weekDayStatLabel">Reminders</span>
+                      <strong>{day.pendingReminders}</strong>
                     </div>
                   </div>
                 </div>
