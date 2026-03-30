@@ -392,7 +392,7 @@ router.get("/search", async (req, res) => {
         scientificName: item.scientific_name ?? null,
 
         family: details?.family?.name ?? details?.family ?? null,
-        dataSource: null,
+        dataSource: "trefle_review",
 
         flower: details?.flower === true ?? null,
         herb: null,
@@ -488,7 +488,7 @@ router.get("/search", async (req, res) => {
             ...catalogDoc,
           });
 
-          await db.collection("plantCatalog").doc(docId).set(normalizedDoc, {
+          await db.collection("plantCatalog_staging").doc(docId).set(normalizedDoc, {
             merge: true,
           });
         } catch (err) {
