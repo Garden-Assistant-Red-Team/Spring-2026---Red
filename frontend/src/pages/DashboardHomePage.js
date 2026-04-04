@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import DashboardLayout from "../components/DashboardLayout";
 import "./ToolLayout.css";
+import WeatherAlertBanner from "../components/WeatherAlertBanner";
 
 export default function DashboardHomePage() {
   const [displayName, setDisplayName] = useState("there");
@@ -45,6 +46,7 @@ export default function DashboardHomePage() {
       badge="Dashboard"
     >
       <div className="container">
+        <WeatherAlertBanner />
         <div className="homeDashboardGrid">
           <section className="panel heroPanel">
             <div className="heroDashboardCard">

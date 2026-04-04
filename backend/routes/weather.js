@@ -15,9 +15,9 @@ const { saveWeatherAlerts, buildWeatherAlerts } = require('./alerts');
 
 // Thresholds for weather conditions
 const THRESHOLDS = {
-  frost: 32,       // °F
-  heat: 95,        // °F
-  heavyRainMm: 10  // mm in next 12h
+  frost: 32,    
+  heat: 95,      
+  heavyRainMm: 10
 };
 
 // GET /api/weather?city=Norfolk

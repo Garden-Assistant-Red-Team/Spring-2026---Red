@@ -8,6 +8,8 @@ import { requestNotificationPermission } from "../firebase-messaging";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
+import WeatherAlertBanner from "../components/WeatherAlertBanner";
+
 const API_BASE = "http://localhost:5000";
 const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
@@ -202,6 +204,7 @@ export default function MyGardenPage() {
       console.error("Failed to load reminders:", e.message);
     }
   }
+
 
   async function loadSidebarWeather() {
   if (!WEATHER_API_KEY) {
@@ -662,6 +665,7 @@ export default function MyGardenPage() {
       </aside>
 
       <main className="gardenMain">
+        <WeatherAlertBanner />
         <div className="dashboardTopbar">
           <div>
             <h1 className="toolTitle">My Garden</h1>
