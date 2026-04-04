@@ -145,86 +145,6 @@ export default function SettingsPage() {
       <div className="container">
         <div className="settingsGrid">
 
-          {/* Weather Settings */}
-          <section className="panel">
-            <div className="sectionHeader">
-              <h2 className="panelTitle">Weather & Care</h2>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input
-                  type="checkbox"
-                  checked={weatherEnabled}
-                  onChange={(e) => setWeatherEnabled(e.target.checked)}
-                />
-                <div>
-                  <div style={{ fontWeight: 600 }}>Enable weather alerts</div>
-                  <div className="muted" style={{ fontSize: 13 }}>
-                    Get weather-based reminders and alerts
-                  </div>
-                </div>
-              </label>
-
-              <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input
-                  type="checkbox"
-                  checked={careAutoAdjustEnabled}
-                  onChange={(e) => setCareAutoAdjustEnabled(e.target.checked)}
-                />
-                <div>
-                  <div style={{ fontWeight: 600 }}>Auto-adjust care reminders</div>
-                  <div className="muted" style={{ fontSize: 13 }}>
-                    Automatically skip watering when rain is expected
-                  </div>
-                </div>
-              </label>
-
-              <div>
-                <div style={{ fontWeight: 600, marginBottom: 6 }}>Units</div>
-                <select
-                  value={units}
-                  onChange={(e) => setUnits(e.target.value)}
-                  className="dashboardInput"
-                >
-                  <option value="imperial">Imperial (°F)</option>
-                  <option value="metric">Metric (°C)</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          {/* Sunlight Preference */}
-          <section className="panel">
-            <div className="sectionHeader">
-              <h2 className="panelTitle">Garden Sunlight</h2>
-            </div>
-
-            <p className="muted" style={{ marginBottom: 14 }}>
-              Select the sunlight conditions in your garden. This helps us recommend the right plants.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { value: "full_sun", label: "Full Sun", desc: "6+ hours of direct sunlight" },
-                { value: "part_sun", label: "Partial Sun", desc: "3-6 hours of direct sunlight" },
-                { value: "shade", label: "Shade", desc: "Less than 3 hours of direct sunlight" }
-              ].map(({ value, label, desc }) => (
-                <label key={value} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <input
-                    type="checkbox"
-                    checked={sunlightPreference.includes(value)}
-                    onChange={() => toggleSunlight(value)}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{label}</div>
-                    <div className="muted" style={{ fontSize: 13 }}>{desc}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </section>
-
           {/* Profile */}
           <section className="panel">
             <div className="sectionHeader">
@@ -241,6 +161,172 @@ export default function SettingsPage() {
             >
               Edit Profile
             </button>
+          </section>
+
+          {/* Weather Settings */}
+          <section className="panel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Weather & Care</h2>
+            </div>
+
+            <p className="muted" style={{ marginBottom: 14 }}>
+              Control how the app uses weather data to manage your plant care.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* Weather Enabled Toggle */}
+              <div
+                className="softCard"
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+                onClick={() => setWeatherEnabled(!weatherEnabled)}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Enable weather alerts</div>
+                  <div className="muted" style={{ fontSize: 13, marginTop: 2 }}>
+                    Get weather-based reminders and alerts
+                  </div>
+                </div>
+                <div style={{
+                  width: 44,
+                  height: 24,
+                  borderRadius: 999,
+                  background: weatherEnabled ? "#2F6B4F" : "#ccc",
+                  position: "relative",
+                  transition: "background 0.2s",
+                  flexShrink: 0
+                }}>
+                  <div style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: "white",
+                    position: "absolute",
+                    top: 3,
+                    left: weatherEnabled ? 23 : 3,
+                    transition: "left 0.2s",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                  }} />
+                </div>
+              </div>
+
+              {/* Care Auto Adjust Toggle */}
+              <div
+                className="softCard"
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+                onClick={() => setCareAutoAdjustEnabled(!careAutoAdjustEnabled)}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Auto-adjust care reminders</div>
+                  <div className="muted" style={{ fontSize: 13, marginTop: 2 }}>
+                    Automatically skip watering when rain is expected
+                  </div>
+                </div>
+                <div style={{
+                  width: 44,
+                  height: 24,
+                  borderRadius: 999,
+                  background: careAutoAdjustEnabled ? "#2F6B4F" : "#ccc",
+                  position: "relative",
+                  transition: "background 0.2s",
+                  flexShrink: 0
+                }}>
+                  <div style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: "white",
+                    position: "absolute",
+                    top: 3,
+                    left: careAutoAdjustEnabled ? 23 : 3,
+                    transition: "left 0.2s",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                  }} />
+                </div>
+              </div>
+
+              {/* Units */}
+              <div className="softCard">
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>Units</div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  {["imperial", "metric"].map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setUnits(u)}
+                      style={{
+                        padding: "8px 20px",
+                        borderRadius: 999,
+                        border: units === u ? "2px solid #2F6B4F" : "2px solid #ddd",
+                        background: units === u ? "#2F6B4F" : "white",
+                        color: units === u ? "white" : "#333",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        transition: "all 0.15s"
+                      }}
+                    >
+                      {u === "imperial" ? "Imperial (°F)" : "Metric (°C)"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Sunlight Preference */}
+          <section className="panel">
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Garden Sunlight</h2>
+            </div>
+
+            <p className="muted" style={{ marginBottom: 14 }}>
+              Select the sunlight conditions in your garden. This helps us recommend the right plants.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { value: "full_sun", label: "Full Sun", desc: "6+ hours of direct sunlight", icon: "☀️" },
+                { value: "part_sun", label: "Partial Sun", desc: "3-6 hours of direct sunlight", icon: "⛅" },
+                { value: "shade", label: "Shade", desc: "Less than 3 hours of direct sunlight", icon: "🌥️" }
+              ].map(({ value, label, desc, icon }) => {
+                const isSelected = sunlightPreference.includes(value);
+                return (
+                  <div
+                    key={value}
+                    className="softCard"
+                    onClick={() => toggleSunlight(value)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      cursor: "pointer",
+                      border: isSelected ? "2px solid #2F6B4F" : "2px solid transparent",
+                      background: isSelected ? "#f0f7f3" : undefined,
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <span style={{ fontSize: 22 }}>{icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{label}</div>
+                      <div className="muted" style={{ fontSize: 13, marginTop: 2 }}>{desc}</div>
+                    </div>
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: isSelected ? "none" : "2px solid #ccc",
+                      background: isSelected ? "#2F6B4F" : "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0
+                    }}>
+                      {isSelected && <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>✓</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           {/* Session */}
