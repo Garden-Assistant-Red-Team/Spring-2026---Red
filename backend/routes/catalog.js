@@ -27,7 +27,6 @@ function sunlightCategory(light) {
   if (6 < light) sunlightSet.push("full_sun");
 
   return sunlightSet;
-
 }
 
 function wateringFromSoilHumidity(h) {
@@ -36,7 +35,6 @@ function wateringFromSoilHumidity(h) {
   if (h <= 6) return { profile: "moderate", days: 4 };
   return { profile: "high", days: 2 };
 }
-
 
 function minZoneFromMinTempF(minF) {
   if (typeof minF !== "number") return null;
@@ -49,7 +47,6 @@ function minZoneFromMinTempF(minF) {
   if (minF <= 30) return 10;
   return 11;
 }
-
 
 function buildSearchTokens(obj, q) {
   const tokens = new Set();
@@ -143,6 +140,86 @@ function displayNameFromDoc(p) {
   return p?.commonName || p?.scientificName || p?.slug || "Unknown plant";
 }
 
+function deriveDifficulty({ wateringEveryDays, sunlight, maxZone, minZone }) {
+  const sunCount = Array.isArray(sunlight) ? sunlight.length : 0;
+  const water = typeof wateringEveryDays === "number" ? wateringEveryDays : null;
+
+  if (water !== null && water >= 10 && sunCount <= 2) return "Easy";
+  if (water !== null && water >= 5) return "Moderate";
+  if (typeof maxZone === "number" && typeof minZone === "number" && maxZone - minZone >= 4) {
+    return "Easy";
+  }
+  return "Moderate";
+}
+
+function buildFallbackCareFields(base = {}) {
+  const sunlight = Array.isArray(base.sunlight) ? base.sunlight : [];
+  const wateringEveryDays =
+    typeof base.wateringEveryDays === "number"
+      ? base.wateringEveryDays
+      : typeof base.wateringFrequency === "number"
+        ? base.wateringFrequency
+        : 7;
+
+  const hasShade = sunlight.includes("shade");
+  const hasPartSun = sunlight.includes("part_sun");
+  const hasFullSun = sunlight.includes("full_sun");
+
+  return {
+    difficulty:
+      base.difficulty ||
+      deriveDifficulty({
+        wateringEveryDays,
+        sunlight,
+        maxZone: base.maxZone,
+        minZone: base.minZone,
+      }),
+    fertilizeEveryDays:
+      typeof base.fertilizeEveryDays === "number" ? base.fertilizeEveryDays : 30,
+    pruneEveryDays:
+      typeof base.pruneEveryDays === "number" ? base.pruneEveryDays : 90,
+    repotEveryDays:
+      typeof base.repotEveryDays === "number" ? base.repotEveryDays : 365,
+    potType:
+      base.potType ||
+      (base.tree
+        ? "Large container with drainage"
+        : "Pot with drainage"),
+    soilType:
+      base.soilType ||
+      (base.edible
+        ? "Rich well-draining soil"
+        : "Well-draining potting mix"),
+    lighting:
+      base.lighting ||
+      (hasFullSun && hasPartSun
+        ? "Full sun to partial shade"
+        : hasFullSun
+          ? "Full sun"
+          : hasPartSun
+            ? "Partial sun"
+            : hasShade
+              ? "Shade to low light"
+              : "Bright indirect light"),
+    humidity: base.humidity || "Medium",
+    hibernation:
+      base.hibernation ||
+      (typeof base.minZone === "number" && base.minZone <= 7 ? "Yes" : "No"),
+    temperatureMin:
+      typeof base.temperatureMin === "number"
+        ? base.temperatureMin
+        : typeof base.temperatureF?.min === "number"
+          ? base.temperatureF.min
+          : 60,
+    temperatureMax:
+      typeof base.temperatureMax === "number"
+        ? base.temperatureMax
+        : typeof base.temperatureF?.max === "number"
+          ? base.temperatureF.max
+          : 85,
+  };
+}
+
 function normalizeCatalogDoc(doc) {
   const isNormalizedSunlightArray =
     Array.isArray(doc?.sunlight) && doc.sunlight.length > 0;
@@ -190,7 +267,7 @@ function normalizeCatalogDoc(doc) {
           ? ["shade"]
           : [];
 
-  return {
+  const normalizedBase = {
     ...doc,
     sunlight: normalizedSunlight,
     wateringEveryDays: doc?.wateringEveryDays ?? careWater ?? null,
@@ -201,6 +278,11 @@ function normalizeCatalogDoc(doc) {
       minZone: careMinZone,
       source: doc?.careEffective?.source || "catalog",
     },
+  };
+
+  return {
+    ...normalizedBase,
+    ...buildFallbackCareFields(normalizedBase),
   };
 }
 
@@ -228,6 +310,35 @@ function serializeCatalogPlant(doc) {
     wateringEveryDays:
       typeof p.wateringEveryDays === "number" ? p.wateringEveryDays : null,
     duration: p.duration || null,
+
+    difficulty: p.difficulty || null,
+    fertilizeEveryDays:
+      typeof p.fertilizeEveryDays === "number" ? p.fertilizeEveryDays : null,
+    pruneEveryDays:
+      typeof p.pruneEveryDays === "number" ? p.pruneEveryDays : null,
+    repotEveryDays:
+      typeof p.repotEveryDays === "number" ? p.repotEveryDays : null,
+
+    potType: p.potType || null,
+    soilType: p.soilType || null,
+    lighting: p.lighting || null,
+    humidity: p.humidity || null,
+    hibernation: p.hibernation || null,
+
+    temperatureMin:
+      typeof p.temperatureMin === "number"
+        ? p.temperatureMin
+        : typeof p.temperatureF?.min === "number"
+          ? p.temperatureF.min
+          : null,
+
+    temperatureMax:
+      typeof p.temperatureMax === "number"
+        ? p.temperatureMax
+        : typeof p.temperatureF?.max === "number"
+          ? p.temperatureF.max
+          : null,
+
     sources:
       p.sources && typeof p.sources === "object" && !Array.isArray(p.sources)
         ? p.sources
@@ -385,8 +496,7 @@ router.get("/search", async (req, res) => {
         growth?.minimum_temperature?.deg_f ?? null
       );
 
-      const catalogDoc = {
-
+      let catalogDoc = {
         canonicalKey: canonical(item.scientific_name ?? "unknown_plant"),
         commonName: item.common_name ?? null,
         scientificName: item.scientific_name ?? null,
@@ -436,7 +546,6 @@ router.get("/search", async (req, res) => {
 
         growthRaw: growth,
         specificationsRaw: specs,
-
       };
 
       let override = null;
@@ -472,6 +581,11 @@ router.get("/search", async (req, res) => {
           null,
 
         source: override ? "override" : "trefle/fallback",
+      };
+
+      catalogDoc = {
+        ...catalogDoc,
+        ...buildFallbackCareFields(catalogDoc),
       };
 
       importedResults.push(

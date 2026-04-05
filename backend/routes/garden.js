@@ -8,6 +8,308 @@ const router = express.Router();
 const db = admin.firestore();
 const { createPlantReminders } = require("./autoReminders");
 
+function norm(s) {
+  return (s || "").toString().trim().toLowerCase();
+}
+
+function getToken() {
+  const t = process.env.TREFLE_TOKEN;
+  return t || null;
+}
+
+async function trefleGET(pathOrUrl) {
+  const token = getToken();
+  if (!token) throw new Error("Missing TREFLE_TOKEN");
+
+  const base = pathOrUrl.startsWith("http")
+    ? pathOrUrl
+    : `https://trefle.io${pathOrUrl}`;
+
+  const url = new URL(base);
+  url.searchParams.set("token", token);
+
+  const r = await fetch(url.toString());
+  if (!r.ok) {
+    const txt = await r.text().catch(() => "");
+    throw new Error(`Trefle error ${r.status}${txt ? `: ${txt}` : ""}`);
+  }
+
+  return r.json();
+}
+
+async function speciesSearch(q) {
+  return trefleGET(`/api/v1/species/search?q=${encodeURIComponent(q)}`);
+}
+
+async function plantSearch(q) {
+  return trefleGET(`/api/v1/plants/search?q=${encodeURIComponent(q)}`);
+}
+
+async function fetchDetails(item) {
+  if (item?.links?.self) {
+    const d = await trefleGET(item.links.self);
+    return d?.data ?? null;
+  }
+
+  if (typeof item?.id === "number") {
+    try {
+      const d = await trefleGET(`/api/v1/species/${item.id}`);
+      return d?.data ?? null;
+    } catch {
+      const d = await trefleGET(`/api/v1/plants/${item.id}`);
+      return d?.data ?? null;
+    }
+  }
+
+  return null;
+}
+
+function sunlightCategory(light) {
+  const sunlightSet = [];
+  if (typeof light !== "number") return [];
+  if (light <= 3) sunlightSet.push("shade");
+  if (light <= 6) sunlightSet.push("part_sun");
+  if (6 < light) sunlightSet.push("full_sun");
+  return sunlightSet;
+}
+
+function wateringFromSoilHumidity(h) {
+  if (typeof h !== "number") return null;
+  if (h <= 3) return { profile: "low", days: 7 };
+  if (h <= 6) return { profile: "moderate", days: 4 };
+  return { profile: "high", days: 2 };
+}
+
+function minZoneFromMinTempF(minF) {
+  if (typeof minF !== "number") return null;
+  if (minF <= -30) return 4;
+  if (minF <= -20) return 5;
+  if (minF <= -10) return 6;
+  if (minF <= 0) return 7;
+  if (minF <= 10) return 8;
+  if (minF <= 20) return 9;
+  if (minF <= 30) return 10;
+  return 11;
+}
+
+function deriveDifficulty({ wateringEveryDays, sunlight, maxZone, minZone }) {
+  const sunCount = Array.isArray(sunlight) ? sunlight.length : 0;
+  const water = typeof wateringEveryDays === "number" ? wateringEveryDays : null;
+
+  if (water !== null && water >= 10 && sunCount <= 2) return "Easy";
+  if (water !== null && water >= 5) return "Moderate";
+  if (typeof maxZone === "number" && typeof minZone === "number" && maxZone - minZone >= 4) {
+    return "Easy";
+  }
+  return "Moderate";
+}
+
+function buildFallbackCareFields(base = {}) {
+  const sunlight = Array.isArray(base.sunlight) ? base.sunlight : [];
+  const wateringEveryDays =
+    typeof base.wateringEveryDays === "number"
+      ? base.wateringEveryDays
+      : typeof base.wateringFrequency === "number"
+        ? base.wateringFrequency
+        : 7;
+
+  const hasShade = sunlight.includes("shade");
+  const hasPartSun = sunlight.includes("part_sun");
+  const hasFullSun = sunlight.includes("full_sun");
+
+  return {
+    difficulty:
+      base.difficulty ||
+      deriveDifficulty({
+        wateringEveryDays,
+        sunlight,
+        maxZone: base.maxZone,
+        minZone: base.minZone,
+      }),
+    fertilizeEveryDays:
+      typeof base.fertilizeEveryDays === "number" ? base.fertilizeEveryDays : 30,
+    pruneEveryDays:
+      typeof base.pruneEveryDays === "number" ? base.pruneEveryDays : 90,
+    repotEveryDays:
+      typeof base.repotEveryDays === "number" ? base.repotEveryDays : 365,
+    potType:
+      base.potType ||
+      (base.tree
+        ? "Large container with drainage"
+        : "Pot with drainage"),
+    soilType:
+      base.soilType ||
+      (base.edible
+        ? "Rich well-draining soil"
+        : "Well-draining potting mix"),
+    lighting:
+      base.lighting ||
+      (hasFullSun && hasPartSun
+        ? "Full sun to partial shade"
+        : hasFullSun
+          ? "Full sun"
+          : hasPartSun
+            ? "Partial sun"
+            : hasShade
+              ? "Shade to low light"
+              : "Bright indirect light"),
+    humidity: base.humidity || "Medium",
+    hibernation:
+      base.hibernation ||
+      (typeof base.minZone === "number" && base.minZone <= 7 ? "Yes" : "No"),
+    temperatureMin:
+      typeof base.temperatureMin === "number"
+        ? base.temperatureMin
+        : typeof base.temperatureF?.min === "number"
+          ? base.temperatureF.min
+          : 60,
+    temperatureMax:
+      typeof base.temperatureMax === "number"
+        ? base.temperatureMax
+        : typeof base.temperatureF?.max === "number"
+          ? base.temperatureF.max
+          : 85,
+  };
+}
+
+async function lookupCatalogPlant({ plantId, trefle_id, scientificName, commonName }) {
+  const candidates = [];
+
+  if (plantId) {
+    candidates.push(
+      db.collection("plantCatalog").doc(String(plantId)).get(),
+      db.collection("plantCatalog_staging").doc(String(plantId)).get()
+    );
+  }
+
+  if (typeof trefle_id === "number") {
+    const trefleDocId = `trefle_${trefle_id}`;
+    candidates.push(
+      db.collection("plantCatalog").doc(trefleDocId).get(),
+      db.collection("plantCatalog_staging").doc(trefleDocId).get()
+    );
+  }
+
+  const directSnaps = await Promise.allSettled(candidates);
+  for (const result of directSnaps) {
+    if (result.status === "fulfilled" && result.value.exists) {
+      return { id: result.value.id, ...result.value.data() };
+    }
+  }
+
+  const searchNames = [scientificName, commonName].filter(Boolean);
+  if (!searchNames.length) return null;
+
+  const snap = await db.collection("plantCatalog").get();
+  const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  for (const name of searchNames) {
+    const match = docs.find((doc) => {
+      return (
+        norm(doc.scientificName) === norm(name) ||
+        norm(doc.commonName) === norm(name) ||
+        norm(doc.canonicalKey) === norm(name).replaceAll(" ", "_")
+      );
+    });
+    if (match) return match;
+  }
+
+  return null;
+}
+
+async function fetchPlantInfoFromApi({ scientificName, commonName }) {
+  const query = scientificName || commonName;
+  if (!query || !getToken()) return null;
+
+  let resp = await speciesSearch(query);
+  let items = resp?.data || [];
+
+  if (!items.length) {
+    resp = await plantSearch(query);
+    items = resp?.data || [];
+  }
+
+  if (!items.length) return null;
+
+  const bestItem = items[0];
+  const details = await fetchDetails(bestItem);
+  const growth = details?.growth || null;
+  const specs = details?.specifications || null;
+
+  const wateringDerived = wateringFromSoilHumidity(growth?.soil_humidity ?? null);
+  const wateringEveryDays = wateringDerived?.days ?? null;
+
+  return {
+    plantId: bestItem?.id ? `trefle_${bestItem.id}` : null,
+    trefle_id: typeof bestItem?.id === "number" ? bestItem.id : null,
+    commonName: bestItem?.common_name || commonName || null,
+    scientificName: bestItem?.scientific_name || scientificName || null,
+    imageUrl: bestItem?.image_url || null,
+    family: details?.family?.name ?? details?.family ?? null,
+    edible: details?.edible ?? null,
+    sunlight: sunlightCategory(growth?.light ?? null),
+    wateringProfile: wateringDerived?.profile ?? null,
+    wateringEveryDays,
+    wateringFrequency: wateringEveryDays,
+    minZone: minZoneFromMinTempF(growth?.minimum_temperature?.deg_f ?? null),
+    temperatureF: {
+      min: growth?.minimum_temperature?.deg_f ?? null,
+      max: growth?.maximum_temperature?.deg_f ?? null,
+    },
+    soilHumidity: growth?.soil_humidity ?? null,
+    rawApiDetails: {
+      growth,
+      specifications: specs,
+    },
+  };
+}
+
+function mergePreferInput(input, catalogPlant, apiPlant) {
+  return {
+    ...(catalogPlant || {}),
+    ...(apiPlant || {}),
+    ...(input || {}),
+  };
+}
+
+function buildAutoEnrichedPlant(input, catalogPlant, apiPlant) {
+  const merged = mergePreferInput(input, catalogPlant, apiPlant);
+
+  const base = {
+    ...merged,
+    sunlight: Array.isArray(merged.sunlight) ? merged.sunlight : [],
+    wateringEveryDays:
+      typeof merged.wateringEveryDays === "number"
+        ? merged.wateringEveryDays
+        : typeof merged.wateringFrequency === "number"
+          ? merged.wateringFrequency
+          : null,
+    wateringFrequency:
+      typeof merged.wateringFrequency === "number"
+        ? merged.wateringFrequency
+        : typeof merged.wateringEveryDays === "number"
+          ? merged.wateringEveryDays
+          : null,
+    temperatureMin:
+      typeof merged.temperatureMin === "number"
+        ? merged.temperatureMin
+        : typeof merged.temperatureF?.min === "number"
+          ? merged.temperatureF.min
+          : null,
+    temperatureMax:
+      typeof merged.temperatureMax === "number"
+        ? merged.temperatureMax
+        : typeof merged.temperatureF?.max === "number"
+          ? merged.temperatureF.max
+          : null,
+  };
+
+  return {
+    ...base,
+    ...buildFallbackCareFields(base),
+  };
+}
+
 /**
  * POST /api/garden/:uid/plants
  * Accepts plants from recommendations or photo-id.
@@ -33,6 +335,21 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
       maxZone,
       sunlight,
       wateringFrequency,
+      wateringProfile,
+      wateringEveryDays,
+      duration,
+      imageUrl,
+      difficulty,
+      fertilizeEveryDays,
+      pruneEveryDays,
+      repotEveryDays,
+      potType,
+      soilType,
+      lighting,
+      humidity,
+      hibernation,
+      temperatureMin,
+      temperatureMax,
       reason,
       locationType,
     } = req.body;
@@ -70,21 +387,132 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
       }
     }
 
-    const gardenPlant = {
+    const incomingPlant = {
       name: finalName,
       commonName: commonName || null,
       scientificName: scientificName || null,
       confidence: typeof confidence === "number" ? confidence : null,
       photoUrl: photoUrl || null,
+      imageUrl: imageUrl || null,
       source: source || "manual",
       plantId: plantId || null,
       trefle_id: typeof trefle_id === "number" ? trefle_id : null,
       minZone: typeof minZone === "number" ? minZone : null,
       maxZone: typeof maxZone === "number" ? maxZone : null,
       sunlight: sunlight || null,
-      wateringFrequency: wateringFrequency || null,
+      wateringFrequency:
+        typeof wateringFrequency === "number"
+          ? wateringFrequency
+          : typeof wateringEveryDays === "number"
+            ? wateringEveryDays
+            : null,
+      wateringProfile: wateringProfile || null,
+      wateringEveryDays:
+        typeof wateringEveryDays === "number" ? wateringEveryDays : null,
+      duration: duration || null,
+
+      difficulty: difficulty || null,
+      fertilizeEveryDays:
+        typeof fertilizeEveryDays === "number" ? fertilizeEveryDays : null,
+      pruneEveryDays:
+        typeof pruneEveryDays === "number" ? pruneEveryDays : null,
+      repotEveryDays:
+        typeof repotEveryDays === "number" ? repotEveryDays : null,
+
+      potType: potType || null,
+      soilType: soilType || null,
+      lighting: lighting || null,
+      humidity: humidity || null,
+      hibernation: hibernation || null,
+      temperatureMin:
+        typeof temperatureMin === "number" ? temperatureMin : null,
+      temperatureMax:
+        typeof temperatureMax === "number" ? temperatureMax : null,
+
       reason: reason || null,
       locationType: finalLocationType,
+    };
+
+    let catalogPlant = null;
+    try {
+      catalogPlant = await lookupCatalogPlant({
+        plantId: incomingPlant.plantId,
+        trefle_id: incomingPlant.trefle_id,
+        scientificName: incomingPlant.scientificName,
+        commonName: incomingPlant.commonName,
+      });
+    } catch (lookupErr) {
+      console.warn("Catalog lookup failed:", lookupErr.message);
+    }
+
+    let apiPlant = null;
+    const needsApiFill =
+      !incomingPlant.difficulty ||
+      !incomingPlant.potType ||
+      !incomingPlant.soilType ||
+      !incomingPlant.lighting ||
+      !incomingPlant.humidity ||
+      !incomingPlant.hibernation ||
+      typeof incomingPlant.temperatureMin !== "number" ||
+      typeof incomingPlant.temperatureMax !== "number";
+
+    if (needsApiFill) {
+      try {
+        apiPlant = await fetchPlantInfoFromApi({
+          scientificName: incomingPlant.scientificName,
+          commonName: incomingPlant.commonName,
+        });
+      } catch (apiErr) {
+        console.warn("Plant API enrichment failed:", apiErr.message);
+      }
+    }
+
+    const enrichedPlant = buildAutoEnrichedPlant(incomingPlant, catalogPlant, apiPlant);
+
+    const gardenPlant = {
+      name: enrichedPlant.name,
+      commonName: enrichedPlant.commonName || null,
+      scientificName: enrichedPlant.scientificName || null,
+      confidence: typeof enrichedPlant.confidence === "number" ? enrichedPlant.confidence : null,
+      photoUrl: enrichedPlant.photoUrl || null,
+      imageUrl: enrichedPlant.imageUrl || null,
+      source: enrichedPlant.source || "manual",
+      plantId: enrichedPlant.plantId || null,
+      trefle_id: typeof enrichedPlant.trefle_id === "number" ? enrichedPlant.trefle_id : null,
+      minZone: typeof enrichedPlant.minZone === "number" ? enrichedPlant.minZone : null,
+      maxZone: typeof enrichedPlant.maxZone === "number" ? enrichedPlant.maxZone : null,
+      sunlight: Array.isArray(enrichedPlant.sunlight) ? enrichedPlant.sunlight : null,
+      wateringFrequency:
+        typeof enrichedPlant.wateringFrequency === "number"
+          ? enrichedPlant.wateringFrequency
+          : typeof enrichedPlant.wateringEveryDays === "number"
+            ? enrichedPlant.wateringEveryDays
+            : null,
+      wateringProfile: enrichedPlant.wateringProfile || null,
+      wateringEveryDays:
+        typeof enrichedPlant.wateringEveryDays === "number" ? enrichedPlant.wateringEveryDays : null,
+      duration: enrichedPlant.duration || null,
+
+      difficulty: enrichedPlant.difficulty || null,
+      fertilizeEveryDays:
+        typeof enrichedPlant.fertilizeEveryDays === "number" ? enrichedPlant.fertilizeEveryDays : null,
+      pruneEveryDays:
+        typeof enrichedPlant.pruneEveryDays === "number" ? enrichedPlant.pruneEveryDays : null,
+      repotEveryDays:
+        typeof enrichedPlant.repotEveryDays === "number" ? enrichedPlant.repotEveryDays : null,
+
+      potType: enrichedPlant.potType || null,
+      soilType: enrichedPlant.soilType || null,
+      lighting: enrichedPlant.lighting || null,
+      humidity: enrichedPlant.humidity || null,
+      hibernation: enrichedPlant.hibernation || null,
+      temperatureMin:
+        typeof enrichedPlant.temperatureMin === "number" ? enrichedPlant.temperatureMin : null,
+      temperatureMax:
+        typeof enrichedPlant.temperatureMax === "number" ? enrichedPlant.temperatureMax : null,
+
+      reason: enrichedPlant.reason || null,
+      locationType: enrichedPlant.locationType || finalLocationType,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -240,6 +668,7 @@ router.delete("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res
 
     const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
     const snap = await ref.get();
+
     if (!snap.exists) return res.status(404).json({ error: "Plant not found" });
 
     const plant = snap.data();

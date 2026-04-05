@@ -186,6 +186,20 @@ export default function PlantRecommendationPage() {
           wateringFrequency: plant.wateringEveryDays ?? null,
           duration: plant.duration || null,
           imageUrl: plant.imageUrl || null,
+
+          difficulty: plant.difficulty || null,
+          fertilizeEveryDays: plant.fertilizeEveryDays ?? null,
+          pruneEveryDays: plant.pruneEveryDays ?? null,
+          repotEveryDays: plant.repotEveryDays ?? null,
+
+          potType: plant.potType || null,
+          soilType: plant.soilType || null,
+          lighting: plant.lighting || null,
+          humidity: plant.humidity || null,
+          hibernation: plant.hibernation || null,
+          temperatureMin: plant.temperatureMin ?? null,
+          temperatureMax: plant.temperatureMax ?? null,
+
           source: "recommendations",
           plantId: plant.id,
         }),

@@ -32,6 +32,12 @@ function formatDayLabel(date) {
 function formatMonthDay(date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+function getReminderTypeClass(type) {
+  if (type === "water") return "water";
+  if (type === "fertilize") return "fertilize";
+  if (type === "prune") return "prune";
+  return "custom";
+}
 
 function formatSunlightValue(sunlight) {
   if (!sunlight) return "Unknown light";
@@ -52,6 +58,22 @@ function formatSunlightValue(sunlight) {
   }
 
   return String(sunlight);
+}
+
+function formatEveryDays(days, fallback = "Not set") {
+  const value = Number(days);
+  if (!Number.isFinite(value) || value <= 0) return fallback;
+  return `Every ${value} day${value === 1 ? "" : "s"}`;
+}
+
+function formatTemperatureRange(min, max) {
+  const hasMin = Number.isFinite(Number(min));
+  const hasMax = Number.isFinite(Number(max));
+
+  if (hasMin && hasMax) return `${min}°F to ${max}°F`;
+  if (hasMin) return `Min ${min}°F`;
+  if (hasMax) return `Max ${max}°F`;
+  return "Not set";
 }
 
 function buildPlantDescription(plant, mode = "indoor") {
@@ -154,7 +176,7 @@ export default function MyGardenPage() {
     return checklistItems.filter((item) => !item.done && item.dueDate === todayIso).length;
   }, [checklistItems, todayIso]);
 
-  const upcomingWeek = useMemo(() => {
+   const upcomingWeek = useMemo(() => {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
 
@@ -179,6 +201,7 @@ export default function MyGardenPage() {
         tasks: itemsForDay.length,
         pendingTasks: itemsForDay.filter((item) => !item.done).length,
         pendingReminders: remindersForDay.length,
+        reminderItems: remindersForDay,
       };
     });
   }, [checklistItems, reminders]);
@@ -404,7 +427,25 @@ export default function MyGardenPage() {
         minZone: typeof p.minZone === "number" ? p.minZone : null,
         maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
         sunlight: p.sunlight || null,
-        wateringFrequency: p.wateringFrequency || null,
+        wateringProfile: p.wateringProfile || null,
+        wateringEveryDays: p.wateringEveryDays ?? null,
+        wateringFrequency: p.wateringFrequency || p.wateringEveryDays || null,
+        duration: p.duration || null,
+        imageUrl: p.imageUrl || null,
+
+        difficulty: p.difficulty || null,
+        fertilizeEveryDays: p.fertilizeEveryDays ?? null,
+        pruneEveryDays: p.pruneEveryDays ?? null,
+        repotEveryDays: p.repotEveryDays ?? null,
+
+        potType: p.potType || null,
+        soilType: p.soilType || null,
+        lighting: p.lighting || null,
+        humidity: p.humidity || null,
+        hibernation: p.hibernation || null,
+        temperatureMin: p.temperatureMin ?? null,
+        temperatureMax: p.temperatureMax ?? null,
+
         reason: p.reason || null,
         source: p.source || "recommendations",
         confidence: typeof p.confidence === "number" ? p.confidence : null,
@@ -882,6 +923,26 @@ export default function MyGardenPage() {
                       <strong>{day.pendingReminders}</strong>
                     </div>
                   </div>
+
+                  {day.reminderItems?.length > 0 && (
+                    <div className="calendarReminderList">
+                      {day.reminderItems.slice(0, 4).map((reminder) => (
+                        <div
+                          key={reminder.id}
+                          className={`calendarReminder ${getReminderTypeClass(reminder.type)}`}
+                          title={reminder.title}
+                        >
+                          {reminder.title}
+                        </div>
+                      ))}
+
+                      {day.reminderItems.length > 4 && (
+                        <div className="calendarReminderMore">
+                          +{day.reminderItems.length - 4} more
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1056,76 +1117,201 @@ export default function MyGardenPage() {
                 </div>
 
                 {detailTab === "description" && (
-                  <div className="mgDetailPanel">
-                    <div className="mgLocationToggle">
-                      <button
-                        type="button"
-                        className={`mgLocationToggleBtn ${
-                          descriptionLocationTab === "indoor" ? "active" : ""
-                        }`}
-                        onClick={() => setDescriptionLocationTab("indoor")}
-                      >
-                        Indoor
-                      </button>
-                      <button
-                        type="button"
-                        className={`mgLocationToggleBtn ${
-                          descriptionLocationTab === "outdoor" ? "active" : ""
-                        }`}
-                        onClick={() => setDescriptionLocationTab("outdoor")}
-                      >
-                        Outdoor
-                      </button>
-                    </div>
+  <div className="mgDetailPanel">
+    <div className="mgLocationToggle">
+      <button
+        type="button"
+        className={`mgLocationToggleBtn ${
+          descriptionLocationTab === "indoor" ? "active" : ""
+        }`}
+        onClick={() => setDescriptionLocationTab("indoor")}
+      >
+        Indoor
+      </button>
+      <button
+        type="button"
+        className={`mgLocationToggleBtn ${
+          descriptionLocationTab === "outdoor" ? "active" : ""
+        }`}
+        onClick={() => setDescriptionLocationTab("outdoor")}
+      >
+        Outdoor
+      </button>
+    </div>
 
-                    <div className="mgDescriptionCard">
-                      <h3 className="subsectionTitle">
-                        {descriptionLocationTab === "indoor"
-                          ? "Indoor Description"
-                          : "Outdoor Description"}
-                      </h3>
-                      <p className="mgDescriptionText">
-                        {buildPlantDescription(selectedPlant, descriptionLocationTab)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+    <div className="mgDescriptionCard">
+      <h3 className="subsectionTitle">
+        {descriptionLocationTab === "indoor"
+          ? "Indoor Description"
+          : "Outdoor Description"}
+      </h3>
+      <p className="mgDescriptionText">
+        {buildPlantDescription(selectedPlant, descriptionLocationTab)}
+      </p>
 
-                {detailTab === "care" && (
-                  <div className="mgDetailPanel">
-                    <div className="mgCareGrid">
-                      <div className="mgCareCard">
-                        <span className="mgCareLabel">Water</span>
-                        <strong>
-                          {selectedPlant.wateringFrequency
-                            ? `Every ${selectedPlant.wateringFrequency} days`
-                            : "Not set"}
-                        </strong>
-                      </div>
+      {descriptionLocationTab === "indoor" ? (
+        <div className="mgCareGrid" style={{ marginTop: 16 }}>
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Difficulty</span>
+            <strong>{selectedPlant.difficulty || "Not set"}</strong>
+          </div>
 
-                      <div className="mgCareCard">
-                        <span className="mgCareLabel">Light</span>
-                        <strong>{formatSunlightValue(selectedPlant.sunlight)}</strong>
-                      </div>
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Water</span>
+            <strong>
+              {formatEveryDays(
+                selectedPlant.wateringEveryDays ?? selectedPlant.wateringFrequency
+              )}
+            </strong>
+          </div>
 
-                      <div className="mgCareCard">
-                        <span className="mgCareLabel">Plant Type</span>
-                        <strong>
-                          {selectedPlant.locationType === "indoor" ? "Indoor" : "Outdoor"}
-                        </strong>
-                      </div>
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Fertilize</span>
+            <strong>{formatEveryDays(selectedPlant.fertilizeEveryDays)}</strong>
+          </div>
 
-                      <div className="mgCareCard">
-                        <span className="mgCareLabel">Hardiness Zone</span>
-                        <strong>
-                          {selectedPlant.minZone != null && selectedPlant.maxZone != null
-                            ? `${selectedPlant.minZone}-${selectedPlant.maxZone}`
-                            : "Unknown"}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Prune</span>
+            <strong>{formatEveryDays(selectedPlant.pruneEveryDays)}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Repot</span>
+            <strong>{formatEveryDays(selectedPlant.repotEveryDays)}</strong>
+          </div>
+        </div>
+      ) : (
+        <div className="mgCareGrid" style={{ marginTop: 16 }}>
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Difficulty</span>
+            <strong>{selectedPlant.difficulty || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Water</span>
+            <strong>
+              {formatEveryDays(
+                selectedPlant.wateringEveryDays ?? selectedPlant.wateringFrequency
+              )}
+            </strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Fertilize</span>
+            <strong>{formatEveryDays(selectedPlant.fertilizeEveryDays)}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Prune</span>
+            <strong>{formatEveryDays(selectedPlant.pruneEveryDays)}</strong>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <div className="mgDescriptionCard" style={{ marginTop: 16 }}>
+      <h3 className="subsectionTitle">Plant Requirements</h3>
+
+      {descriptionLocationTab === "indoor" ? (
+        <div className="mgCareGrid">
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Pot Type</span>
+            <strong>{selectedPlant.potType || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Soil Type</span>
+            <strong>{selectedPlant.soilType || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Lighting</span>
+            <strong>
+              {selectedPlant.lighting || formatSunlightValue(selectedPlant.sunlight)}
+            </strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Humidity</span>
+            <strong>{selectedPlant.humidity || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Hibernation</span>
+            <strong>{selectedPlant.hibernation || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Hardiness Zone</span>
+            <strong>
+              {selectedPlant.minZone != null && selectedPlant.maxZone != null
+                ? `${selectedPlant.minZone}-${selectedPlant.maxZone}`
+                : "Unknown"}
+            </strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Temperature</span>
+            <strong>
+              {formatTemperatureRange(
+                selectedPlant.temperatureMin,
+                selectedPlant.temperatureMax
+              )}
+            </strong>
+          </div>
+        </div>
+      ) : (
+        <div className="mgCareGrid">
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Mulching</span>
+            <strong>Apply 2 inches (5 cm) organic mulch</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Soil Type</span>
+            <strong>{selectedPlant.soilType || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Lighting</span>
+            <strong>
+              {selectedPlant.lighting || formatSunlightValue(selectedPlant.sunlight)}
+            </strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Humidity</span>
+            <strong>{selectedPlant.humidity || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Hibernation</span>
+            <strong>{selectedPlant.hibernation || "Not set"}</strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Hardiness Zone</span>
+            <strong>
+              {selectedPlant.minZone != null && selectedPlant.maxZone != null
+                ? `${selectedPlant.minZone}-${selectedPlant.maxZone}`
+                : "Unknown"}
+            </strong>
+          </div>
+
+          <div className="mgCareCard">
+            <span className="mgCareLabel">Temperature</span>
+            <strong>
+              {formatTemperatureRange(
+                selectedPlant.temperatureMin,
+                selectedPlant.temperatureMax
+              )}
+            </strong>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
                 {detailTab === "history" && (
                   <div className="mgDetailPanel">
@@ -1390,8 +1576,47 @@ export default function MyGardenPage() {
               </div>
             </>
           )}
-        </section>
-      </main>
+       </section>
+
+<section className="panel recommendationsPanel">
+  <div className="sectionHeader">
+    <h2 className="panelTitle">Recommended for Zone {recZone || "--"}</h2>
+  </div>
+
+  {recLoading && <p className="muted">Loading recommendations…</p>}
+  {recError && <p className="errorText">{recError}</p>}
+
+  {!recLoading && !recError && recommendations.length === 0 && (
+    <p className="muted">No recommendations available.</p>
+  )}
+
+  <div className="plantList">
+    {recommendations.map((p) => (
+      <div key={p.id} className="plantCard">
+        <div className="plantCardName">
+          {p.commonName || p.name || "Unknown plant"}
+        </div>
+
+        {p.scientificName && (
+          <div className="plantCardMeta">{p.scientificName}</div>
+        )}
+
+        <div className="plantCardMeta">
+          Zones {p.minZone ?? "?"}-{p.maxZone ?? "?"}
+        </div>
+
+        <button
+          className="primaryBtn compactBtn"
+          onClick={() => addToGarden(p)}
+        >
+          Add to My Garden
+        </button>
+      </div>
+    ))}
+  </div>
+</section>
+
+</main>
     </div>
   );
 }

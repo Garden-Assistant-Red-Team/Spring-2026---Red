@@ -2566,3 +2566,46 @@ select:focus {
     width: 100%;
   }
 }
+.calendarReminderList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.calendarReminder {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendarReminder.water {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.calendarReminder.fertilize {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.calendarReminder.prune {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.calendarReminder.custom {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.calendarReminderMore {
+  font-size: 12px;
+  color: #6b7280;
+  padding-left: 4px;
+}

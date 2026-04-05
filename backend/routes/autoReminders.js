@@ -1,11 +1,9 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
-
-// CREATE REMINDERS FOR NEW PLANT
 async function createPlantReminders(uid, plantInstanceId, catalogData) {
   const now = admin.firestore.FieldValue.serverTimestamp();
   const plantName = catalogData.commonName || catalogData.scientificName || 'Your plant';
   const wateringEveryDays = catalogData?.careEffective?.wateringEveryDays || 7;
+  const fertilizeEveryDays = catalogData?.fertilizeEveryDays || 30;
+  const pruneEveryDays = catalogData?.pruneEveryDays || 90;
 
   const remindersToCreate = [];
 
@@ -24,9 +22,9 @@ async function createPlantReminders(uid, plantInstanceId, catalogData) {
     recurrence: { everyDays: wateringEveryDays }
   });
 
-  // Fertilizing reminder (default 30 days)
+  // Fertilizing reminder
   const fertilizeDueAt = new Date();
-  fertilizeDueAt.setDate(fertilizeDueAt.getDate() + 30);
+  fertilizeDueAt.setDate(fertilizeDueAt.getDate() + fertilizeEveryDays);
   remindersToCreate.push({
     plantInstanceId,
     type: 'fertilize',
@@ -36,7 +34,22 @@ async function createPlantReminders(uid, plantInstanceId, catalogData) {
     source: 'auto',
     createdAt: now,
     updatedAt: now,
-    recurrence: { everyDays: 30 }
+    recurrence: { everyDays: fertilizeEveryDays }
+  });
+
+  // Pruning reminder
+  const pruneDueAt = new Date();
+  pruneDueAt.setDate(pruneDueAt.getDate() + pruneEveryDays);
+  remindersToCreate.push({
+    plantInstanceId,
+    type: 'prune',
+    title: `Prune ${plantName}`,
+    dueAt: admin.firestore.Timestamp.fromDate(pruneDueAt),
+    status: 'pending',
+    source: 'auto',
+    createdAt: now,
+    updatedAt: now,
+    recurrence: { everyDays: pruneEveryDays }
   });
 
   const batch = db.batch();
