@@ -2,12 +2,11 @@
 const express = require("express");
 const admin = require("firebase-admin");
 const { FieldValue } = admin.firestore;
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 const db = admin.firestore();
-const { createPlantReminders } = require('./autoReminders');
-
+const { createPlantReminders } = require("./autoReminders");
 
 /**
  * POST /api/garden/:uid/plants
@@ -15,8 +14,9 @@ const { createPlantReminders } = require('./autoReminders');
  */
 router.post("/:uid/plants", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid } = req.params;
 
@@ -33,12 +33,23 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
       maxZone,
       sunlight,
       wateringFrequency,
-      reason
+      reason,
+      locationType,
     } = req.body;
 
     const finalName = name || scientificName || commonName;
     if (!finalName) {
-      return res.status(400).json({ error: "Missing plant name (name/scientificName/commonName)." });
+      return res
+        .status(400)
+        .json({ error: "Missing plant name (name/scientificName/commonName)." });
+    }
+
+    const finalLocationType = locationType || "outdoor";
+
+    if (!["indoor", "outdoor"].includes(finalLocationType)) {
+      return res
+        .status(400)
+        .json({ error: "locationType must be indoor or outdoor" });
     }
 
     const gardenPlantsRef = db.collection("users").doc(uid).collection("gardenPlants");
@@ -47,8 +58,11 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
     if (plantId || typeof trefle_id === "number") {
       let query = gardenPlantsRef.limit(1);
 
-      if (plantId) query = gardenPlantsRef.where("plantId", "==", plantId).limit(1);
-      else query = gardenPlantsRef.where("trefle_id", "==", trefle_id).limit(1);
+      if (plantId) {
+        query = gardenPlantsRef.where("plantId", "==", plantId).limit(1);
+      } else {
+        query = gardenPlantsRef.where("trefle_id", "==", trefle_id).limit(1);
+      }
 
       const existing = await query.get();
       if (!existing.empty) {
@@ -70,8 +84,9 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
       sunlight: sunlight || null,
       wateringFrequency: wateringFrequency || null,
       reason: reason || null,
-      locationType: "outdoor", // defaults to outdoor, can be updated later
+      locationType: finalLocationType,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const docRef = await gardenPlantsRef.add(gardenPlant);
@@ -82,41 +97,48 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
         commonName: gardenPlant.commonName,
         scientificName: gardenPlant.scientificName,
         careEffective: {
-          wateringEveryDays: typeof gardenPlant.wateringFrequency === 'number'
-            ? gardenPlant.wateringFrequency
-            : 7
-        }
+          wateringEveryDays:
+            typeof gardenPlant.wateringFrequency === "number"
+              ? gardenPlant.wateringFrequency
+              : 7,
+        },
       });
     } catch (reminderErr) {
-      console.error('Failed to create reminders:', reminderErr.message);
+      console.error("Failed to create reminders:", reminderErr.message);
     }
 
-    return res.status(201).json({ message: "Added to garden", id: docRef.id, plant: gardenPlant });
-      } catch (err) {
-        return res.status(500).json({ error: err.message });
-      }
+    return res.status(201).json({
+      message: "Added to garden",
+      id: docRef.id,
+      plant: gardenPlant,
     });
-
-    router.get("/:uid/plants", requireAuth, async (req, res) => {
-      if (req.user.uid !== req.params.uid) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-        try {
-        const { uid } = req.params;
-        const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
-        const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        return res.json(plants);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
 
-//Add a note
-//PATCH is /api/garden/:uid/plantsId/notes  body: { text }
+router.get("/:uid/plants", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  try {
+    const { uid } = req.params;
+    const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
+    const plants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    return res.json(plants);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Add a note
+// PATCH /api/garden/:uid/plants/:plantId/notes  body: { text }
 router.patch("/:uid/plants/:plantId/notes", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId } = req.params;
     const { text } = req.body;
@@ -137,7 +159,10 @@ router.patch("/:uid/plants/:plantId/notes", requireAuth, async (req, res) => {
       updatedAt: new Date().toISOString(),
     });
 
-    await ref.update({ notes });
+    await ref.update({
+      notes,
+      updatedAt: new Date().toISOString(),
+    });
 
     return res.json({ ok: true, notes });
   } catch (err) {
@@ -145,12 +170,13 @@ router.patch("/:uid/plants/:plantId/notes", requireAuth, async (req, res) => {
   }
 });
 
-// NOTES: Edit a note by index
+// Edit a note by index
 // PUT /api/garden/:uid/plants/:plantId/notes/:index  body: { text }
 router.put("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId, index } = req.params;
     const { text } = req.body;
@@ -170,12 +196,15 @@ router.put("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) =
     const plant = snap.data();
     const notes = Array.isArray(plant.notes) ? plant.notes : [];
 
-    if (i >= notes.length) return res.status(404).json({ error: "Note index out of range" });
+    if (i >= notes.length) {
+      return res.status(404).json({ error: "Note index out of range" });
+    }
 
-    // support string notes too, just in case
     const existing = notes[i];
     const createdAt =
-      typeof existing === "object" && existing?.createdAt ? existing.createdAt : new Date().toISOString();
+      typeof existing === "object" && existing?.createdAt
+        ? existing.createdAt
+        : new Date().toISOString();
 
     notes[i] = {
       text: clean,
@@ -183,7 +212,10 @@ router.put("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) =
       updatedAt: new Date().toISOString(),
     };
 
-    await ref.update({ notes });
+    await ref.update({
+      notes,
+      updatedAt: new Date().toISOString(),
+    });
 
     return res.json({ ok: true, notes });
   } catch (err) {
@@ -191,12 +223,13 @@ router.put("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) =
   }
 });
 
-// NOTES: Delete a note by index
+// Delete a note by index
 // DELETE /api/garden/:uid/plants/:plantId/notes/:index
 router.delete("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId, index } = req.params;
 
@@ -212,23 +245,30 @@ router.delete("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res
     const plant = snap.data();
     const notes = Array.isArray(plant.notes) ? plant.notes : [];
 
-    if (i >= notes.length) return res.status(404).json({ error: "Note index out of range" });
+    if (i >= notes.length) {
+      return res.status(404).json({ error: "Note index out of range" });
+    }
 
     notes.splice(i, 1);
 
-    await ref.update({ notes });
+    await ref.update({
+      notes,
+      updatedAt: new Date().toISOString(),
+    });
 
     return res.json({ ok: true, notes });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
+
 // DELETE a plant from My Garden
 // DELETE /api/garden/:uid/plants/:plantId
 router.delete("/:uid/plants/:plantId", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId } = req.params;
 
@@ -247,66 +287,87 @@ router.delete("/:uid/plants/:plantId", requireAuth, async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
- // ── GARDEN LAYOUT ─────────────────────────────────────────────
 
 // PATCH /api/garden/:uid/plants/:plantId/placement
 router.patch("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId } = req.params;
     const { placement, startDate } = req.body;
+
     if (!placement) {
-      return res.status(400).json({ error: 'placement is required' });
+      return res.status(400).json({ error: "placement is required" });
     }
-    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
     const snap = await ref.get();
+
     if (!snap.exists) {
-      return res.status(404).json({ error: 'Plant not found' });
+      return res.status(404).json({ error: "Plant not found" });
     }
+
     await ref.update({
-      'layout.placement': placement,
-      'layout.startDate': startDate || new Date().toISOString(),
-      'layout.updatedAt': new Date().toISOString()
+      "layout.placement": placement,
+      "layout.startDate": startDate || new Date().toISOString(),
+      "layout.updatedAt": new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
+
     return res.json({
-      message: 'Plant placement saved',
+      message: "Plant placement saved",
       plantId,
       placement,
-      startDate: startDate || new Date().toISOString()
+      startDate: startDate || new Date().toISOString(),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
 
-// PATCH /api/garden/:uid/plants/:plantId — update locationType or other fields
+// PATCH /api/garden/:uid/plants/:plantId
+// update locationType or other editable fields
 router.patch("/:uid/plants/:plantId", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId } = req.params;
-    const allowed = ['locationType', 'nickname', 'notes', 'status'];
+    const allowed = ["locationType", "nickname", "notes", "status"];
     const updates = {};
+
     for (const key of allowed) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
+
     if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'No valid fields to update' });
+      return res.status(400).json({ error: "No valid fields to update" });
     }
-    if (updates.locationType && !['indoor', 'outdoor'].includes(updates.locationType)) {
-      return res.status(400).json({ error: 'locationType must be indoor or outdoor' });
+
+    if (
+      updates.locationType &&
+      !["indoor", "outdoor"].includes(updates.locationType)
+    ) {
+      return res
+        .status(400)
+        .json({ error: "locationType must be indoor or outdoor" });
     }
+
     updates.updatedAt = new Date().toISOString();
-    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
+
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
     const snap = await ref.get();
+
     if (!snap.exists) {
-      return res.status(404).json({ error: 'Plant not found' });
+      return res.status(404).json({ error: "Plant not found" });
     }
+
     await ref.update(updates);
-    return res.json({ message: 'Plant updated', plantId, updates });
+
+    return res.json({ message: "Plant updated", plantId, updates });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -315,24 +376,27 @@ router.patch("/:uid/plants/:plantId", requireAuth, async (req, res) => {
 // GET /api/garden/:uid/layout
 router.get("/:uid/layout", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid } = req.params;
-    const snap = await db.collection('users').doc(uid).collection('gardenPlants').get();
+    const snap = await db.collection("users").doc(uid).collection("gardenPlants").get();
+
     const layout = snap.docs
-      .filter(doc => doc.data().layout?.placement)
-      .map(doc => ({
+      .filter((doc) => doc.data().layout?.placement)
+      .map((doc) => ({
         id: doc.id,
         name: doc.data().name,
         commonName: doc.data().commonName,
-        locationType: doc.data().locationType || 'outdoor',
+        locationType: doc.data().locationType || "outdoor",
         placement: doc.data().layout?.placement,
         startDate: doc.data().layout?.startDate,
         updatedAt: doc.data().layout?.updatedAt,
         sunlight: doc.data().sunlight,
-        wateringFrequency: doc.data().wateringFrequency
+        wateringFrequency: doc.data().wateringFrequency,
       }));
+
     return res.json({ count: layout.length, layout });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -342,17 +406,24 @@ router.get("/:uid/layout", requireAuth, async (req, res) => {
 // DELETE /api/garden/:uid/plants/:plantId/placement
 router.delete("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: "Forbidden" });
   }
+
   try {
     const { uid, plantId } = req.params;
-    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
+    const ref = db.collection("users").doc(uid).collection("gardenPlants").doc(plantId);
     const snap = await ref.get();
+
     if (!snap.exists) {
-      return res.status(404).json({ error: 'Plant not found' });
+      return res.status(404).json({ error: "Plant not found" });
     }
-    await ref.update({ layout: FieldValue.delete() });
-    return res.json({ message: 'Plant placement removed', plantId });
+
+    await ref.update({
+      layout: FieldValue.delete(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    return res.json({ message: "Plant placement removed", plantId });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
