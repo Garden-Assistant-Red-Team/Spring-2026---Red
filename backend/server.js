@@ -54,6 +54,23 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
+// TEMPORARY — remove after testing
+app.post('/api/get-test-token', async (req, res) => {
+  try {
+    const axios = require('axios');
+    const { email, password } = req.body;
+    const apiKey = process.env.FIREBASE_API_KEY;
+
+    const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      { email, password, returnSecureToken: true }
+    );
+
+    res.json({ token: response.data.idToken, uid: response.data.localId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {

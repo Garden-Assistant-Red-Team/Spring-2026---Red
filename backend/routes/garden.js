@@ -8,6 +8,7 @@ const router = express.Router();
 const db = admin.firestore();
 const { createPlantReminders } = require('./autoReminders');
 
+
 /**
  * POST /api/garden/:uid/plants
  * Accepts plants from recommendations or photo-id.
@@ -69,6 +70,7 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
       sunlight: sunlight || null,
       wateringFrequency: wateringFrequency || null,
       reason: reason || null,
+      locationType: "outdoor", // defaults to outdoor, can be updated later
       createdAt: new Date().toISOString(),
     };
 
@@ -80,8 +82,8 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
         commonName: gardenPlant.commonName,
         scientificName: gardenPlant.scientificName,
         careEffective: {
-          wateringEveryDays: typeof gardenPlant.wateringFrequency === 'number' 
-            ? gardenPlant.wateringFrequency 
+          wateringEveryDays: typeof gardenPlant.wateringFrequency === 'number'
+            ? gardenPlant.wateringFrequency
             : 7
         }
       });
@@ -111,7 +113,10 @@ router.post("/:uid/plants", requireAuth, async (req, res) => {
 
 //Add a note
 //PATCH is /api/garden/:uid/plantsId/notes  body: { text }
-router.patch("/:uid/plants/:plantId/notes", async (req, res) => {
+router.patch("/:uid/plants/:plantId/notes", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { uid, plantId } = req.params;
     const { text } = req.body;
@@ -142,7 +147,10 @@ router.patch("/:uid/plants/:plantId/notes", async (req, res) => {
 
 // NOTES: Edit a note by index
 // PUT /api/garden/:uid/plants/:plantId/notes/:index  body: { text }
-router.put("/:uid/plants/:plantId/notes/:index", async (req, res) => {
+router.put("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { uid, plantId, index } = req.params;
     const { text } = req.body;
@@ -185,7 +193,10 @@ router.put("/:uid/plants/:plantId/notes/:index", async (req, res) => {
 
 // NOTES: Delete a note by index
 // DELETE /api/garden/:uid/plants/:plantId/notes/:index
-router.delete("/:uid/plants/:plantId/notes/:index", async (req, res) => {
+router.delete("/:uid/plants/:plantId/notes/:index", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { uid, plantId, index } = req.params;
 
@@ -214,7 +225,10 @@ router.delete("/:uid/plants/:plantId/notes/:index", async (req, res) => {
 });
 // DELETE a plant from My Garden
 // DELETE /api/garden/:uid/plants/:plantId
-router.delete("/:uid/plants/:plantId", async (req, res) => {
+router.delete("/:uid/plants/:plantId", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const { uid, plantId } = req.params;
 
@@ -232,117 +246,116 @@ router.delete("/:uid/plants/:plantId", async (req, res) => {
     console.error("Failed to delete plant:", err);
     return res.status(500).json({ error: err.message });
   }
-  // ── GARDEN LAYOUT ─────────────────────────────────────────────
+});
+ // ── GARDEN LAYOUT ─────────────────────────────────────────────
 
 // PATCH /api/garden/:uid/plants/:plantId/placement
-// Save or update where a plant is placed in the garden
 router.patch("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-
   try {
     const { uid, plantId } = req.params;
     const { placement, startDate } = req.body;
-
     if (!placement) {
       return res.status(400).json({ error: 'placement is required' });
     }
-
-    const ref = db
-      .collection('users').doc(uid)
-      .collection('gardenPlants').doc(plantId);
-
+    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
     const snap = await ref.get();
     if (!snap.exists) {
       return res.status(404).json({ error: 'Plant not found' });
     }
-
     await ref.update({
       'layout.placement': placement,
       'layout.startDate': startDate || new Date().toISOString(),
       'layout.updatedAt': new Date().toISOString()
     });
-
     return res.json({
       message: 'Plant placement saved',
       plantId,
       placement,
       startDate: startDate || new Date().toISOString()
     });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
+// PATCH /api/garden/:uid/plants/:plantId — update locationType or other fields
+router.patch("/:uid/plants/:plantId", requireAuth, async (req, res) => {
+  if (req.user.uid !== req.params.uid) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const { uid, plantId } = req.params;
+    const allowed = ['locationType', 'nickname', 'notes', 'status'];
+    const updates = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+    if (updates.locationType && !['indoor', 'outdoor'].includes(updates.locationType)) {
+      return res.status(400).json({ error: 'locationType must be indoor or outdoor' });
+    }
+    updates.updatedAt = new Date().toISOString();
+    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: 'Plant not found' });
+    }
+    await ref.update(updates);
+    return res.json({ message: 'Plant updated', plantId, updates });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
 
 // GET /api/garden/:uid/layout
-// Get full garden layout — all plants with their placements
 router.get("/:uid/layout", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-
   try {
     const { uid } = req.params;
-
-    const snap = await db
-      .collection('users').doc(uid)
-      .collection('gardenPlants')
-      .get();
-
+    const snap = await db.collection('users').doc(uid).collection('gardenPlants').get();
     const layout = snap.docs
-      .filter(doc => doc.data().layout?.placement) // only plants with placement set
+      .filter(doc => doc.data().layout?.placement)
       .map(doc => ({
         id: doc.id,
         name: doc.data().name,
         commonName: doc.data().commonName,
+        locationType: doc.data().locationType || 'outdoor',
         placement: doc.data().layout?.placement,
         startDate: doc.data().layout?.startDate,
         updatedAt: doc.data().layout?.updatedAt,
         sunlight: doc.data().sunlight,
         wateringFrequency: doc.data().wateringFrequency
       }));
-
-    return res.json({
-      count: layout.length,
-      layout
-    });
-
+    return res.json({ count: layout.length, layout });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
 
 // DELETE /api/garden/:uid/plants/:plantId/placement
-// Remove placement from a plant without deleting the plant
 router.delete("/:uid/plants/:plantId/placement", requireAuth, async (req, res) => {
   if (req.user.uid !== req.params.uid) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-
   try {
     const { uid, plantId } = req.params;
-
-    const ref = db
-      .collection('users').doc(uid)
-      .collection('gardenPlants').doc(plantId);
-
+    const ref = db.collection('users').doc(uid).collection('gardenPlants').doc(plantId);
     const snap = await ref.get();
     if (!snap.exists) {
       return res.status(404).json({ error: 'Plant not found' });
     }
-
-    await ref.update({
-      layout: FieldValue.delete()
-    });
-
+    await ref.update({ layout: FieldValue.delete() });
     return res.json({ message: 'Plant placement removed', plantId });
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
 });
 
 module.exports = router;
