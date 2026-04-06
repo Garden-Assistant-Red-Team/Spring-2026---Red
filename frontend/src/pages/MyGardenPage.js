@@ -543,6 +543,40 @@ export default function MyGardenPage() {
     }
   }
 
+  //This function creates a toggle/switch for plant relocation between indoor and outdoor, 
+  // allowing users to update the plant's location type in their garden (indoor or outdoor)
+
+  async function updatePlantLocation(plantDocId, newLocationType) {
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    try {
+      const uid = auth.currentUser.uid;
+      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants/${plantDocId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locationType: newLocationType }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data?.error || "Failed to update plant location");
+        return;
+      }
+
+      await loadSavedPlants();
+      if (selectedPlantId === plantDocId) {
+        setPlantEditForm ((prev) => ({ ...prev, locationType: newLocationType }));
+        setDescriptionLocationTab(newLocationType);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error while updating plant location.");
+    }
+  }
+
   async function addNote(plantDocId) {
     const text = noteDraft.trim();
     if (!text) return;
@@ -691,7 +725,7 @@ export default function MyGardenPage() {
 
   function renderPlantCard(p) {
     const isSelected = p.id === selectedPlantId;
-
+    const currentLocation  = p.locationType === "indoor" ? "indoor" : "outdoor";
     return (
       <button
         key={p.id}
@@ -725,6 +759,36 @@ export default function MyGardenPage() {
           {p.wateringFrequency && (
             <span className="mgMiniChip">Water: every {p.wateringFrequency} days</span>
           )}
+        </div>
+
+        <div 
+          className="mgLocationQuickToggleRow"
+          onClick={(e) => {e.stopPropagation() }}
+        >
+          <span className="mgLocationQuickToggleLabel">Location:</span>
+
+          <div className="mgLocationToggle">
+            <button
+              type="button"
+              className={`mgLocationToggleBtn ${currentLocation === "indoor" ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                updatePlantLocation(p.id, "indoor");
+              }}
+            >
+              Indoor
+            </button>
+            <button
+              type="button"
+              className={`mgLocationToggleBtn ${currentLocation === "outdoor" ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                updatePlantLocation(p.id, "outdoor");
+              }}
+            >
+              Outdoor
+            </button>
+          </div>
         </div>
 
         <div className="mgPlantActions">

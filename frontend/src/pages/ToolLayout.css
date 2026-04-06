@@ -2473,6 +2473,20 @@ select:focus {
   color: white;
 }
 
+.mgLocationQuickToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.mgLocationQuickToggleLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
 .mgDescriptionCard {
   border: 1px solid rgba(31, 35, 31, 0.08);
   background: rgba(249, 251, 249, 0.94);
