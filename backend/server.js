@@ -34,6 +34,7 @@ const gardenRouter = require('./routes/garden');
 const identifyPlantRouter = require('./routes/identifyPlant');
 const catalogRouter = require('./routes/catalog');
 const { router: alertsRouter } = require('./routes/alerts');
+const adminRouter = require('./routes/admin');
 
 // Mount routes
 app.use('/api/users', usersRouter);
@@ -46,6 +47,7 @@ app.use('/api/catalog', catalogRouter);
 app.use('/api/garden', gardenRouter);
 app.use('/api/identify-plant', identifyPlantRouter);
 app.use('/api/alerts', alertsRouter);
+app.use('/api/admin', adminRouter);
 
 // Health check routes
 app.get('/', (req, res) => {
