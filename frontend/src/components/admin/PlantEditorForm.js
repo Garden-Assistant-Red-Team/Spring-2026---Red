@@ -53,55 +53,55 @@ export default function PlantEditorForm({
       </div>
 
       <div className="selectedPlantHero" style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-  {plant.imageUrl ? (
-    <img
-      src={plant.imageUrl}
-      alt={plant.commonName || plant.scientificName || "Plant"}
-      style={{
-        width: "140px",
-        height: "140px",
-        objectFit: "cover",
-        borderRadius: "16px",
-        border: "1px solid #ddd",
-        flexShrink: 0,
-      }}
-    />
-  ) : (
-    <div
-      style={{
-        width: "140px",
-        height: "140px",
-        borderRadius: "16px",
-        border: "1px solid #ddd",
-        background: "#f5f5f5",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "28px",
-        color: "#777",
-        flexShrink: 0,
-      }}
-    >
-      🌿
-    </div>
-  )}
+        {plant.imageUrl ? (
+          <img
+            src={plant.imageUrl}
+            alt={plant.commonName || plant.scientificName || "Plant"}
+            style={{
+              width: "140px",
+              height: "140px",
+              objectFit: "cover",
+              borderRadius: "16px",
+              border: "1px solid #ddd",
+              flexShrink: 0,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "140px",
+              height: "140px",
+              borderRadius: "16px",
+              border: "1px solid #ddd",
+              background: "#f5f5f5",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "28px",
+              color: "#777",
+              flexShrink: 0,
+            }}
+          >
+            🌿
+          </div>
+        )}
 
-  <div>
-    <h3 style={{ margin: 0 }}>
-      {plant.commonName || "Unnamed plant"}
-    </h3>
+        <div>
+          <h3 style={{ margin: 0 }}>
+            {plant.commonName || "Unnamed plant"}
+          </h3>
 
-    <p style={{ margin: "4px 0 10px", color: "#666" }}>
-      {plant.scientificName || "No scientific name"}
-    </p>
+          <p style={{ margin: "4px 0 10px", color: "#666" }}>
+            {plant.scientificName || "No scientific name"}
+          </p>
 
-    <div className="tagRow">
-      {plant.slug ? <span className="tag">slug: {plant.slug}</span> : null}
-      {plant.canonicalKey ? <span className="tag">key: {plant.canonicalKey}</span> : null}
-      {plant.trefleId ? <span className="tag">Trefle #{plant.trefleId}</span> : null}
-    </div>
-  </div>
-</div>
+          <div className="tagRow">
+            {plant.slug ? <span className="tag">slug: {plant.slug}</span> : null}
+            {plant.canonicalKey ? <span className="tag">key: {plant.canonicalKey}</span> : null}
+            {plant.trefleId ? <span className="tag">Trefle #{plant.trefleId}</span> : null}
+          </div>
+        </div>
+      </div>
 
       <div className="adminEditorGrid">
         <div className="dictionaryField">
