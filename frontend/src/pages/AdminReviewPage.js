@@ -26,7 +26,16 @@ export default function AdminReviewPage() {
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    loadPlants();
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user) {
+        loadPlants();
+      } else {
+        setLoading(false);
+        setError("You must be logged into to Admin to view this page.")
+      }
+    });
+
+    return () => unsub();
   }, []);
 
   async function loadPlants() {
@@ -36,7 +45,7 @@ export default function AdminReviewPage() {
     try {
       const token = await auth.currentUser?.getIdToken?.();
 
-      const res = await fetch(`${API_BASE}/api/admin/review-plants`, {
+      const res = await fetch(`${API_BASE}/api/admin/staging/plants`, {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -141,7 +150,7 @@ export default function AdminReviewPage() {
       const token = await auth.currentUser?.getIdToken?.();
       const payload = normalizePlantDraftForSave(draftPlant);
 
-      const res = await fetch(`${API_BASE}/api/admin/review-plants/${draftPlant.id}`, {
+      const res = await fetch(`${API_BASE}/api/admin/staging/plants/${draftPlant.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

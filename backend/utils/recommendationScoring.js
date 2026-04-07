@@ -1,33 +1,84 @@
 function parseZone(zoneValue) {
   if (zoneValue == null) return null;
 
-  if (typeof zoneValue === "number") return zoneValue;
+  if (typeof zoneValue === "number" && Number.isFinite(zoneValue)) {
+    return zoneValue;
+  }
 
   const str = String(zoneValue).trim().toLowerCase();
-  const match = str.match(/^(\d+)([ab])?$/);
 
+  // supports: "8", "8a", "8b", "zone 8a"
+  const match = str.match(/(\d+)([ab])?/);
   if (!match) return null;
 
   const base = Number(match[1]);
   const suffix = match[2];
 
-  if (!suffix) return base;
-  if (suffix === "a") return base + 0.0;
+  if (!Number.isFinite(base)) return null;
+  if (!suffix || suffix === "a") return base;
   if (suffix === "b") return base + 0.5;
 
   return base;
 }
 
-function normalizeUserSunlight(value) {
+function normalizeSunlightValue(value) {
   if (!value) return null;
 
-  const v = String(value).trim().toLowerCase();
+  const v = String(value).trim().toLowerCase().replace(/[\s-]+/g, "_");
 
-  if (v.includes("full")) return "full_sun";
-  if (v.includes("part")) return "part_sun";
-  if (v.includes("shade")) return "shade";
+  if (
+    v === "full" ||
+    v === "full_sun" ||
+    v.includes("full_sun")
+  ) {
+    return "full_sun";
+  }
 
-  return v;
+  if (
+    v === "partial" ||
+    v === "part_sun" ||
+    v === "partial_sun" ||
+    v === "partial_shade" ||
+    v.includes("part") ||
+    v.includes("partial")
+  ) {
+    return "part_sun";
+  }
+
+  if (
+    v === "shade" ||
+    v === "full_shade" ||
+    v.includes("shade")
+  ) {
+    return "shade";
+  }
+
+  return null;
+}
+
+function normalizeSunlightArray(values) {
+  if (!Array.isArray(values)) return [];
+
+  const normalized = values
+    .map(normalizeSunlightValue)
+    .filter(Boolean);
+
+  return Array.from(new Set(normalized));
+}
+
+function getUserSunlightPreferences(user) {
+  // preferred current field
+  if (Array.isArray(user?.sunlightPreference) && user.sunlightPreference.length) {
+    return normalizeSunlightArray(user.sunlightPreference);
+  }
+
+  // fallback for older user shape
+  if (user?.sunlight) {
+    const single = normalizeSunlightValue(user.sunlight);
+    return single ? [single] : [];
+  }
+
+  return [];
 }
 
 function getPlantMinZone(plant) {
@@ -39,17 +90,21 @@ function getPlantMaxZone(plant) {
 }
 
 function getPlantSunlightArray(plant) {
-  if (Array.isArray(plant.sunlight) && plant.sunlight.length) {
-    return plant.sunlight;
+  // best case: already normalized array
+  if (Array.isArray(plant?.sunlight) && plant.sunlight.length) {
+    return normalizeSunlightArray(plant.sunlight);
   }
 
-  const category = plant?.sunlight?.category ?? plant?.careEffective?.sunlightCategory ?? null;
+  // fallback if sunlight is stored as object/category
+  const category =
+    plant?.sunlight?.category ??
+    plant?.careEffective?.sunlightCategory ??
+    null;
 
-  if (!category) return [];
-
-  if (category === "full") return ["full_sun"];
-  if (category === "partial") return ["part_sun"];
-  if (category === "shade") return ["shade"];
+  const normalizedCategory = normalizeSunlightValue(category);
+  if (normalizedCategory) {
+    return [normalizedCategory];
+  }
 
   return [];
 }
@@ -70,9 +125,22 @@ function matchesZone(userZone, plant) {
 
 function nativeToState(plant, stateCode) {
   if (!stateCode) return false;
-  if (!Array.isArray(plant.nativeStates)) return false;
+  if (!Array.isArray(plant?.nativeStates)) return false;
 
   return plant.nativeStates.includes(String(stateCode).toUpperCase());
+}
+
+function zoneDistanceFromRange(userZone, plant) {
+  const user = parseZone(userZone);
+  const min = parseZone(getPlantMinZone(plant));
+  const max = parseZone(getPlantMaxZone(plant));
+
+  if (user == null || (min == null && max == null)) return null;
+
+  if (min != null && user < min) return min - user;
+  if (max != null && user > max) return user - max;
+
+  return 0;
 }
 
 function scoreZone(user, plant) {
@@ -83,35 +151,75 @@ function scoreZone(user, plant) {
     return { points: 0, reason: null };
   }
 
-  if (matchesZone(user.gardenZone, plant)) {
+  const distance = zoneDistanceFromRange(user.gardenZone, plant);
+
+  if (distance === 0) {
     return { points: 40, reason: "Fits your hardiness zone" };
+  }
+
+  // slight miss near boundary
+  if (distance != null && distance <= 0.5) {
+    return { points: -5, reason: "Close to your hardiness zone, but slightly outside it" };
   }
 
   return { points: -20, reason: "May not fit your hardiness zone" };
 }
 
+function getSunlightCompatibilityScore(userSun, plantSun) {
+  if (userSun === plantSun) return 20;
+
+  const adjacentPairs = new Set([
+    "full_sun|part_sun",
+    "part_sun|full_sun",
+    "part_sun|shade",
+    "shade|part_sun",
+  ]);
+
+  if (adjacentPairs.has(`${userSun}|${plantSun}`)) {
+    return 8;
+  }
+
+  return -10;
+}
+
 function scoreSunlight(user, plant) {
-  const userSunlight = normalizeUserSunlight(user.sunlight);
+  const userSunPrefs = getUserSunlightPreferences(user);
   const plantSunlight = getPlantSunlightArray(plant);
 
-  if (!userSunlight || plantSunlight.length === 0) {
+  if (userSunPrefs.length === 0 || plantSunlight.length === 0) {
     return { points: 0, reason: null };
   }
 
-  if (plantSunlight.includes(userSunlight)) {
-    return { points: 20, reason: "Matches your sunlight needs" };
+  let bestScore = -Infinity;
+
+  for (const userSun of userSunPrefs) {
+    for (const plantSun of plantSunlight) {
+      const score = getSunlightCompatibilityScore(userSun, plantSun);
+      if (score > bestScore) bestScore = score;
+    }
   }
 
-  return { points: -8, reason: "Sunlight may not be ideal" };
+  if (bestScore >= 20) {
+    return { points: 20, reason: "Matches your sunlight conditions" };
+  }
+
+  if (bestScore >= 8) {
+    return { points: 8, reason: "Could work with your sunlight conditions" };
+  }
+
+  return { points: -10, reason: "Sunlight may not be ideal" };
 }
 
 function scoreNative(user, plant) {
-  if (!user.stateCode) {
+  if (!user?.stateCode) {
     return { points: 0, reason: null };
   }
 
   if (nativeToState(plant, user.stateCode)) {
-    return { points: 12, reason: `Native to ${String(user.stateCode).toUpperCase()}` };
+    return {
+      points: 12,
+      reason: `Native to ${String(user.stateCode).toUpperCase()}`,
+    };
   }
 
   return { points: 0, reason: null };
@@ -152,6 +260,40 @@ function scoreTags(filters, plant) {
   };
 }
 
+function scoreDataCompleteness(plant) {
+  let points = 0;
+  const missing = [];
+
+  const hasZone =
+    getPlantMinZone(plant) != null || getPlantMaxZone(plant) != null;
+
+  const hasSunlight = getPlantSunlightArray(plant).length > 0;
+  const hasNativeStates =
+    Array.isArray(plant?.nativeStates) && plant.nativeStates.length > 0;
+
+  if (!hasZone) {
+    points -= 4;
+    missing.push("zone");
+  }
+
+  if (!hasSunlight) {
+    points -= 3;
+    missing.push("sunlight");
+  }
+
+  if (!hasNativeStates) {
+    points -= 2;
+    missing.push("native range");
+  }
+
+  return {
+    points,
+    reason: missing.length
+      ? `Some plant data is incomplete (${missing.join(", ")})`
+      : null,
+  };
+}
+
 function scorePlant(plant, user, filters = {}) {
   let score = 0;
   const reasons = [];
@@ -172,14 +314,9 @@ function scorePlant(plant, user, filters = {}) {
   score += tags.points;
   if (tags.reason) reasons.push(tags.reason);
 
-  let missingPenalty = 0;
-  if (getPlantMinZone(plant) == null && getPlantMaxZone(plant) == null) missingPenalty -= 4;
-  if (!Array.isArray(plant.nativeStates) || plant.nativeStates.length === 0) missingPenalty -= 2;
-
-  score += missingPenalty;
-  if (missingPenalty < 0) {
-    reasons.push("Some care data is incomplete");
-  }
+  const dataCompleteness = scoreDataCompleteness(plant);
+  score += dataCompleteness.points;
+  if (dataCompleteness.reason) reasons.push(dataCompleteness.reason);
 
   return {
     score,
@@ -189,10 +326,17 @@ function scorePlant(plant, user, filters = {}) {
 
 module.exports = {
   parseZone,
-  matchesZone,
-  nativeToState,
-  scorePlant,
+  normalizeSunlightValue,
+  normalizeSunlightArray,
+  getUserSunlightPreferences,
   getPlantMinZone,
   getPlantMaxZone,
   getPlantSunlightArray,
+  matchesZone,
+  nativeToState,
+  scoreZone,
+  scoreSunlight,
+  scoreNative,
+  scoreTags,
+  scorePlant,
 };

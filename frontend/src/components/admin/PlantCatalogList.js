@@ -45,13 +45,48 @@ export default function PlantCatalogList({
               onClick={() => onSelectPlant(plant)}
             >
               <div className="plantCardTop">
-                <div className="plantTextWrap">
-                  <div className="plantCardName">{plant.commonName || "Unnamed plant"}</div>
-                  <div className="plantCardMeta">
-                    <em>{plant.scientificName || "No scientific name"}</em>
-                  </div>
-                </div>
-              </div>
+  {plant.imageUrl ? (
+    <img
+      src={plant.imageUrl}
+      alt={plant.commonName || plant.scientificName || "Plant"}
+      style={{
+        width: "56px",
+        height: "56px",
+        objectFit: "cover",
+        borderRadius: "10px",
+        border: "1px solid #ddd",
+        flexShrink: 0,
+        marginRight: "10px",
+      }}
+    />
+  ) : (
+    <div
+      style={{
+        width: "56px",
+        height: "56px",
+        borderRadius: "10px",
+        border: "1px solid #ddd",
+        background: "#f5f5f5",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "11px",
+        color: "#777",
+        flexShrink: 0,
+        marginRight: "10px",
+      }}
+    >
+      No img
+    </div>
+  )}
+
+  <div className="plantTextWrap">
+    <div className="plantCardName">{plant.commonName || "Unnamed plant"}</div>
+    <div className="plantCardMeta">
+      <em>{plant.scientificName || "No scientific name"}</em>
+    </div>
+  </div>
+</div>
 
               <div className="tagRow" style={{ marginTop: "8px" }}>
                 {plant.flower ? <span className="tag">flower</span> : null}

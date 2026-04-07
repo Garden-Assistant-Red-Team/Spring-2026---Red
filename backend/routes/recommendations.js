@@ -213,11 +213,13 @@ router.get("/", async (req, res) => {
     }
 
     const userContext = {
-      stateCode,
-      gardenZone: zone,
-      sunlight: user.sunlight || null,
-      wateringPreference: user.wateringPreference || null,
-    };
+  stateCode,
+  gardenZone: zone,
+  sunlightPreference: Array.isArray(user.sunlightPreference)
+    ? user.sunlightPreference
+    : [],
+  wateringPreference: user.wateringPreference || null,
+};
 
     // 4) Load plant catalog
     // Load all docs, then keep only recommendation-safe ones in code
@@ -229,16 +231,10 @@ router.get("/", async (req, res) => {
         ...doc.data(),
       }))
       .filter((plant) => {
-        // Must have basic usable structure
-        if (!plant.commonName || !plant.scientificName) return false;
-        if (typeof plant.minZone !== "number" || typeof plant.maxZone !== "number") return false;
-        if (!Array.isArray(plant.sunlight) || plant.sunlight.length === 0) return false;
-
-        // Optional future flag if you add it later
-        if (plant.recommendationEligible === false) return false;
-
-        return true;
-      });
+  if (!plant.commonName || !plant.scientificName) return false;
+  if (plant.recommendationEligible === false) return false;
+  return true;
+});
 
     console.log("recommendations: total catalog docs =", snap.size);
     console.log("recommendations: usable docs after filter =", plants.length);
@@ -341,11 +337,11 @@ router.get("/", async (req, res) => {
 
     return res.json({
       userContext: {
-        stateCode: userContext.stateCode,
-        gardenZone: userContext.gardenZone,
-        sunlight: userContext.sunlight,
-        wateringPreference: userContext.wateringPreference,
-      },
+  stateCode: userContext.stateCode,
+  gardenZone: userContext.gardenZone,
+  sunlightPreference: userContext.sunlightPreference,
+  wateringPreference: userContext.wateringPreference,
+},
       filters,
       sections: {
         bestSuited,
