@@ -81,7 +81,7 @@ export default function PlantCatalogList({
                 )}
 
                 <div className="plantTextWrap">
-                  <div className="plantCardName">{plant.commonName || "Unnamed plant"}</div>
+                  <div className="plantCardName">{plant.commonName || plant.scientificName || plant.slug || "Unnamed plant"}</div>
                   <div className="plantCardMeta">
                     <em>{plant.scientificName || "No scientific name"}</em>
                   </div>

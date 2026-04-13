@@ -25,7 +25,10 @@ export default function AdminCatalogPage() {
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    loadPlants();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) loadPlants();
+    });
+    return () => unsubscribe();
   }, []);
 
   async function loadPlants() {
@@ -45,7 +48,7 @@ export default function AdminCatalogPage() {
       if (!res.ok) throw new Error(`Failed to load plants (${res.status})`);
 
       const data = await res.json();
-      const list = (Array.isArray(data) ? data : data.plants || []).sort((a, b) =>
+      const list = (Array.isArray(data) ? data : data.items || data.plants || []).sort((a, b) =>
         String(a.commonName || a.scientificName || "").localeCompare(
           String(b.commonName || b.scientificName || "")
         )
