@@ -1232,13 +1232,6 @@ async function confirmAddToGarden(p, locationType) {
                   </button>
                   <button
                     type="button"
-                    className={`mgDetailTabBtn ${detailTab === "care" ? "active" : ""}`}
-                    onClick={() => setDetailTab("care")}
-                  >
-                    Care
-                  </button>
-                  <button
-                    type="button"
                     className={`mgDetailTabBtn ${detailTab === "history" ? "active" : ""}`}
                     onClick={() => setDetailTab("history")}
                   >
