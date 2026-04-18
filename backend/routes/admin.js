@@ -6,7 +6,6 @@ const db = admin.firestore();
 
 const { requireAdmin } = require("../middleware/requireAdmin");
 
-
 // GET plants with pagination, search, filtering, sorting
 router.get("/plants", requireAdmin, async (req, res) => {
   try {
@@ -18,32 +17,29 @@ router.get("/plants", requireAdmin, async (req, res) => {
 
     const snap = await db.collection("plantCatalog").get();
 
-    let plants = snap.docs.map(doc => ({
+    let plants = snap.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
-    // filter archived
     if (!includeArchived) {
-      plants = plants.filter(p => !p.archived);
+      plants = plants.filter((p) => !p.archived);
     }
 
-    // search
     if (q) {
-      plants = plants.filter(p =>
-        (p.commonName || "").toLowerCase().includes(q) ||
-        (p.scientificName || "").toLowerCase().includes(q)
+      plants = plants.filter(
+        (p) =>
+          (p.commonName || "").toLowerCase().includes(q) ||
+          (p.scientificName || "").toLowerCase().includes(q)
       );
     }
 
-    // sort
     plants.sort((a, b) => {
       const aVal = (a[sortBy] || "").toString().toLowerCase();
       const bVal = (b[sortBy] || "").toString().toLowerCase();
       return aVal.localeCompare(bVal);
     });
 
-    // cuts data into smaller parts instead of displaying too much at once
     const total = plants.length;
     const totalPages = Math.ceil(total / pageSize);
     const start = (page - 1) * pageSize;
@@ -55,15 +51,13 @@ router.get("/plants", requireAdmin, async (req, res) => {
         page,
         pageSize,
         total,
-        totalPages
-      }
+        totalPages,
+      },
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // GET single plant
 router.get("/plants/:id", requireAdmin, async (req, res) => {
@@ -75,12 +69,10 @@ router.get("/plants/:id", requireAdmin, async (req, res) => {
     }
 
     res.json({ id: doc.id, ...doc.data() });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // UPDATE plant with validation & audit
 router.patch("/plants/:id", requireAdmin, async (req, res) => {
@@ -92,7 +84,7 @@ router.patch("/plants/:id", requireAdmin, async (req, res) => {
       "sunlight",
       "minZone",
       "maxZone",
-      "imageUrl"
+      "imageUrl",
     ];
 
     const updates = {};
@@ -113,12 +105,10 @@ router.patch("/plants/:id", requireAdmin, async (req, res) => {
     await db.collection("plantCatalog").doc(req.params.id).update(updates);
 
     res.json({ message: "Plant updated", id: req.params.id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ARCHIVE plant
 router.patch("/plants/:id/archive", requireAdmin, async (req, res) => {
@@ -126,16 +116,14 @@ router.patch("/plants/:id/archive", requireAdmin, async (req, res) => {
     await db.collection("plantCatalog").doc(req.params.id).update({
       archived: true,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedBy: req.user.uid
+      updatedBy: req.user.uid,
     });
 
     res.json({ message: "Plant archived" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // BULK update plants
 router.patch("/plants/bulk", requireAdmin, async (req, res) => {
@@ -148,24 +136,22 @@ router.patch("/plants/bulk", requireAdmin, async (req, res) => {
 
     const batch = db.batch();
 
-    ids.forEach(id => {
+    ids.forEach((id) => {
       const ref = db.collection("plantCatalog").doc(id);
       batch.update(ref, {
         ...updates,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedBy: req.user.uid
+        updatedBy: req.user.uid,
       });
     });
 
     await batch.commit();
 
     res.json({ message: "Bulk update successful", count: ids.length });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // GET stats on plants (total, archived, active)
 router.get("/plants/stats", requireAdmin, async (req, res) => {
@@ -175,39 +161,35 @@ router.get("/plants/stats", requireAdmin, async (req, res) => {
     const total = snap.size;
     let archived = 0;
 
-    snap.docs.forEach(doc => {
+    snap.docs.forEach((doc) => {
       if (doc.data().archived) archived++;
     });
 
     res.json({
       total,
       active: total - archived,
-      archived
+      archived,
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // GET staging plants
 router.get("/staging/plants", requireAdmin, async (req, res) => {
   try {
     const snap = await db.collection("plantCatalog_staging").get();
 
-    const plants = snap.docs.map(doc => ({
+    const plants = snap.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     res.json(plants);
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // UPDATE staging plant
 router.patch("/staging/plants/:id", requireAdmin, async (req, res) => {
@@ -220,12 +202,10 @@ router.patch("/staging/plants/:id", requireAdmin, async (req, res) => {
     await db.collection("plantCatalog_staging").doc(req.params.id).update(updates);
 
     res.json({ message: "Staging plant updated", id: req.params.id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // PROMOTE staging to main catalog
 router.post("/staging/plants/:id/promote", requireAdmin, async (req, res) => {
@@ -243,40 +223,14 @@ router.post("/staging/plants/:id/promote", requireAdmin, async (req, res) => {
     await db.collection("plantCatalog").doc(id).set({
       ...data,
       promotedAt: admin.firestore.FieldValue.serverTimestamp(),
-      promotedBy: req.user.uid
+      promotedBy: req.user.uid,
     });
+
+    await db.collection("plantCatalog_staging").doc(id).delete();
 
     res.json({ message: "Plant promoted to main catalog" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-  
-router.post("/review-plants/:id/promote", requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const stagingRef = db.collection("plantCatalog_staging").doc(id);
-    const mainRef = db.collection("plantCatalog").doc(id);
-
-    const doc = await stagingRef.get();
-    if (!doc.exists) {
-      return res.status(404).json({ error: "Staging plant not found" });
-    }
-
-    const plant = doc.data();
-
-    await mainRef.set(plant, { merge: true });
-    await stagingRef.delete();
-
-    return res.json({
-      message: "Plant promoted to catalog",
-      plant,
-    });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
 });
 

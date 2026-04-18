@@ -58,7 +58,18 @@ export default function AdminCatalogPage() {
 
       if (list.length > 0) {
         setSelectedId(list[0].id);
-        setDraftPlant(list[0]);
+        setDraftPlant({
+          ...list[0],
+          nativeStatesText: Array.isArray(list[0].nativeStates)
+            ? list[0].nativeStates.join(", ")
+            : "",
+          sourcesText: Array.isArray(list[0].sources)
+            ? list[0].sources.join(", ")
+            : "",
+        });
+      } else {
+        setSelectedId(null);
+        setDraftPlant(null);
       }
     } catch (err) {
       setError(err.message || "Failed to load catalog plants.");
@@ -90,13 +101,13 @@ export default function AdminCatalogPage() {
   function handleSelectPlant(plant) {
     setSelectedId(plant.id);
     setDraftPlant({
-    ...plant,
-    nativeStatesText: Array.isArray(plant.nativeStates)
-      ? plant.nativeStates.join(", ")
-      : "",
-    sourcesText: Array.isArray(plant.sources)
-      ? plant.sources.join(", ")
-      : "",
+      ...plant,
+      nativeStatesText: Array.isArray(plant.nativeStates)
+        ? plant.nativeStates.join(", ")
+        : "",
+      sourcesText: Array.isArray(plant.sources)
+        ? plant.sources.join(", ")
+        : "",
     });
     setSaveMessage("");
     setError("");
@@ -146,7 +157,15 @@ export default function AdminCatalogPage() {
 
   function resetDraft() {
     if (selectedOriginalPlant) {
-      setDraftPlant(selectedOriginalPlant);
+      setDraftPlant({
+        ...selectedOriginalPlant,
+        nativeStatesText: Array.isArray(selectedOriginalPlant.nativeStates)
+          ? selectedOriginalPlant.nativeStates.join(", ")
+          : "",
+        sourcesText: Array.isArray(selectedOriginalPlant.sources)
+          ? selectedOriginalPlant.sources.join(", ")
+          : "",
+      });
       setSaveMessage("");
       setError("");
     }
@@ -162,7 +181,15 @@ export default function AdminCatalogPage() {
 
     try {
       const token = await auth.currentUser?.getIdToken?.();
-      const payload = draftPlant;
+      const payload = normalizePlantDraftForSave({
+        ...draftPlant,
+        nativeStates: draftPlant.nativeStatesText
+          ? draftPlant.nativeStatesText.split(",").map((s) => s.trim()).filter(Boolean)
+          : [],
+        sources: draftPlant.sourcesText
+          ? draftPlant.sourcesText.split(",").map((s) => s.trim()).filter(Boolean)
+          : [],
+      });
 
       const res = await fetch(`${API_BASE}/api/admin/plants/${draftPlant.id}`, {
         method: "PATCH",
@@ -182,7 +209,15 @@ export default function AdminCatalogPage() {
       const savedPlant = updated.plant || updated;
 
       setPlants((prev) => prev.map((plant) => (plant.id === savedPlant.id ? savedPlant : plant)));
-      setDraftPlant(savedPlant);
+      setDraftPlant({
+        ...savedPlant,
+        nativeStatesText: Array.isArray(savedPlant.nativeStates)
+          ? savedPlant.nativeStates.join(", ")
+          : "",
+        sourcesText: Array.isArray(savedPlant.sources)
+          ? savedPlant.sources.join(", ")
+          : "",
+      });
       setSaveMessage("Plant saved successfully.");
     } catch (err) {
       setError(err.message || "Failed to save plant.");
@@ -242,26 +277,26 @@ export default function AdminCatalogPage() {
             title="Edit Catalog Plant"
           />
         </div>
+
+        <div className="paginationRow">
+          <button
+            className="secondaryBtn"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </button>
+
+          <span style={{ margin: "0 12px" }}>Page {page}</span>
+
+          <button
+            className="secondaryBtn"
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </DashboardLayout>
   );
 }
-
-<div className="paginationRow">
-  <button
-    className="secondaryBtn"
-    disabled={page <= 1}
-    onClick={() => setPage((p) => p - 1)}
-  >
-    Prev
-  </button>
-
-  <span style={{ margin: "0 12px" }}>Page {page}</span>
-
-  <button
-    className="secondaryBtn"
-    onClick={() => setPage((p) => p + 1)}
-  >
-    Next
-  </button>
-</div>

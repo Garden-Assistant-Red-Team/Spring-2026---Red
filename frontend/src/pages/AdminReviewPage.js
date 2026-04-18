@@ -25,51 +25,60 @@ export default function AdminReviewPage() {
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
 
- useEffect(() => {
-  const unsub = auth.onAuthStateChanged((user) => {
-    if (user) loadPlants(page);
-  });
-  return () => unsub();
-}, [page]);
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user) loadPlants(page);
+    });
+    return () => unsub();
+  }, [page]);
 
-  async function loadPlants(page = 1) {
-  setLoading(true);
-  setError("");
+  async function loadPlants(pageNumber = 1) {
+    setLoading(true);
+    setError("");
 
-  try {
-    const token = await auth.currentUser?.getIdToken?.();
+    try {
+      const token = await auth.currentUser?.getIdToken?.();
 
-    const res = await fetch(`${API_BASE}/api/admin/staging/plants?page=${pageNumber}`,
-      {
+      const res = await fetch(`${API_BASE}/api/admin/staging/plants?page=${pageNumber}`, {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to load review plants (${res.status})`);
       }
-    );
 
-    if (!res.ok) {
-      throw new Error(`Failed to load review plants (${res.status})`);
+      const data = await res.json();
+
+      const list = Array.isArray(data)
+        ? data
+        : data.items || data.plants || [];
+
+      setPlants(list);
+
+      if (list.length > 0) {
+        setSelectedId(list[0].id);
+        setDraftPlant({
+          ...list[0],
+          nativeStatesText: Array.isArray(list[0].nativeStates)
+            ? list[0].nativeStates.join(", ")
+            : "",
+          sourcesText: Array.isArray(list[0].sources)
+            ? list[0].sources.join(", ")
+            : "",
+        });
+      } else {
+        setSelectedId(null);
+        setDraftPlant(null);
+      }
+    } catch (err) {
+      setError(err.message || "Failed to load review plants.");
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json();
-
-    const list = Array.isArray(data)
-      ? data
-      : data.items || data.plants || [];
-
-    setPlants(list);
-
-    if (list.length > 0) {
-      setSelectedId(list[0].id);
-      setDraftPlant(list[0]);
-    }
-  } catch (err) {
-    setError(err.message || "Failed to load review plants.");
-  } finally {
-    setLoading(false);
   }
-}
 
   const filteredPlants = useMemo(
     () => plants.filter((plant) => plantMatchesSearch(plant, search)),
@@ -94,13 +103,13 @@ export default function AdminReviewPage() {
   function handleSelectPlant(plant) {
     setSelectedId(plant.id);
     setDraftPlant({
-    ...plant,
-    nativeStatesText: Array.isArray(plant.nativeStates)
-      ? plant.nativeStates.join(", ")
-      : "",
-    sourcesText: Array.isArray(plant.sources)
-      ? plant.sources.join(", ")
-      : "",
+      ...plant,
+      nativeStatesText: Array.isArray(plant.nativeStates)
+        ? plant.nativeStates.join(", ")
+        : "",
+      sourcesText: Array.isArray(plant.sources)
+        ? plant.sources.join(", ")
+        : "",
     });
     setSaveMessage("");
     setError("");
@@ -141,7 +150,15 @@ export default function AdminReviewPage() {
 
   function resetDraft() {
     if (selectedOriginalPlant) {
-      setDraftPlant(selectedOriginalPlant);
+      setDraftPlant({
+        ...selectedOriginalPlant,
+        nativeStatesText: Array.isArray(selectedOriginalPlant.nativeStates)
+          ? selectedOriginalPlant.nativeStates.join(", ")
+          : "",
+        sourcesText: Array.isArray(selectedOriginalPlant.sources)
+          ? selectedOriginalPlant.sources.join(", ")
+          : "",
+      });
       setSaveMessage("");
       setError("");
     }
@@ -160,12 +177,12 @@ export default function AdminReviewPage() {
       const payload = normalizePlantDraftForSave({
         ...draftPlant,
         nativeStates: draftPlant.nativeStatesText
-          ? draftPlant.nativeStatesText.split(",").map(s => s.trim()).filter(Boolean)
+          ? draftPlant.nativeStatesText.split(",").map((s) => s.trim()).filter(Boolean)
           : [],
         sources: draftPlant.sourcesText
-          ? draftPlant.sourcesText.split(",").map(s => s.trim()).filter(Boolean)
+          ? draftPlant.sourcesText.split(",").map((s) => s.trim()).filter(Boolean)
           : [],
-        });
+      });
 
       const res = await fetch(`${API_BASE}/api/admin/staging/plants/${draftPlant.id}`, {
         method: "PATCH",
@@ -185,7 +202,15 @@ export default function AdminReviewPage() {
       const savedPlant = updated.plant || updated;
 
       setPlants((prev) => prev.map((plant) => (plant.id === savedPlant.id ? savedPlant : plant)));
-      setDraftPlant(savedPlant);
+      setDraftPlant({
+        ...savedPlant,
+        nativeStatesText: Array.isArray(savedPlant.nativeStates)
+          ? savedPlant.nativeStates.join(", ")
+          : "",
+        sourcesText: Array.isArray(savedPlant.sources)
+          ? savedPlant.sources.join(", ")
+          : "",
+      });
       setSaveMessage("Review plant saved.");
     } catch (err) {
       setError(err.message || "Failed to save review plant.");
@@ -218,12 +243,20 @@ export default function AdminReviewPage() {
         throw new Error(text || `Failed to promote plant (${res.status})`);
       }
 
-      setPlants((prev) => prev.filter((plant) => plant.id !== draftPlant.id));
-
       const remaining = plants.filter((plant) => plant.id !== draftPlant.id);
+      setPlants(remaining);
+
       if (remaining.length > 0) {
         setSelectedId(remaining[0].id);
-        setDraftPlant(remaining[0]);
+        setDraftPlant({
+          ...remaining[0],
+          nativeStatesText: Array.isArray(remaining[0].nativeStates)
+            ? remaining[0].nativeStates.join(", ")
+            : "",
+          sourcesText: Array.isArray(remaining[0].sources)
+            ? remaining[0].sources.join(", ")
+            : "",
+        });
       } else {
         setSelectedId(null);
         setDraftPlant(null);
@@ -298,26 +331,26 @@ export default function AdminReviewPage() {
             }
           />
         </div>
+
+        <div className="paginationRow">
+          <button
+            className="secondaryBtn"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </button>
+
+          <span style={{ margin: "0 12px" }}>Page {page}</span>
+
+          <button
+            className="secondaryBtn"
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </DashboardLayout>
   );
 }
-
-<div className="paginationRow">
-  <button
-    className="secondaryBtn"
-    disabled={page <= 1}
-    onClick={() => setPage((p) => p - 1)}
-  >
-    Prev
-  </button>
-
-  <span style={{ margin: "0 12px" }}>Page {page}</span>
-
-  <button
-    className="secondaryBtn"
-    onClick={() => setPage((p) => p + 1)}
-  >
-    Next
-  </button>
-</div>
