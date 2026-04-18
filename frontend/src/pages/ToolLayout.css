@@ -2716,3 +2716,34 @@ select:focus {
   font-weight: 700;
   color: #5c6b63;
 }
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 30, 20, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.modalBox {
+  background: #ffffff;
+  width: min(92vw, 460px);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(31, 35, 31, 0.08);
+}
+
+.modalBox .panelTitle {
+  margin: 0 0 10px 0;
+}
+
+.modalBox .muted {
+  margin: 0 0 18px 0;
+}
+
+.modalBox button {
+  min-width: 120px;
+}
