@@ -191,17 +191,17 @@ export default function PlantEditorForm({
         <div className="dictionaryField adminFullWidth">
           <span>Native States (comma separated)</span>
           <input
-            value={Array.isArray(plant.nativeStates) ? plant.nativeStates.join(", ") : ""}
-            onChange={(e) => onArrayChange("nativeStates", e.target.value)}
-            placeholder="VA, NC, SC"
+          value={plant.nativeStatesText || ""}
+          onChange={(e) => onChange("nativeStatesText", e.target.value)}
+          placeholder="VA, NC, SC"
           />
         </div>
 
         <div className="dictionaryField adminFullWidth">
           <span>Sources (comma separated)</span>
           <input
-            value={Array.isArray(plant.sources) ? plant.sources.join(", ") : ""}
-            onChange={(e) => onArrayChange("sources", e.target.value)}
+            value={plant.sourcesText || ""}
+            onChange={(e) => onChange("sourcesText", e.target.value)}
             placeholder="trefle, usda, manual_review"
           />
         </div>

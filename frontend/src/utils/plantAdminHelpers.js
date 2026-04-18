@@ -41,10 +41,10 @@ export function normalizePlantDraftForSave(plant) {
     edible: !!plant.edible,
     pollinatorFriendly: !!plant.pollinatorFriendly,
     nativeStates: Array.isArray(plant.nativeStates)
-      ? plant.nativeStates.filter(Boolean).map((v) => String(v).trim().toUpperCase())
+      ? plant.nativeStates.map((s) => String(s).trim()).filter(Boolean)
       : [],
     sources: Array.isArray(plant.sources)
-      ? plant.sources.filter(Boolean).map((v) => String(v).trim())
+      ? plant.sources.map((s) => String(s).trim()).filter(Boolean)
       : [],
     imageUrl: (plant.imageUrl || "").trim(),
     slug: (plant.slug || "").trim(),

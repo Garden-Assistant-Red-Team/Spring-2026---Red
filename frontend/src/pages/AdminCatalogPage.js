@@ -17,7 +17,7 @@ export default function AdminCatalogPage() {
   const [plants, setPlants] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [draftPlant, setDraftPlant] = useState(null);
-
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,20 +25,20 @@ export default function AdminCatalogPage() {
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) loadPlants();
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user) loadPlants(page);
     });
-    return () => unsubscribe();
-  }, []);
+    return () => unsub();
+  }, [page]);
 
-  async function loadPlants() {
+  async function loadPlants(pageNumber = 1) {
     setLoading(true);
     setError("");
 
     try {
       const token = await auth.currentUser?.getIdToken?.();
 
-      const res = await fetch(`${API_BASE}/api/admin/plants`, {
+      const res = await fetch(`${API_BASE}/api/admin/plants?page=${pageNumber}`, {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -89,7 +89,15 @@ export default function AdminCatalogPage() {
 
   function handleSelectPlant(plant) {
     setSelectedId(plant.id);
-    setDraftPlant(plant);
+    setDraftPlant({
+    ...plant,
+    nativeStatesText: Array.isArray(plant.nativeStates)
+      ? plant.nativeStates.join(", ")
+      : "",
+    sourcesText: Array.isArray(plant.sources)
+      ? plant.sources.join(", ")
+      : "",
+    });
     setSaveMessage("");
     setError("");
   }
@@ -154,7 +162,7 @@ export default function AdminCatalogPage() {
 
     try {
       const token = await auth.currentUser?.getIdToken?.();
-      const payload = normalizePlantDraftForSave(draftPlant);
+      const payload = draftPlant;
 
       const res = await fetch(`${API_BASE}/api/admin/plants/${draftPlant.id}`, {
         method: "PATCH",
@@ -238,3 +246,22 @@ export default function AdminCatalogPage() {
     </DashboardLayout>
   );
 }
+
+<div className="paginationRow">
+  <button
+    className="secondaryBtn"
+    disabled={page <= 1}
+    onClick={() => setPage((p) => p - 1)}
+  >
+    Prev
+  </button>
+
+  <span style={{ margin: "0 12px" }}>Page {page}</span>
+
+  <button
+    className="secondaryBtn"
+    onClick={() => setPage((p) => p + 1)}
+  >
+    Next
+  </button>
+</div>

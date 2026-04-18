@@ -253,5 +253,31 @@ router.post("/staging/plants/:id/promote", requireAdmin, async (req, res) => {
   }
 });
 
+  
+router.post("/review-plants/:id/promote", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const stagingRef = db.collection("plantCatalog_staging").doc(id);
+    const mainRef = db.collection("plantCatalog").doc(id);
+
+    const doc = await stagingRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Staging plant not found" });
+    }
+
+    const plant = doc.data();
+
+    await mainRef.set(plant, { merge: true });
+    await stagingRef.delete();
+
+    return res.json({
+      message: "Plant promoted to catalog",
+      plant,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

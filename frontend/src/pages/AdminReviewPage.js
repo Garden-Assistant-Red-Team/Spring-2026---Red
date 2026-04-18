@@ -17,7 +17,7 @@ export default function AdminReviewPage() {
   const [plants, setPlants] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [draftPlant, setDraftPlant] = useState(null);
-
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,50 +25,51 @@ export default function AdminReviewPage() {
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
 
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
-      if (user) {
-        loadPlants();
-      } else {
-        setLoading(false);
-        setError("You must be logged into to Admin to view this page.")
-      }
-    });
+ useEffect(() => {
+  const unsub = auth.onAuthStateChanged((user) => {
+    if (user) loadPlants(page);
+  });
+  return () => unsub();
+}, [page]);
 
-    return () => unsub();
-  }, []);
+  async function loadPlants(page = 1) {
+  setLoading(true);
+  setError("");
 
-  async function loadPlants() {
-    setLoading(true);
-    setError("");
+  try {
+    const token = await auth.currentUser?.getIdToken?.();
 
-    try {
-      const token = await auth.currentUser?.getIdToken?.();
-
-      const res = await fetch(`${API_BASE}/api/admin/staging/plants`, {
+    const res = await fetch(`${API_BASE}/api/admin/staging/plants?page=${pageNumber}`,
+      {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      });
-
-      if (!res.ok) throw new Error(`Failed to load review plants (${res.status})`);
-
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : data.plants || [];
-
-      setPlants(list);
-
-      if (list.length > 0) {
-        setSelectedId(list[0].id);
-        setDraftPlant(list[0]);
       }
-    } catch (err) {
-      setError(err.message || "Failed to load review plants.");
-    } finally {
-      setLoading(false);
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to load review plants (${res.status})`);
     }
+
+    const data = await res.json();
+
+    const list = Array.isArray(data)
+      ? data
+      : data.items || data.plants || [];
+
+    setPlants(list);
+
+    if (list.length > 0) {
+      setSelectedId(list[0].id);
+      setDraftPlant(list[0]);
+    }
+  } catch (err) {
+    setError(err.message || "Failed to load review plants.");
+  } finally {
+    setLoading(false);
   }
+}
 
   const filteredPlants = useMemo(
     () => plants.filter((plant) => plantMatchesSearch(plant, search)),
@@ -92,7 +93,15 @@ export default function AdminReviewPage() {
 
   function handleSelectPlant(plant) {
     setSelectedId(plant.id);
-    setDraftPlant(plant);
+    setDraftPlant({
+    ...plant,
+    nativeStatesText: Array.isArray(plant.nativeStates)
+      ? plant.nativeStates.join(", ")
+      : "",
+    sourcesText: Array.isArray(plant.sources)
+      ? plant.sources.join(", ")
+      : "",
+    });
     setSaveMessage("");
     setError("");
   }
@@ -148,7 +157,15 @@ export default function AdminReviewPage() {
 
     try {
       const token = await auth.currentUser?.getIdToken?.();
-      const payload = normalizePlantDraftForSave(draftPlant);
+      const payload = normalizePlantDraftForSave({
+        ...draftPlant,
+        nativeStates: draftPlant.nativeStatesText
+          ? draftPlant.nativeStatesText.split(",").map(s => s.trim()).filter(Boolean)
+          : [],
+        sources: draftPlant.sourcesText
+          ? draftPlant.sourcesText.split(",").map(s => s.trim()).filter(Boolean)
+          : [],
+        });
 
       const res = await fetch(`${API_BASE}/api/admin/staging/plants/${draftPlant.id}`, {
         method: "PATCH",
@@ -188,7 +205,7 @@ export default function AdminReviewPage() {
     try {
       const token = await auth.currentUser?.getIdToken?.();
 
-      const res = await fetch(`${API_BASE}/api/admin/review-plants/${draftPlant.id}/promote`, {
+      const res = await fetch(`${API_BASE}/api/admin/staging/plants/${draftPlant.id}/promote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -285,3 +302,22 @@ export default function AdminReviewPage() {
     </DashboardLayout>
   );
 }
+
+<div className="paginationRow">
+  <button
+    className="secondaryBtn"
+    disabled={page <= 1}
+    onClick={() => setPage((p) => p - 1)}
+  >
+    Prev
+  </button>
+
+  <span style={{ margin: "0 12px" }}>Page {page}</span>
+
+  <button
+    className="secondaryBtn"
+    onClick={() => setPage((p) => p + 1)}
+  >
+    Next
+  </button>
+</div>
