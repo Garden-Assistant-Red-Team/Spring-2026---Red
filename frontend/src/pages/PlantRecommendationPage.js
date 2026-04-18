@@ -91,6 +91,7 @@ export default function PlantRecommendationPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [addedIds, setAddedIds] = useState(new Set());
+  const [locationModalPlant, setLocationModalPlant] = useState(null);
 
   const [filters, setFilters] = useState({
     flower: false,
@@ -98,6 +99,7 @@ export default function PlantRecommendationPage() {
     shrub: false,
     edible: false,
     pollinatorFriendly: false,
+    nativeOnly: false,
   });
 
   useEffect(() => {
@@ -159,8 +161,20 @@ export default function PlantRecommendationPage() {
     }
   }
 
-  async function addToGarden(plant) {
-    if (!auth.currentUser) return alert("You must be logged in.");
+  function addToGarden(plant) {
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    setLocationModalPlant(plant);
+  }
+
+  async function confirmAddToGarden(plant, locationType) {
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
 
     const user = auth.currentUser;
     const uid = user.uid;
@@ -202,6 +216,7 @@ export default function PlantRecommendationPage() {
 
           source: "recommendations",
           plantId: plant.id,
+          locationType,
         }),
       });
 
@@ -209,6 +224,7 @@ export default function PlantRecommendationPage() {
       if (!res.ok) throw new Error(json?.error || "Failed to add plant");
 
       setAddedIds((prev) => new Set(prev).add(plant.id));
+      setLocationModalPlant(null);
       alert(`${plant.commonName || plant.scientificName} added to your garden! 🌿`);
     } catch (e) {
       alert(e.message);
@@ -227,7 +243,9 @@ export default function PlantRecommendationPage() {
   const zoneMatches = data?.sections?.zoneMatches || [];
   const userContext = data?.userContext || {};
   const sunlightLabel = prettySunlight(
-    Array.isArray(userContext.sunlight) ? userContext.sunlight : [userContext.sunlight].filter(Boolean)
+    Array.isArray(userContext.sunlight)
+      ? userContext.sunlight
+      : [userContext.sunlight].filter(Boolean)
   );
 
   return (
@@ -272,7 +290,11 @@ export default function PlantRecommendationPage() {
           </div>
 
           {error && <p style={{ color: "crimson", marginTop: 10 }}>{error}</p>}
-          {loading && <p className="muted" style={{ marginTop: 10 }}>Loading recommendations...</p>}
+          {loading && (
+            <p className="muted" style={{ marginTop: 10 }}>
+              Loading recommendations...
+            </p>
+          )}
         </section>
 
         <div className="recLayout">
@@ -322,15 +344,26 @@ export default function PlantRecommendationPage() {
                 )}
 
                 <div className="recDetailsFacts">
-                  <div><strong>Zones:</strong> {selected.minZone != null && selected.maxZone != null ? `${selected.minZone}–${selected.maxZone}` : "Unknown"}</div>
+                  <div>
+                    <strong>Zones:</strong>{" "}
+                    {selected.minZone != null && selected.maxZone != null
+                      ? `${selected.minZone}–${selected.maxZone}`
+                      : "Unknown"}
+                  </div>
                   {prettySunlight(selected.sunlight) && (
-                    <div><strong>Sunlight:</strong> {prettySunlight(selected.sunlight)}</div>
+                    <div>
+                      <strong>Sunlight:</strong> {prettySunlight(selected.sunlight)}
+                    </div>
                   )}
                   {selected.duration && (
-                    <div><strong>Duration:</strong> {selected.duration}</div>
+                    <div>
+                      <strong>Duration:</strong> {selected.duration}
+                    </div>
                   )}
                   {selected.nativeStates?.length > 0 && (
-                    <div><strong>Native States:</strong> {selected.nativeStates.join(", ")}</div>
+                    <div>
+                      <strong>Native States:</strong> {selected.nativeStates.join(", ")}
+                    </div>
                   )}
                 </div>
 
@@ -370,6 +403,47 @@ export default function PlantRecommendationPage() {
             )}
           </aside>
         </div>
+
+        {locationModalPlant && (
+          <div className="modalOverlay">
+            <div className="modalBox">
+              <h3 className="panelTitle" style={{ marginBottom: 12 }}>
+                Choose Plant Location
+              </h3>
+
+              <p className="muted" style={{ marginBottom: 16 }}>
+                Is {locationModalPlant.commonName || locationModalPlant.scientificName} an indoor
+                plant or an outdoor plant in your garden?
+              </p>
+
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="primaryBtn"
+                  onClick={() => confirmAddToGarden(locationModalPlant, "indoor")}
+                >
+                  Indoor
+                </button>
+
+                <button
+                  type="button"
+                  className="primaryBtn"
+                  onClick={() => confirmAddToGarden(locationModalPlant, "outdoor")}
+                >
+                  Outdoor
+                </button>
+
+                <button
+                  type="button"
+                  className="secondaryBtn"
+                  onClick={() => setLocationModalPlant(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

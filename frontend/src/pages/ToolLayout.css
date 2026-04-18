@@ -2623,3 +2623,96 @@ select:focus {
   color: #6b7280;
   padding-left: 4px;
 }
+.remindersFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.remindersFormGrid .mgEditField {
+  min-width: 0;
+}
+
+.remindersFormGrid .dashboardInput,
+.remindersFormGrid select,
+.remindersFormGrid input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.remindersFormGrid input[type="datetime-local"] {
+  min-width: 0;
+}
+
+.remindersScrollList {
+  max-height: 700px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.remindersScrollList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.remindersScrollList::-webkit-scrollbar-thumb {
+  background: rgba(31, 35, 31, 0.18);
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .remindersFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .remindersScrollList {
+    max-height: 500px;
+  }
+}
+.calendarReminder {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #173226;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendarReminder.water {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.calendarReminder.fertilize {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.calendarReminder.prune {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.calendarReminder.custom {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.calendarReminderList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.calendarReminderMore {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5c6b63;
+}

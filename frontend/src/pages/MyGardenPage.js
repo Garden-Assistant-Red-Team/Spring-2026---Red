@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./ToolLayout.css";
 
-import PlantIdentifyUpload from "../components/PlantIdentifyUpload";
-
 import { requestNotificationPermission } from "../firebase-messaging";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -37,6 +35,76 @@ function getReminderTypeClass(type) {
   if (type === "fertilize") return "fertilize";
   if (type === "prune") return "prune";
   return "custom";
+}
+function toReminderDate(dueAtValue) {
+  if (!dueAtValue) return null;
+  if (dueAtValue instanceof Date) return dueAtValue;
+  if (dueAtValue?._seconds) return new Date(dueAtValue._seconds * 1000);
+  return new Date(dueAtValue);
+}
+
+function expandRecurringForDays(reminder, daysAhead = 7) {
+  const baseDue = toReminderDate(reminder.dueAt);
+  if (!baseDue || Number.isNaN(baseDue.getTime())) return [];
+
+  const every = reminder?.recurrence?.everyDays
+    ? Number(reminder.recurrence.everyDays)
+    : reminder?.frequency === "daily"
+      ? 1
+      : reminder?.frequency === "every2days"
+        ? 2
+        : reminder?.frequency === "weekly"
+          ? 7
+          : reminder?.frequency === "biweekly"
+            ? 14
+            : reminder?.frequency === "monthly"
+              ? 30
+              : null;
+
+  const lastCompleted = toReminderDate(reminder.lastCompletedAt);
+  const lastSkipped = toReminderDate(reminder.lastSkippedAt);
+  const lastAction =
+    lastCompleted && lastSkipped
+      ? lastCompleted > lastSkipped
+        ? lastCompleted
+        : lastSkipped
+      : lastCompleted || lastSkipped || null;
+
+  if (!every || !Number.isFinite(every) || every <= 0) {
+    return [
+      {
+        ...reminder,
+        _virtualKey: reminder.id,
+        _occurrenceDueAtISO: baseDue.toISOString(),
+      },
+    ];
+  }
+
+  const now = new Date();
+  const end = new Date();
+  end.setDate(end.getDate() + daysAhead);
+
+  let d = new Date(baseDue);
+  const cutoff = lastAction && lastAction > now ? lastAction : lastAction || now;
+
+  while (d <= cutoff) d.setDate(d.getDate() + every);
+
+  const out = [];
+  let safety = 0;
+
+  while (d <= end && safety < 200) {
+    out.push({
+      ...reminder,
+      dueAt: new Date(d),
+      _virtualKey: `${reminder.id}-${d.toISOString()}`,
+      _isVirtual: true,
+      _occurrenceDueAtISO: d.toISOString(),
+    });
+    d.setDate(d.getDate() + every);
+    safety++;
+  }
+
+  return out;
 }
 
 function formatSunlightValue(sunlight) {
@@ -133,6 +201,7 @@ export default function MyGardenPage() {
   });
 
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [locationModalPlant, setLocationModalPlant] = useState(null);
 
   const [sidebarWeather, setSidebarWeather] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
@@ -175,6 +244,11 @@ export default function MyGardenPage() {
   const todayTasksCount = useMemo(() => {
     return checklistItems.filter((item) => !item.done && item.dueDate === todayIso).length;
   }, [checklistItems, todayIso]);
+  const expandedUpcomingReminders = useMemo(() => {
+  return reminders
+    .filter((r) => r.status === "pending")
+    .flatMap((r) => expandRecurringForDays(r, 7));
+}, [reminders]);
 
    const upcomingWeek = useMemo(() => {
     const start = new Date();
@@ -187,13 +261,11 @@ export default function MyGardenPage() {
 
       const itemsForDay = checklistItems.filter((item) => item.dueDate === iso);
 
-      const remindersForDay = reminders.filter((r) => {
-        if (r.status !== "pending") return false;
-        const date = r.dueAt?._seconds
-          ? new Date(r.dueAt._seconds * 1000)
-          : new Date(r.dueAt);
-        return date.toISOString().split("T")[0] === iso;
-      });
+  const remindersForDay = expandedUpcomingReminders.filter((r) => {
+  const date = toReminderDate(r.dueAt);
+  if (!date || Number.isNaN(date.getTime())) return false;
+  return date.toISOString().split("T")[0] === iso;
+});
 
       return {
         iso,
@@ -204,7 +276,7 @@ export default function MyGardenPage() {
         reminderItems: remindersForDay,
       };
     });
-  }, [checklistItems, reminders]);
+  }, [checklistItems, expandedUpcomingReminders]);
 
   useEffect(() => {
     async function setupNotifications() {
@@ -395,83 +467,84 @@ export default function MyGardenPage() {
     loadRecommendations();
   }, []);
 
-  async function addToGarden(p) {
-    try {
-      if (!auth.currentUser) {
-        alert("You must be logged in.");
-        return;
-      }
-
-      const locationType = window.prompt(
-        "Is this plant indoor or outdoor? Type: indoor or outdoor"
-      );
-
-      if (!locationType || !["indoor", "outdoor"].includes(locationType.toLowerCase())) {
-        alert("Please enter 'indoor' or 'outdoor'");
-        return;
-      }
-
-      const uid = auth.currentUser.uid;
-
-      const body = {
-        name: p.scientificName || p.commonName || p.name || p.id,
-        commonName: p.commonName || null,
-        scientificName: p.scientificName || null,
-        plantId: p.id || p.plantId || null,
-        trefle_id:
-          typeof p.trefle_id === "number"
-            ? p.trefle_id
-            : typeof p.trefleId === "number"
-              ? p.trefleId
-              : null,
-        minZone: typeof p.minZone === "number" ? p.minZone : null,
-        maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
-        sunlight: p.sunlight || null,
-        wateringProfile: p.wateringProfile || null,
-        wateringEveryDays: p.wateringEveryDays ?? null,
-        wateringFrequency: p.wateringFrequency || p.wateringEveryDays || null,
-        duration: p.duration || null,
-        imageUrl: p.imageUrl || null,
-
-        difficulty: p.difficulty || null,
-        fertilizeEveryDays: p.fertilizeEveryDays ?? null,
-        pruneEveryDays: p.pruneEveryDays ?? null,
-        repotEveryDays: p.repotEveryDays ?? null,
-
-        potType: p.potType || null,
-        soilType: p.soilType || null,
-        lighting: p.lighting || null,
-        humidity: p.humidity || null,
-        hibernation: p.hibernation || null,
-        temperatureMin: p.temperatureMin ?? null,
-        temperatureMax: p.temperatureMax ?? null,
-
-        reason: p.reason || null,
-        source: p.source || "recommendations",
-        confidence: typeof p.confidence === "number" ? p.confidence : null,
-        photoUrl: p.photoUrl || null,
-        locationType: locationType.toLowerCase(),
-      };
-
-      const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data?.error || "Failed to add plant");
-        return;
-      }
-
-      alert("Added to My Garden 🌿");
-      await loadSavedPlants();
-    } catch (e) {
-      console.error(e);
-      alert("Server error while adding plant.");
-    }
+  function addToGarden(p) {
+  if (!auth.currentUser) {
+    alert("You must be logged in.");
+    return;
   }
+
+  setLocationModalPlant(p);
+}
+
+async function confirmAddToGarden(p, locationType) {
+  try {
+    if (!auth.currentUser) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    const uid = auth.currentUser.uid;
+
+    const body = {
+      name: p.scientificName || p.commonName || p.name || p.id,
+      commonName: p.commonName || null,
+      scientificName: p.scientificName || null,
+      plantId: p.id || p.plantId || null,
+      trefle_id:
+        typeof p.trefle_id === "number"
+          ? p.trefle_id
+          : typeof p.trefleId === "number"
+            ? p.trefleId
+            : null,
+      minZone: typeof p.minZone === "number" ? p.minZone : null,
+      maxZone: typeof p.maxZone === "number" ? p.maxZone : null,
+      sunlight: p.sunlight || null,
+      wateringProfile: p.wateringProfile || null,
+      wateringEveryDays: p.wateringEveryDays ?? null,
+      wateringFrequency: p.wateringFrequency || p.wateringEveryDays || null,
+      duration: p.duration || null,
+      imageUrl: p.imageUrl || null,
+
+      difficulty: p.difficulty || null,
+      fertilizeEveryDays: p.fertilizeEveryDays ?? null,
+      pruneEveryDays: p.pruneEveryDays ?? null,
+      repotEveryDays: p.repotEveryDays ?? null,
+
+      potType: p.potType || null,
+      soilType: p.soilType || null,
+      lighting: p.lighting || null,
+      humidity: p.humidity || null,
+      hibernation: p.hibernation || null,
+      temperatureMin: p.temperatureMin ?? null,
+      temperatureMax: p.temperatureMax ?? null,
+
+      reason: p.reason || null,
+      source: p.source || "recommendations",
+      confidence: typeof p.confidence === "number" ? p.confidence : null,
+      photoUrl: p.photoUrl || null,
+      locationType,
+    };
+
+    const res = await authFetch(`${API_BASE}/api/garden/${uid}/plants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data?.error || "Failed to add plant");
+      return;
+    }
+
+    setLocationModalPlant(null);
+    alert("Added to My Garden 🌿");
+    await loadSavedPlants();
+  } catch (e) {
+    console.error(e);
+    alert("Server error while adding plant.");
+  }
+}
 
   async function deletePlant(plantDocId) {
     if (!auth.currentUser) {
@@ -992,7 +1065,7 @@ export default function MyGardenPage() {
                     <div className="calendarReminderList">
                       {day.reminderItems.slice(0, 4).map((reminder) => (
                         <div
-                          key={reminder.id}
+                          key={reminder._virtualKey || reminder.id}
                           className={`calendarReminder ${getReminderTypeClass(reminder.type)}`}
                           title={reminder.title}
                         >
@@ -1630,14 +1703,6 @@ export default function MyGardenPage() {
                 ))}
               </div>
 
-              <div className="sidebarBlock">
-                <div className="sectionHeader">
-                  <h3 className="subsectionTitle">Plant Identification</h3>
-                </div>
-                <div className="softCard">
-                  <PlantIdentifyUpload onAddToGarden={addToGarden} />
-                </div>
-              </div>
             </>
           )}
        </section>
@@ -1680,7 +1745,47 @@ export default function MyGardenPage() {
   </div>
 </section>
 
-</main>
+        {locationModalPlant && (
+          <div className="modalOverlay">
+            <div className="modalBox">
+              <h3 className="panelTitle" style={{ marginBottom: 12 }}>
+                Choose Plant Location
+              </h3>
+
+              <p className="muted" style={{ marginBottom: 16 }}>
+                Is {locationModalPlant.commonName || locationModalPlant.scientificName || "this plant"} an indoor
+                plant or an outdoor plant in your garden?
+              </p>
+
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="primaryBtn"
+                  onClick={() => confirmAddToGarden(locationModalPlant, "indoor")}
+                >
+                  Indoor
+                </button>
+
+                <button
+                  type="button"
+                  className="primaryBtn"
+                  onClick={() => confirmAddToGarden(locationModalPlant, "outdoor")}
+                >
+                  Outdoor
+                </button>
+
+                <button
+                  type="button"
+                  className="secondaryBtn"
+                  onClick={() => setLocationModalPlant(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

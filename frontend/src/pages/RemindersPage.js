@@ -19,7 +19,6 @@ export default function RemindersPage() {
   const [plantId, setPlantId] = useState("");
   const [frequency, setFrequency] = useState("weekly");
 
-
   async function authFetch(url, options = {}) {
     const token = await auth.currentUser.getIdToken();
     return fetch(url, {
@@ -27,8 +26,8 @@ export default function RemindersPage() {
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
@@ -55,9 +54,9 @@ export default function RemindersPage() {
     const d = r?.recurrence?.everyDays;
     if (!d) return "";
     if (d === 1) return "daily";
-    if (d === 2) return "every2days";
+    if (d === 2) return "every 2 days";
     if (d === 7) return "weekly";
-    if (d === 14) return "biweekly";
+    if (d === 14) return "every 2 weeks";
     if (d === 30) return "monthly";
     return `every ${d} days`;
   }
@@ -174,7 +173,6 @@ export default function RemindersPage() {
 
       const res = await authFetch(`${API_BASE}/api/reminders/${uid}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
           dueAt,
@@ -210,7 +208,6 @@ export default function RemindersPage() {
 
     const res = await authFetch(`${API_BASE}/api/reminders/${uid}/${reminderId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
@@ -248,10 +245,27 @@ export default function RemindersPage() {
     });
   }
 
+  function formatDueTime(dueAtValue) {
+    const date = toDate(dueAtValue);
+    if (!date || Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
   function getPlantNameFromReminder(r) {
     if (!r?.plantInstanceId) return "";
     const p = plants.find((x) => x.id === r.plantInstanceId);
     return p ? p.commonName || p.name || "" : "";
+  }
+
+  function getTypeLabel(reminderType) {
+    if (reminderType === "water") return "Water";
+    if (reminderType === "fertilize") return "Fertilize";
+    if (reminderType === "prune") return "Prune";
+    return "Custom";
   }
 
   const upcomingItems = useMemo(() => {
@@ -266,6 +280,14 @@ export default function RemindersPage() {
       });
   }, [reminders]);
 
+  const dueTodayCount = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return upcomingItems.filter((r) => {
+      const d = toDate(r.dueAt);
+      return d && d.toISOString().split("T")[0] === today;
+    }).length;
+  }, [upcomingItems]);
+
   return (
     <DashboardLayout
       title="Reminders"
@@ -273,79 +295,139 @@ export default function RemindersPage() {
       badge={`${upcomingItems.length} upcoming`}
     >
       <div className="container">
-        <div className="toolGrid" style={{ gridTemplateColumns: "1fr 1.2fr 1fr" }}>
+        <section className="summaryGrid">
+          <div className="summaryCard">
+            <span className="summaryLabel">Upcoming</span>
+            <span className="summaryValue">{upcomingItems.length}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Due Today</span>
+            <span className="summaryValue">{dueTodayCount}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Saved Plants</span>
+            <span className="summaryValue">{plants.length}</span>
+          </div>
+
+          <div className="summaryCard">
+            <span className="summaryLabel">Selected</span>
+            <span className="summaryValue">
+              {selected ? getTypeLabel(selected.type) : "None"}
+            </span>
+          </div>
+        </section>
+
+        <div className="mgPageGrid">
           <section className="panel">
-            <h2 className="panelTitle">Create Reminder</h2>
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Create Reminder</h2>
+              <span className="sectionPill">New</span>
+            </div>
 
-            <label className="field">
-              <span>Plant</span>
-              <select value={plantId} onChange={(e) => setPlantId(e.target.value)}>
-                <option value="">Select plant</option>
-                {plants.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.commonName || p.name || "Unnamed plant"}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {!auth.currentUser ? (
+              <p className="muted">Log in to create reminders.</p>
+            ) : (
+              <div className="editorCard">
+                <div className="mgEditGrid remindersFormGrid">
+                  <div className="mgEditField">
+                    <label>Plant</label>
+                    <select
+                      value={plantId}
+                      onChange={(e) => setPlantId(e.target.value)}
+                      className="dashboardInput"
+                    >
+                      <option value="">Select plant</option>
+                      {plants.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.commonName || p.name || "Unnamed plant"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-            <label className="field">
-              <span>Title</span>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Prune rose bush"
-              />
-            </label>
+                  <div className="mgEditField">
+                    <label>Title</label>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="e.g. Prune rose bush"
+                      className="dashboardInput"
+                    />
+                  </div>
 
-            <label className="field">
-              <span>Due date</span>
-              <input
-                type="datetime-local"
-                value={dueAt}
-                onChange={(e) => setDueAt(e.target.value)}
-              />
-            </label>
+                  <div className="mgEditField">
+                    <label>Due date</label>
+                    <input
+                      type="datetime-local"
+                      value={dueAt}
+                      onChange={(e) => setDueAt(e.target.value)}
+                      className="dashboardInput"
+                    />
+                  </div>
 
-            <label className="field">
-              <span>Type</span>
-              <select value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="water">Water</option>
-                <option value="fertilize">Fertilize</option>
-                <option value="prune">Prune</option>
-                <option value="custom">Custom</option>
-              </select>
-            </label>
+                  <div className="mgEditField">
+                    <label>Type</label>
+                    <select
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      className="dashboardInput"
+                    >
+                      <option value="water">Water</option>
+                      <option value="fertilize">Fertilize</option>
+                      <option value="prune">Prune</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
 
-            <label className="field">
-              <span>Frequency</span>
-              <select value={frequency} onChange={(e) => setFrequency(e.target.value)}>
-                <option value="daily">Daily</option>
-                <option value="every2days">Every 2 days</option>
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Every 2 weeks</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </label>
+                  <div className="mgEditField">
+                    <label>Frequency</label>
+                    <select
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      className="dashboardInput"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="every2days">Every 2 days</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Every 2 weeks</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                </div>
 
-            <button
-              className="primaryBtn"
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? "Adding..." : "Add Reminder"}
-            </button>
+                <div className="actionRow">
+                  <button
+                    className="primaryBtn"
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Adding..." : "Add Reminder"}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="panel">
-            <h2 className="panelTitle">Upcoming</h2>
+            <div className="sectionHeader">
+              <h2 className="panelTitle">Upcoming</h2>
+              <span className="sectionPill">{upcomingItems.length}</span>
+            </div>
 
             {!auth.currentUser && <p className="muted">Log in to view reminders.</p>}
             {loading && <p className="muted">Loading...</p>}
-            {error && <p style={{ color: "crimson" }}>{error}</p>}
+            {error && <p className="errorText">{error}</p>}
 
-            <div className="listBox">
+            {!loading && auth.currentUser && upcomingItems.length === 0 && (
+              <div className="softCard">
+                <p className="muted">No upcoming reminders in the next 7 days.</p>
+              </div>
+            )}
+
+            <div className="taskList remindersScrollList">
               {upcomingItems.map((r) => {
                 const plantName = r.plantName || getPlantNameFromReminder(r);
                 const freqLabel = displayFrequencyLabel(r);
@@ -355,87 +437,128 @@ export default function RemindersPage() {
                 return (
                   <button
                     key={r._virtualKey || r.id}
-                    className="listItem"
                     type="button"
+                    className={`taskCard ${isSelected ? "active" : ""}`}
                     onClick={() => setSelected(r)}
                     style={{
+                      textAlign: "left",
+                      width: "100%",
+                      background: "#fff",
                       border: isSelected
                         ? "2px solid rgba(90,139,98,0.45)"
-                        : "1px solid rgba(31,35,31,0.1)",
+                        : "1px solid rgba(31,35,31,0.08)",
+                      cursor: "pointer",
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <span style={{ fontWeight: 700 }}>{r.title}</span>
-                      <span className="muted">{formatDue(r.dueAt)}</span>
-                    </div>
-
-                    {plantName ? (
-                      <div className="muted" style={{ marginTop: 6 }}>
-                        Plant: {plantName}
+                    <div className="taskContent" style={{ width: "100%" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          alignItems: "flex-start",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div className="taskText">{r.title}</div>
+                        <div className="sectionPill">
+                          {formatDue(r.dueAt)} {formatDueTime(r.dueAt)}
+                        </div>
                       </div>
-                    ) : null}
 
-                    <div className="muted" style={{ marginTop: 6 }}>
-                      Type: {r.type || "custom"} {freqLabel ? `• ${freqLabel}` : ""}
+                      {plantName && (
+                        <div className="taskMeta" style={{ marginTop: 6 }}>
+                          Plant: {plantName}
+                        </div>
+                      )}
+
+                      <div className="taskMeta" style={{ marginTop: 4 }}>
+                        Type: {getTypeLabel(r.type)} {freqLabel ? `• ${freqLabel}` : ""}
+                      </div>
                     </div>
                   </button>
                 );
               })}
-
-              {!loading && auth.currentUser && upcomingItems.length === 0 && (
-                <p className="muted">No upcoming reminders in the next 7 days.</p>
-              )}
             </div>
           </section>
+        </div>
 
-          <section className="panel">
+        <section className="panel">
+          <div className="sectionHeader">
             <h2 className="panelTitle">Selected Reminder</h2>
+            <span className="sectionPill">{selected ? "Details" : "None"}</span>
+          </div>
 
-            {!selected ? (
+          {!selected ? (
+            <div className="softCard">
               <p className="muted">Click a reminder to see details.</p>
-            ) : (
-              <div className="toolContentStack">
-                <div className="issueBox">
-                  <div style={{ fontWeight: 800, fontSize: 18 }}>{selected.title}</div>
+            </div>
+          ) : (
+            <div className="mgDetailPanel">
+              <div className="selectedPlantHero">
+                <div className="selectedPlantIcon">⏰</div>
 
-                  <div className="muted" style={{ marginTop: 8 }}>
-                    Due: {formatDue(selected.dueAt)}
-                  </div>
+                <div className="selectedPlantInfo">
+                  <h3 className="selectedPlantName">{selected.title}</h3>
 
-                  <div className="muted" style={{ marginTop: 6 }}>
-                    Plant: {selected.plantName || getPlantNameFromReminder(selected) || "None"}
-                  </div>
-
-                  <div className="muted" style={{ marginTop: 6 }}>
-                    Type: {selected.type || "custom"}
-                  </div>
-
-                  <div className="muted" style={{ marginTop: 6 }}>
-                    Frequency: {displayFrequencyLabel(selected) || "one time"}
+                  <div className="tagRow">
+                    <span className="tag">{getTypeLabel(selected.type)}</span>
+                    <span className="tag">{displayFrequencyLabel(selected) || "one time"}</span>
+                    <span className="tag">{formatDue(selected.dueAt)}</span>
+                    {formatDueTime(selected.dueAt) && (
+                      <span className="tag">{formatDueTime(selected.dueAt)}</span>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                <div className="splitActions">
-                  <button
-                    className="primaryBtn"
-                    type="button"
-                    onClick={() =>
-                      updateStatus(selected.id, "done", selected._occurrenceDueAtISO)
-                    }
-                  >
-                    Mark Done
-                  </button>
-
-                  <button
-                    className="secondaryBtn"
-                    type="button"
-                    onClick={() =>
-                      updateStatus(selected.id, "skipped", selected._occurrenceDueAtISO)
-                    }
-                  >
-                    Skip
-                  </button>
+              <div className="mgCareGrid" style={{ marginTop: 18 }}>
+                <div className="mgCareCard">
+                  <span className="mgCareLabel">Plant</span>
+                  <strong>
+                    {selected.plantName || getPlantNameFromReminder(selected) || "None"}
+                  </strong>
                 </div>
+
+                <div className="mgCareCard">
+                  <span className="mgCareLabel">Type</span>
+                  <strong>{getTypeLabel(selected.type)}</strong>
+                </div>
+
+                <div className="mgCareCard">
+                  <span className="mgCareLabel">Frequency</span>
+                  <strong>{displayFrequencyLabel(selected) || "one time"}</strong>
+                </div>
+
+                <div className="mgCareCard">
+                  <span className="mgCareLabel">Due</span>
+                  <strong>
+                    {formatDue(selected.dueAt)}
+                    {formatDueTime(selected.dueAt) ? ` at ${formatDueTime(selected.dueAt)}` : ""}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="actionRow" style={{ marginTop: 20 }}>
+                <button
+                  className="primaryBtn"
+                  type="button"
+                  onClick={() =>
+                    updateStatus(selected.id, "done", selected._occurrenceDueAtISO)
+                  }
+                >
+                  Mark Done
+                </button>
+
+                <button
+                  className="secondaryBtn"
+                  type="button"
+                  onClick={() =>
+                    updateStatus(selected.id, "skipped", selected._occurrenceDueAtISO)
+                  }
+                >
+                  Skip
+                </button>
 
                 <button
                   className="dangerBtn"
@@ -445,9 +568,9 @@ export default function RemindersPage() {
                   Delete Reminder
                 </button>
               </div>
-            )}
-          </section>
-        </div>
+            </div>
+          )}
+        </section>
       </div>
     </DashboardLayout>
   );
