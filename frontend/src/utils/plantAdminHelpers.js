@@ -52,40 +52,43 @@ export function normalizePlantDraftForSave(plant) {
   };
 }
 
-export function validatePlantDraft(plant) {
+function safeArray(value) {
+  if (Array.isArray(value)) return value;
+  return [];
+}
+
+export function validatePlantDraft(draft) {
   const errors = {};
 
-  const commonName = (plant.commonName || "").trim();
-  const scientificName = (plant.scientificName || "").trim();
+  const sunlight = safeArray(draft.sunlight);
 
-  if (!commonName && !scientificName) {
-    errors.identity = "Plant should have at least a common name or scientific name.";
+  // 🔥 IMPORTANT: use TEXT fields here, not raw fields
+  const nativeStates = draft.nativeStatesText
+    ? draft.nativeStatesText.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  const sources = draft.sourcesText
+    ? draft.sourcesText.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  if (!draft.commonName?.trim()) {
+    errors.commonName = "Required";
   }
 
-  if (
-    plant.minZone !== "" &&
-    plant.minZone != null &&
-    plant.maxZone !== "" &&
-    plant.maxZone != null &&
-    Number(plant.minZone) > Number(plant.maxZone)
-  ) {
-    errors.zone = "Min zone cannot be greater than max zone.";
+  if (!draft.scientificName?.trim()) {
+    errors.scientificName = "Required";
   }
 
-  if (
-    plant.wateringEveryDays !== "" &&
-    plant.wateringEveryDays != null &&
-    Number(plant.wateringEveryDays) <= 0
-  ) {
-    errors.wateringEveryDays = "Watering Every Days must be greater than 0.";
+  if (!draft.slug?.trim()) {
+    errors.slug = "Required";
   }
 
-  const badSunlight = (plant.sunlight || []).filter(
-    (value) => !ALLOWED_SUNLIGHT.includes(String(value).trim().toLowerCase())
-  );
+  if (!draft.canonicalKey?.trim()) {
+    errors.canonicalKey = "Required";
+  }
 
-  if (badSunlight.length > 0) {
-    errors.sunlight = `Invalid sunlight value(s): ${badSunlight.join(", ")}`;
+  if (sunlight.length === 0) {
+    errors.sunlight = "Select at least one sunlight option";
   }
 
   return errors;

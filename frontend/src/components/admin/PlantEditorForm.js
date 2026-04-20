@@ -178,7 +178,7 @@ export default function PlantEditorForm({
               <label key={value} className="adminCheckboxCard">
                 <input
                   type="checkbox"
-                  checked={(plant.sunlight || []).includes(value)}
+                  checked={(Array.isArray(plant.sunlight) ? plant.sunlight : []).includes(value)}
                   onChange={() => onSunlightToggle(value)}
                 />
                 <span>{value}</span>
