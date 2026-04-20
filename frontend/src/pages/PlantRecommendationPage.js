@@ -306,12 +306,6 @@ export default function PlantRecommendationPage() {
               setSelected={setSelected}
             />
             <Section
-              title="Native to Your State"
-              plants={nativePlants}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Section
               title="Matches Your Zone"
               plants={zoneMatches}
               selected={selected}
