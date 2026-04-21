@@ -4,13 +4,23 @@ export function plantMatchesSearch(plant, query) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
 
+  const sunlight = Array.isArray(plant.sunlight)
+    ? plant.sunlight
+    : typeof plant.sunlight === "string"
+    ? plant.sunlight.split(",").map(s => s.trim())
+    : [];
+
+  const nativeStates = Array.isArray(plant.nativeStates)
+    ? plant.nativeStates
+    : [];
+
   const haystack = [
     plant.commonName,
     plant.scientificName,
     plant.canonicalKey,
     plant.slug,
-    ...(plant.nativeStates || []),
-    ...(plant.sunlight || []),
+    ...nativeStates,
+    ...sunlight,
   ]
     .filter(Boolean)
     .join(" ")
